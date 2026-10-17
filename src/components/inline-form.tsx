@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2Icon, PlusIcon } from "lucide-react";
-import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { Button, type ButtonProps } from "@/components/ui/button";
@@ -38,17 +38,18 @@ export function FormDialog({
   submitLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useActionState(action as (p: unknown, f: FormData) => Promise<ActionResult<unknown>>, null);
-  const last = useRef<unknown>(null);
-  useEffect(() => {
-    if (!state || state === last.current) return;
-    last.current = state;
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
+  async function formAction(fd: FormData) {
+    const state = (await action(null, fd)) as ActionResult<unknown>;
     if (state.ok) {
       toast.success(state.message ?? "Enregistré.");
+      setErrors({});
       setOpen(false);
-    } else toast.error(state.error);
-  }, [state]);
-  const errors = state && !state.ok ? (state.fieldErrors ?? {}) : {};
+    } else {
+      toast.error(state.error);
+      setErrors(state.fieldErrors ?? {});
+    }
+  }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
