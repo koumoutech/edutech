@@ -3922,7 +3922,9 @@ export type Database = {
       incomplete_student_files: { Args: { p_school: string; p_limit?: number }; Returns: { student_id: string; first_name: string; last_name: string; matricule: string; missing: string[] }[] };
       issue_invoice: { Args: { p_invoice: string }; Returns: undefined };
       log_export: { Args: { p_school: string; p_kind: string; p_rows: number }; Returns: undefined };
+      message_directory: { Args: { p_school: string }; Returns: { user_id: string; full_name: string; role_names: string }[] };
       my_context: { Args: Record<PropertyKey, never>; Returns: Json };
+      notify_request_update: { Args: { p_request: string }; Returns: undefined };
       notify_timetable_change: { Args: { p_entry: string; p_title: string; p_body?: string }; Returns: number };
       publish_announcement: { Args: { p_id: string }; Returns: number };
       record_payment: { Args: { p_school: string; p_student: string; p_amount: number; p_method: string; p_reference?: string; p_payer_name?: string; p_paid_at?: string; p_allocations?: Json; p_notes?: string }; Returns: string };
@@ -3952,6 +3954,7 @@ export type Database = {
       stats_students_at_risk: { Args: { p_school: string; p_term: string; p_limit?: number }; Returns: { student_id: string; first_name: string; last_name: string; class_name: string; average: number }[] };
       stats_term_averages: { Args: { p_school: string; p_year: string }; Returns: { term_id: string; term_name: string; term_position: number; average: number; students: number }[] };
       stats_top_absentees: { Args: { p_school: string; p_from: string; p_to: string; p_limit?: number }; Returns: { student_id: string; first_name: string; last_name: string; class_name: string; absences: number; lates: number; unjustified: number }[] };
+      thread_participants: { Args: { p_thread: string }; Returns: { user_id: string; full_name: string }[] };
       withdraw_student: { Args: { p_student: string; p_status: string; p_reason: string }; Returns: undefined };
     };
     Enums: { [_ in never]: never };
