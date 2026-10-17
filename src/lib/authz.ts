@@ -130,7 +130,8 @@ export function canSchoolWide(subject: AuthzSubject, permission: Permission): bo
   return scopesFor(subject, permission).includes("school");
 }
 
-export type DashboardKind = "direction" | "academic" | "teacher" | "secretary" | "accountant" | "hr" | "staff" | "parent" | "student";
+export type DashboardKind =
+  "direction" | "academic" | "teacher" | "secretary" | "accountant" | "hr" | "staff" | "parent" | "student";
 
 const DASHBOARD_PRIORITY: [RoleKey, DashboardKind][] = [
   ["school_admin", "direction"],

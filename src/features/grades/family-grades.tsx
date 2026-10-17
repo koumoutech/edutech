@@ -10,16 +10,31 @@ import { assessmentFrame, studentGrades } from "@/server/services/assessments";
 import { linkedChildren } from "@/server/services/dashboard";
 
 /** Published results of the student (self) or of the parent's children (linked). */
-export async function FamilyGrades({ ctx, termParam, studentId }: { ctx: AppContext; termParam?: string; studentId?: string }) {
+export async function FamilyGrades({
+  ctx,
+  termParam,
+  studentId,
+}: {
+  ctx: AppContext;
+  termParam?: string;
+  studentId?: string;
+}) {
   const frame = await assessmentFrame(ctx);
   const term = frame.terms.find((t) => t.id === termParam) ?? frame.currentTerm;
-  const children = studentId ? (await linkedChildren(ctx)).filter((c) => c.id === studentId) : await linkedChildren(ctx);
+  const children = studentId
+    ? (await linkedChildren(ctx)).filter((c) => c.id === studentId)
+    : await linkedChildren(ctx);
   if (!term) return <EmptyState icon={BookOpenCheckIcon} title="Aucune période configurée" />;
-  const data = await Promise.all(children.map(async (c) => ({ child: c, ...(await studentGrades(ctx, c.id, term.id)) })));
+  const data = await Promise.all(
+    children.map(async (c) => ({ child: c, ...(await studentGrades(ctx, c.id, term.id)) })),
+  );
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Résultats scolaires" description="Seules les notes publiées par l'établissement sont visibles." />
+      <PageHeader
+        title="Résultats scolaires"
+        description="Seules les notes publiées par l'établissement sont visibles."
+      />
       <div className="flex flex-wrap gap-2">
         {frame.terms.map((t) => (
           <Link
@@ -34,7 +49,10 @@ export async function FamilyGrades({ ctx, termParam, studentId }: { ctx: AppCont
       </div>
       {data.map(({ child, grades, subjects }) => {
         const weighted = subjects.reduce(
-          (acc, s) => (s.average === null ? acc : { sum: acc.sum + Number(s.average) * Number(s.coefficient), w: acc.w + Number(s.coefficient) }),
+          (acc, s) =>
+            s.average === null
+              ? acc
+              : { sum: acc.sum + Number(s.average) * Number(s.coefficient), w: acc.w + Number(s.coefficient) },
           { sum: 0, w: 0 },
         );
         const avg = weighted.w ? weighted.sum / weighted.w : null;
@@ -46,14 +64,21 @@ export async function FamilyGrades({ ctx, termParam, studentId }: { ctx: AppCont
             </CardHeader>
             <CardContent className="grid gap-5 lg:grid-cols-2">
               <div className="space-y-3">
-                {subjects.length === 0 && <p className="text-sm text-muted-foreground">Aucune note publiée pour cette période.</p>}
+                {subjects.length === 0 && (
+                  <p className="text-muted-foreground text-sm">Aucune note publiée pour cette période.</p>
+                )}
                 {subjects.map((s) => (
                   <div key={s.subject_id}>
                     <div className="mb-1 flex justify-between text-sm">
                       <span className="font-medium">{s.subject_name}</span>
-                      <span className="font-semibold tabular-nums">{formatScore(s.average === null ? null : Number(s.average))}/20</span>
+                      <span className="font-semibold tabular-nums">
+                        {formatScore(s.average === null ? null : Number(s.average))}/20
+                      </span>
                     </div>
-                    <Progress value={(Number(s.average ?? 0) / 20) * 100} tone={Number(s.average ?? 0) < 10 ? "danger" : "brand"} />
+                    <Progress
+                      value={(Number(s.average ?? 0) / 20) * 100}
+                      tone={Number(s.average ?? 0) < 10 ? "danger" : "brand"}
+                    />
                   </div>
                 ))}
               </div>
@@ -73,14 +98,18 @@ export async function FamilyGrades({ ctx, termParam, studentId }: { ctx: AppCont
                         <TR key={g.id}>
                           <TD>
                             <p className="font-medium">{g.assessment?.title}</p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-muted-foreground text-xs">
                               {g.assessment?.cs?.subject?.name} · coef. {formatScore(Number(g.assessment?.coefficient))}
                             </p>
                             {g.comment && <p className="text-xs italic">« {g.comment} »</p>}
                           </TD>
                           <TD>{formatDate(g.assessment?.held_on)}</TD>
                           <TD className="text-right font-semibold tabular-nums">
-                            {g.is_absent ? <Badge variant="muted">Absent</Badge> : `${formatScore(g.score)}/${formatScore(Number(g.assessment?.max_score))}`}
+                            {g.is_absent ? (
+                              <Badge variant="muted">Absent</Badge>
+                            ) : (
+                              `${formatScore(g.score)}/${formatScore(Number(g.assessment?.max_score))}`
+                            )}
                           </TD>
                         </TR>
                       ))}

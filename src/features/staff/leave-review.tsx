@@ -5,7 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Field, Select } from "@/components/ui/form-controls";
 import { cancelLeaveAction, reviewLeaveAction } from "./actions";
 
-export function LeaveReview({ id, staff, teachers }: { id: string; staff: string; teachers: { id: string; name: string }[] }) {
+export function LeaveReview({
+  id,
+  staff,
+  teachers,
+}: {
+  id: string;
+  staff: string;
+  teachers: { id: string; name: string }[];
+}) {
   return (
     <div className="flex gap-2">
       <ConfirmDialog

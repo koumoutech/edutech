@@ -12,17 +12,26 @@ const INLINE_RE = /(\*\*[^*\n]+\*\*|\[\[eleve:[0-9a-fA-F-]{36}\]\])/g;
 function inline(text: string, students: Record<string, string | null>, keyBase: string): ReactNode[] {
   return text.split(INLINE_RE).map((part, i) => {
     const key = `${keyBase}-${i}`;
-    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) return <strong key={key}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4)
+      return <strong key={key}>{part.slice(2, -2)}</strong>;
     const ref = /^\[\[eleve:([0-9a-fA-F-]{36})\]\]$/.exec(part);
     if (ref) {
       const id = ref[1].toLowerCase();
       const name = students[id];
       return name ? (
-        <Link key={key} href={`/app/students/${id}`} className="font-medium text-primary underline-offset-2 hover:underline">
+        <Link
+          key={key}
+          href={`/app/students/${id}`}
+          className="text-primary font-medium underline-offset-2 hover:underline"
+        >
           {name}
         </Link>
       ) : (
-        <span key={key} className="rounded bg-muted px-1 text-muted-foreground" title="Élève non accessible avec vos droits">
+        <span
+          key={key}
+          className="bg-muted text-muted-foreground rounded px-1"
+          title="Élève non accessible avec vos droits"
+        >
           élève (accès restreint)
         </span>
       );
@@ -31,7 +40,11 @@ function inline(text: string, students: Record<string, string | null>, keyBase: 
   });
 }
 
-type Block = { kind: "p"; text: string } | { kind: "h"; text: string } | { kind: "ul"; items: string[] } | { kind: "ol"; items: string[] };
+type Block =
+  | { kind: "p"; text: string }
+  | { kind: "h"; text: string }
+  | { kind: "ul"; items: string[] }
+  | { kind: "ol"; items: string[] };
 
 export function parseBlocks(text: string): Block[] {
   const blocks: Block[] = [];
@@ -70,7 +83,12 @@ export function RichText({ text, students }: { text: string; students: Record<st
     <div className="space-y-2 text-sm leading-relaxed">
       {parseBlocks(text).map((b, i) => {
         const k = `b${i}`;
-        if (b.kind === "h") return <p key={k} className="pt-1 font-semibold">{inline(b.text, students, k)}</p>;
+        if (b.kind === "h")
+          return (
+            <p key={k} className="pt-1 font-semibold">
+              {inline(b.text, students, k)}
+            </p>
+          );
         if (b.kind === "p") return <p key={k}>{inline(b.text, students, k)}</p>;
         const List = b.kind === "ul" ? "ul" : "ol";
         return (

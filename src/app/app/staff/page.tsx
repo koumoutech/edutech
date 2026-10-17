@@ -17,7 +17,11 @@ import { listStaff } from "@/server/services/staff";
 
 export const metadata: Metadata = { title: "Personnel" };
 
-export default async function StaffPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function StaffPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const ctx = await requirePermission("staff.read");
   if (!canSchoolWide(ctx, "staff.read")) {
     if (ctx.school.staff_id) redirect(`/app/staff/${ctx.school.staff_id}`);
@@ -43,11 +47,21 @@ export default async function StaffPage({ searchParams }: { searchParams: Promis
         <form className="flex flex-col gap-2 sm:flex-row" role="search">
           <label className="relative flex-1">
             <span className="sr-only">Rechercher</span>
-            <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <SearchIcon
+              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+              aria-hidden
+            />
             <Input name="q" defaultValue={sp.q} placeholder="Nom, fonction, matricule…" className="pl-9" />
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="filter" value="teachers" defaultChecked={sp.filter === "teachers"} className="size-4 accent-[var(--primary)]" /> Enseignants uniquement
+            <input
+              type="checkbox"
+              name="filter"
+              value="teachers"
+              defaultChecked={sp.filter === "teachers"}
+              className="size-4 accent-[var(--primary)]"
+            />{" "}
+            Enseignants uniquement
           </label>
           <Button type="submit" variant="secondary">
             Filtrer
@@ -59,12 +73,16 @@ export default async function StaffPage({ searchParams }: { searchParams: Promis
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((s) => (
-            <Link key={s.id} href={`/app/staff/${s.id}`} className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <Link
+              key={s.id}
+              href={`/app/staff/${s.id}`}
+              className="focus-visible:ring-ring rounded-xl outline-none focus-visible:ring-2"
+            >
               <Card className="flex items-center gap-3 p-4 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)]">
                 <Avatar name={fullName(s)} className="size-11" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{fullName(s)}</p>
-                  <p className="truncate text-xs text-muted-foreground">
+                  <p className="text-muted-foreground truncate text-xs">
                     {s.job_title}
                     {s.department ? ` · ${s.department}` : ""}
                   </p>

@@ -12,11 +12,17 @@ export const metadata: Metadata = { title: "Journal d'audit" };
 
 function summarize(changes: unknown): string {
   if (!changes || typeof changes !== "object") return "";
-  const keys = Object.keys(changes as Record<string, unknown>).filter((k) => !["id", "school_id", "created_at", "updated_at"].includes(k));
+  const keys = Object.keys(changes as Record<string, unknown>).filter(
+    (k) => !["id", "school_id", "created_at", "updated_at"].includes(k),
+  );
   return keys.slice(0, 6).join(", ") + (keys.length > 6 ? "…" : "");
 }
 
-export default async function AuditPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function AuditPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const ctx = await requirePermission("audit.read", ["school"]);
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
@@ -24,7 +30,10 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   const { rows, total } = await auditLog(ctx, page, entity);
   return (
     <div className="space-y-5">
-      <PageHeader title="Journal d'audit" description="Journal en ajout seul : notes, paiements, inscriptions, rôles, exports, documents. Les données sensibles sont masquées." />
+      <PageHeader
+        title="Journal d'audit"
+        description="Journal en ajout seul : notes, paiements, inscriptions, rôles, exports, documents. Les données sensibles sont masquées."
+      />
       <Card className="overflow-hidden">
         <Table>
           <THead>
@@ -42,14 +51,22 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                 <TD className="whitespace-nowrap">{formatDateTime(r.created_at)}</TD>
                 <TD>{r.actor}</TD>
                 <TD>
-                  <Badge variant={r.action.startsWith("delete") || r.action === "reverse" || r.action === "refund" ? "warning" : "muted"}>{r.action}</Badge>
+                  <Badge
+                    variant={
+                      r.action.startsWith("delete") || r.action === "reverse" || r.action === "refund"
+                        ? "warning"
+                        : "muted"
+                    }
+                  >
+                    {r.action}
+                  </Badge>
                 </TD>
                 <TD>
                   <a href={`?entity=${r.entity_type}`} className="hover:text-primary">
                     {r.entity_type}
                   </a>
                 </TD>
-                <TD className="hidden max-w-sm truncate text-xs text-muted-foreground md:table-cell">
+                <TD className="text-muted-foreground hidden max-w-sm truncate text-xs md:table-cell">
                   {r.reason ? `Motif : ${r.reason} · ` : ""}
                   {summarize(r.changes)}
                 </TD>

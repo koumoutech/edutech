@@ -19,21 +19,43 @@ export const generateSchema = z.object({
 
 export const templateSchema = z.object({
   id: z.uuid().optional(),
-  kind: z.enum(["enrollment_certificate", "attendance_certificate", "attestation", "convocation", "transfer_certificate", "receipt", "report_card", "custom"]),
+  kind: z.enum([
+    "enrollment_certificate",
+    "attendance_certificate",
+    "attestation",
+    "convocation",
+    "transfer_certificate",
+    "receipt",
+    "report_card",
+    "custom",
+  ]),
   name: z.string().trim().min(2).max(80),
   title: z.string().trim().min(2).max(120),
   body: z.string().trim().min(10).max(20000),
 });
 
 export async function listTemplates(ctx: AppContext) {
-  return unwrapList(await ctx.db.from("document_templates").select("id, kind, name, title, body, is_active, updated_at").eq("school_id", ctx.school.id).order("name"));
+  return unwrapList(
+    await ctx.db
+      .from("document_templates")
+      .select("id, kind, name, title, body, is_active, updated_at")
+      .eq("school_id", ctx.school.id)
+      .order("name"),
+  );
 }
 
 export async function saveTemplate(ctx: AppContext, input: z.infer<typeof templateSchema>) {
   assertCan(ctx, "templates.manage", ["school"]);
   const unknown = unknownPlaceholders(input.body);
-  if (unknown.length) throw new AppError("VALIDATION", `Champs inconnus dans le modèle : ${unknown.map((u) => `{{${u}}}`).join(", ")}`);
-  const row = { kind: input.kind, name: input.name, title: input.title, body: input.body, updated_at: new Date().toISOString() };
+  if (unknown.length)
+    throw new AppError("VALIDATION", `Champs inconnus dans le modèle : ${unknown.map((u) => `{{${u}}}`).join(", ")}`);
+  const row = {
+    kind: input.kind,
+    name: input.name,
+    title: input.title,
+    body: input.body,
+    updated_at: new Date().toISOString(),
+  };
   const { error } = input.id
     ? await ctx.db.from("document_templates").update(row).eq("id", input.id)
     : await ctx.db.from("document_templates").insert({ ...row, school_id: ctx.school.id });
@@ -46,16 +68,35 @@ export async function generateCertificate(ctx: AppContext, input: z.infer<typeof
   const db = ctx.db;
   const [{ data: tpl }, { data: student }, year, school] = await Promise.all([
     db.from("document_templates").select("id, kind, title, body").eq("id", input.template_id).maybeSingle(),
-    db.from("students").select("id, first_name, last_name, matricule, birth_date, birth_place").eq("id", input.student_id).maybeSingle(),
+    db
+      .from("students")
+      .select("id, first_name, last_name, matricule, birth_date, birth_place")
+      .eq("id", input.student_id)
+      .maybeSingle(),
     getCurrentYear(db, ctx.school.id),
     schoolHeader(ctx),
   ]);
   if (!tpl || !student) throw new AppError("NOT_FOUND");
   const { data: enr } = year
-    ? await db.from("enrollments").select("class:classes!enrollments_school_id_class_id_fkey(name)").eq("student_id", student.id).eq("academic_year_id", year.id).order("enrolled_on", { ascending: false }).limit(1)
+    ? await db
+        .from("enrollments")
+        .select("class:classes!enrollments_school_id_class_id_fkey(name)")
+        .eq("student_id", student.id)
+        .eq("academic_year_id", year.id)
+        .order("enrolled_on", { ascending: false })
+        .limit(1)
     : { data: [] };
-  const { count: absences } = await db.from("attendance_records").select("id", { count: "exact", head: true }).eq("student_id", student.id).in("status", ["absent", "excused"]);
-  const { data: signatory } = await db.from("staff_members").select("first_name, last_name, job_title").eq("school_id", ctx.school.id).ilike("job_title", "direct%").limit(1);
+  const { count: absences } = await db
+    .from("attendance_records")
+    .select("id", { count: "exact", head: true })
+    .eq("student_id", student.id)
+    .in("status", ["absent", "excused"]);
+  const { data: signatory } = await db
+    .from("staff_members")
+    .select("first_name, last_name, job_title")
+    .eq("school_id", ctx.school.id)
+    .ilike("job_title", "direct%")
+    .limit(1);
 
   const body = renderTemplate(tpl.body, {
     school_name: school.name,
@@ -96,7 +137,9 @@ export async function recentDocuments(ctx: AppContext) {
   return unwrapList(
     await ctx.db
       .from("documents")
-      .select("id, title, category, created_at, storage_path, visible_to_family, student:students!documents_school_id_student_id_fkey(id, first_name, last_name)")
+      .select(
+        "id, title, category, created_at, storage_path, visible_to_family, student:students!documents_school_id_student_id_fkey(id, first_name, last_name)",
+      )
       .eq("school_id", ctx.school.id)
       .is("deleted_at", null)
       .not("storage_path", "is", null)

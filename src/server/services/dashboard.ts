@@ -40,39 +40,87 @@ export async function managementAlerts(ctx: AppContext): Promise<Alert[]> {
 
   if (can(ctx, "assessments.validate")) {
     tasks.push(
-      countOf("Évaluations à valider", "/app/assessments?status=submitted", "warning",
-        db.from("assessments").select("id", { count: "exact", head: true }).eq("school_id", school).eq("status", "submitted")),
+      countOf(
+        "Évaluations à valider",
+        "/app/assessments?status=submitted",
+        "warning",
+        db
+          .from("assessments")
+          .select("id", { count: "exact", head: true })
+          .eq("school_id", school)
+          .eq("status", "submitted"),
+      ),
     );
   }
   if (can(ctx, "justifications.validate")) {
     tasks.push(
-      countOf("Justificatifs d'absence en attente", "/app/attendance/justifications", "warning",
-        db.from("absence_justifications").select("id", { count: "exact", head: true }).eq("school_id", school).eq("status", "pending")),
+      countOf(
+        "Justificatifs d'absence en attente",
+        "/app/attendance/justifications",
+        "warning",
+        db
+          .from("absence_justifications")
+          .select("id", { count: "exact", head: true })
+          .eq("school_id", school)
+          .eq("status", "pending"),
+      ),
     );
   }
   if (can(ctx, "leaves.validate")) {
     tasks.push(
-      countOf("Demandes de congé à traiter", "/app/staff/leaves", "warning",
-        db.from("leave_requests").select("id", { count: "exact", head: true }).eq("school_id", school).eq("status", "pending")),
+      countOf(
+        "Demandes de congé à traiter",
+        "/app/staff/leaves",
+        "warning",
+        db
+          .from("leave_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("school_id", school)
+          .eq("status", "pending"),
+      ),
     );
   }
   if (canSchoolWide(ctx, "finance.read")) {
     tasks.push(
-      countOf("Factures en retard de paiement", "/app/finance/invoices?filter=overdue", "danger",
-        db.from("invoices").select("id", { count: "exact", head: true }).eq("school_id", school)
-          .in("status", ["issued", "partially_paid"]).lt("due_date", isoDate())),
+      countOf(
+        "Factures en retard de paiement",
+        "/app/finance/invoices?filter=overdue",
+        "danger",
+        db
+          .from("invoices")
+          .select("id", { count: "exact", head: true })
+          .eq("school_id", school)
+          .in("status", ["issued", "partially_paid"])
+          .lt("due_date", isoDate()),
+      ),
     );
   }
   if (can(ctx, "expenses.validate")) {
     tasks.push(
-      countOf("Dépenses à approuver", "/app/finance/expenses", "info",
-        db.from("expenses").select("id", { count: "exact", head: true }).eq("school_id", school).eq("status", "pending")),
+      countOf(
+        "Dépenses à approuver",
+        "/app/finance/expenses",
+        "info",
+        db
+          .from("expenses")
+          .select("id", { count: "exact", head: true })
+          .eq("school_id", school)
+          .eq("status", "pending"),
+      ),
     );
   }
   if (can(ctx, "requests.manage")) {
     tasks.push(
-      countOf("Demandes administratives ouvertes", "/app/requests", "info",
-        db.from("admin_requests").select("id", { count: "exact", head: true }).eq("school_id", school).eq("status", "open")),
+      countOf(
+        "Demandes administratives ouvertes",
+        "/app/requests",
+        "info",
+        db
+          .from("admin_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("school_id", school)
+          .eq("status", "open"),
+      ),
     );
   }
   return (await Promise.all(tasks)).filter((a): a is Alert => a !== null);
@@ -84,12 +132,16 @@ export async function directionData(ctx: AppContext) {
   const db = ctx.db;
   const [byLevel, attendance, performance, termAverages, finance, alerts, absentees] = await Promise.all([
     year ? db.rpc("stats_enrollment_by_level", { p_school: school, p_year: year.id }) : null,
-    can(ctx, "attendance.read") ? db.rpc("stats_attendance_daily", { p_school: school, p_from: daysAgo(30), p_to: isoDate() }) : null,
+    can(ctx, "attendance.read")
+      ? db.rpc("stats_attendance_daily", { p_school: school, p_from: daysAgo(30), p_to: isoDate() })
+      : null,
     term && can(ctx, "grades.read") ? db.rpc("stats_class_performance", { p_school: school, p_term: term.id }) : null,
     year && can(ctx, "grades.read") ? db.rpc("stats_term_averages", { p_school: school, p_year: year.id }) : null,
     canSchoolWide(ctx, "finance.read") ? db.rpc("stats_finance_summary", { p_school: school, p_year: year?.id }) : null,
     managementAlerts(ctx),
-    can(ctx, "attendance.read") ? db.rpc("stats_top_absentees", { p_school: school, p_from: daysAgo(30), p_to: isoDate(), p_limit: 5 }) : null,
+    can(ctx, "attendance.read")
+      ? db.rpc("stats_top_absentees", { p_school: school, p_from: daysAgo(30), p_to: isoDate(), p_limit: 5 })
+      : null,
   ]);
   return {
     year,
@@ -109,7 +161,17 @@ export async function teacherData(ctx: AppContext) {
   const { year, term } = await loadAcademicFrame(ctx);
   const staffId = ctx.school.staff_id;
   const db = ctx.db;
-  if (!year || !staffId) return { year, term, assignments: [], today: [], toGrade: [], atRisk: [], rollCalls: [], classSizes: {} as Record<string, number> };
+  if (!year || !staffId)
+    return {
+      year,
+      term,
+      assignments: [],
+      today: [],
+      toGrade: [],
+      atRisk: [],
+      rollCalls: [],
+      classSizes: {} as Record<string, number>,
+    };
 
   const assignments = await listTeacherAssignments(db, staffId, year.id);
   const classIds = [...new Set(assignments.map((a) => a.class?.id).filter(Boolean))] as string[];
@@ -118,7 +180,9 @@ export async function teacherData(ctx: AppContext) {
   const [today, drafts, atRisk, sessions, enrollments] = await Promise.all([
     db
       .from("timetable_entries")
-      .select("id, starts_at, ends_at, class_id, class:classes!timetable_entries_school_id_class_id_fkey(name), cs:class_subjects!timetable_entries_school_id_class_subject_id_fkey(subject:subjects!class_subjects_school_id_subject_id_fkey(name, color)), room:rooms!timetable_entries_school_id_room_id_fkey(name)")
+      .select(
+        "id, starts_at, ends_at, class_id, class:classes!timetable_entries_school_id_class_id_fkey(name), cs:class_subjects!timetable_entries_school_id_class_subject_id_fkey(subject:subjects!class_subjects_school_id_subject_id_fkey(name, color)), room:rooms!timetable_entries_school_id_room_id_fkey(name)",
+      )
       .eq("teacher_id", staffId)
       .eq("weekday", todayWeekday())
       .order("starts_at"),
@@ -132,7 +196,13 @@ export async function teacherData(ctx: AppContext) {
           .limit(8)
       : null,
     term ? db.rpc("stats_students_at_risk", { p_school: ctx.school.id, p_term: term.id, p_limit: 8 }) : null,
-    classIds.length ? db.from("attendance_sessions").select("class_id, timetable_entry_id").in("class_id", classIds).eq("date", isoDate()) : null,
+    classIds.length
+      ? db
+          .from("attendance_sessions")
+          .select("class_id, timetable_entry_id")
+          .in("class_id", classIds)
+          .eq("date", isoDate())
+      : null,
     classIds.length ? db.from("enrollments").select("class_id").in("class_id", classIds).eq("status", "active") : null,
   ]);
 
@@ -161,22 +231,42 @@ export async function studentSnapshot(ctx: AppContext, studentId: string) {
   const [student, subjects, recentGrades, absences, reportCards, invoices, upcoming] = await Promise.all([
     db
       .from("students")
-      .select("id, first_name, last_name, matricule, enrollments(class_id, status, academic_year_id, class:classes!enrollments_school_id_class_id_fkey(id, name))")
+      .select(
+        "id, first_name, last_name, matricule, enrollments(class_id, status, academic_year_id, class:classes!enrollments_school_id_class_id_fkey(id, name))",
+      )
       .eq("id", studentId)
       .maybeSingle(),
     term ? db.rpc("stats_student_subjects", { p_school: ctx.school.id, p_student: studentId, p_term: term.id }) : null,
     db
       .from("grades")
-      .select("id, score, is_absent, created_at, assessment:assessments!grades_school_id_assessment_id_fkey(title, max_score, held_on, status, cs:class_subjects!assessments_school_id_class_subject_id_fkey(subject:subjects!class_subjects_school_id_subject_id_fkey(name)))")
+      .select(
+        "id, score, is_absent, created_at, assessment:assessments!grades_school_id_assessment_id_fkey(title, max_score, held_on, status, cs:class_subjects!assessments_school_id_class_subject_id_fkey(subject:subjects!class_subjects_school_id_subject_id_fkey(name)))",
+      )
       .eq("student_id", studentId)
       .order("created_at", { ascending: false })
       .limit(6),
-    db.from("attendance_records").select("status").eq("student_id", studentId).in("status", ["absent", "late", "excused"]),
-    db.from("report_cards").select("id, average, rank, class_size, status, term:terms!report_cards_school_id_term_id_fkey(name)").eq("student_id", studentId).eq("status", "published"),
-    can(ctx, "finance.read") ? db.from("invoices").select("id, number, total, balance, due_date, status").eq("student_id", studentId).neq("status", "cancelled") : null,
+    db
+      .from("attendance_records")
+      .select("status")
+      .eq("student_id", studentId)
+      .in("status", ["absent", "late", "excused"]),
+    db
+      .from("report_cards")
+      .select("id, average, rank, class_size, status, term:terms!report_cards_school_id_term_id_fkey(name)")
+      .eq("student_id", studentId)
+      .eq("status", "published"),
+    can(ctx, "finance.read")
+      ? db
+          .from("invoices")
+          .select("id, number, total, balance, due_date, status")
+          .eq("student_id", studentId)
+          .neq("status", "cancelled")
+      : null,
     db
       .from("assessments")
-      .select("id, title, held_on, cs:class_subjects!assessments_school_id_class_subject_id_fkey!inner(class_id, subject:subjects!class_subjects_school_id_subject_id_fkey(name))")
+      .select(
+        "id, title, held_on, cs:class_subjects!assessments_school_id_class_subject_id_fkey!inner(class_id, subject:subjects!class_subjects_school_id_subject_id_fkey(name))",
+      )
       .gte("held_on", isoDate())
       .order("held_on")
       .limit(5),
@@ -186,7 +276,10 @@ export async function studentSnapshot(ctx: AppContext, studentId: string) {
   const absenceRows = absences.data ?? [];
   const subjectRows = subjects?.data ?? [];
   const weighted = subjectRows.reduce(
-    (acc, s) => (s.average === null ? acc : { sum: acc.sum + Number(s.average) * Number(s.coefficient), w: acc.w + Number(s.coefficient) }),
+    (acc, s) =>
+      s.average === null
+        ? acc
+        : { sum: acc.sum + Number(s.average) * Number(s.coefficient), w: acc.w + Number(s.coefficient) },
     { sum: 0, w: 0 },
   );
   const classId = active?.class?.id;
@@ -208,12 +301,7 @@ export async function studentSnapshot(ctx: AppContext, studentId: string) {
 }
 
 export async function linkedChildren(ctx: AppContext) {
-  return unwrapList(
-    await ctx.db
-      .from("students")
-      .select("id, first_name, last_name, matricule")
-      .order("first_name"),
-  );
+  return unwrapList(await ctx.db.from("students").select("id, first_name, last_name, matricule").order("first_name"));
 }
 
 export async function accountantData(ctx: AppContext) {
@@ -227,13 +315,20 @@ export async function accountantData(ctx: AppContext) {
     db.rpc("stats_monthly_cashflow", { p_school: school, p_from: isoDate(from), p_to: isoDate() }),
     db
       .from("invoices")
-      .select("id, number, balance, due_date, student:students!invoices_school_id_student_id_fkey(first_name, last_name)")
+      .select(
+        "id, number, balance, due_date, student:students!invoices_school_id_student_id_fkey(first_name, last_name)",
+      )
       .eq("school_id", school)
       .in("status", ["issued", "partially_paid"])
       .lt("due_date", isoDate())
       .order("balance", { ascending: false })
       .limit(6),
-    db.from("payments").select("id", { count: "exact", head: true }).eq("school_id", school).eq("status", "completed").eq("reconciled", false),
+    db
+      .from("payments")
+      .select("id", { count: "exact", head: true })
+      .eq("school_id", school)
+      .eq("status", "completed")
+      .eq("reconciled", false),
     year ? db.rpc("stats_expenses_by_category", { p_school: school, p_year: year.id }) : null,
     managementAlerts(ctx),
   ]);
@@ -254,8 +349,18 @@ export async function secretaryData(ctx: AppContext) {
   const db = ctx.db;
   const monthStart = isoDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [active, newThisMonth, incomplete, requests, transfers, byLevel, alerts] = await Promise.all([
-    year ? db.from("enrollments").select("id", { count: "exact", head: true }).eq("academic_year_id", year.id).eq("status", "active") : null,
-    db.from("enrollments").select("id", { count: "exact", head: true }).eq("school_id", school).gte("enrolled_on", monthStart),
+    year
+      ? db
+          .from("enrollments")
+          .select("id", { count: "exact", head: true })
+          .eq("academic_year_id", year.id)
+          .eq("status", "active")
+      : null,
+    db
+      .from("enrollments")
+      .select("id", { count: "exact", head: true })
+      .eq("school_id", school)
+      .gte("enrolled_on", monthStart),
     db.rpc("incomplete_student_files", { p_school: school, p_limit: 8 }),
     db
       .from("admin_requests")
@@ -266,7 +371,9 @@ export async function secretaryData(ctx: AppContext) {
       .limit(6),
     db
       .from("enrollments")
-      .select("id, status, left_on, leave_reason, student:students!enrollments_school_id_student_id_fkey(id, first_name, last_name)")
+      .select(
+        "id, status, left_on, leave_reason, student:students!enrollments_school_id_student_id_fkey(id, first_name, last_name)",
+      )
       .eq("school_id", school)
       .in("status", ["transferred", "withdrawn"])
       .order("left_on", { ascending: false })
@@ -293,20 +400,39 @@ export async function hrData(ctx: AppContext) {
   const in60 = new Date();
   in60.setDate(in60.getDate() + 60);
   const [staff, teachers, pending, onLeave, ending] = await Promise.all([
-    db.from("staff_members").select("id", { count: "exact", head: true }).eq("school_id", school).neq("status", "archived"),
-    db.from("staff_members").select("id", { count: "exact", head: true }).eq("school_id", school).eq("is_teacher", true).neq("status", "archived"),
+    db
+      .from("staff_members")
+      .select("id", { count: "exact", head: true })
+      .eq("school_id", school)
+      .neq("status", "archived"),
+    db
+      .from("staff_members")
+      .select("id", { count: "exact", head: true })
+      .eq("school_id", school)
+      .eq("is_teacher", true)
+      .neq("status", "archived"),
     db
       .from("leave_requests")
-      .select("id, kind, starts_on, ends_on, staff:staff_members!leave_requests_school_id_staff_id_fkey(first_name, last_name)")
+      .select(
+        "id, kind, starts_on, ends_on, staff:staff_members!leave_requests_school_id_staff_id_fkey(first_name, last_name)",
+      )
       .eq("school_id", school)
       .eq("status", "pending")
       .order("starts_on")
       .limit(6),
-    db.from("leave_requests").select("id", { count: "exact", head: true }).eq("school_id", school).eq("status", "approved").lte("starts_on", today).gte("ends_on", today),
+    db
+      .from("leave_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("school_id", school)
+      .eq("status", "approved")
+      .lte("starts_on", today)
+      .gte("ends_on", today),
     can(ctx, "hr.read")
       ? db
           .from("staff_contracts")
-          .select("id, ends_on, contract_type, staff:staff_members!staff_contracts_school_id_staff_id_fkey(first_name, last_name)")
+          .select(
+            "id, ends_on, contract_type, staff:staff_members!staff_contracts_school_id_staff_id_fkey(first_name, last_name)",
+          )
           .eq("school_id", school)
           .eq("status", "active")
           .gte("ends_on", today)

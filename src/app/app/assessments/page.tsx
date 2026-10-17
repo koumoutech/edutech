@@ -16,12 +16,20 @@ import { can, isFamilyOnly } from "@/lib/authz";
 import { formatDate, formatScore, isoDate } from "@/lib/utils";
 import { requireContext } from "@/server/auth/session";
 import { listClasses } from "@/server/repositories/academic";
-import { assessmentFrame, listAssessments, listQuerySchema, writableClassSubjects } from "@/server/services/assessments";
+import {
+  assessmentFrame,
+  listAssessments,
+  listQuerySchema,
+  writableClassSubjects,
+} from "@/server/services/assessments";
 
 export const metadata: Metadata = { title: "Évaluations & notes" };
 
-
-export default async function AssessmentsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function AssessmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const ctx = await requireContext();
   if (!can(ctx, "assessments.read") && !can(ctx, "grades.read")) redirect("/app/forbidden");
   const sp = await searchParams;
@@ -34,9 +42,16 @@ export default async function AssessmentsPage({ searchParams }: { searchParams: 
     listAssessments(ctx, query, termId),
     frame.year ? writableClassSubjects(ctx, frame.year.id) : [],
     frame.year ? listClasses(ctx.db, ctx.school.id, frame.year.id) : [],
-    ctx.db.from("assessment_types").select("id, name, default_coefficient").eq("school_id", ctx.school.id).order("name"),
+    ctx.db
+      .from("assessment_types")
+      .select("id, name, default_coefficient")
+      .eq("school_id", ctx.school.id)
+      .order("name"),
   ]);
-  const visibleClasses = classes.filter((c) => rows.some((r) => r.cs?.class_id === c.id) || writable.some((w) => w.class?.id === c.id) || query.class === c.id);
+  const visibleClasses = classes.filter(
+    (c) =>
+      rows.some((r) => r.cs?.class_id === c.id) || writable.some((w) => w.class?.id === c.id) || query.class === c.id,
+  );
 
   return (
     <div className="space-y-5">
@@ -129,7 +144,11 @@ export default async function AssessmentsPage({ searchParams }: { searchParams: 
       </Card>
 
       {rows.length === 0 ? (
-        <EmptyState icon={NotebookPenIcon} title="Aucune évaluation" description="Créez une évaluation pour commencer la saisie des notes." />
+        <EmptyState
+          icon={NotebookPenIcon}
+          title="Aucune évaluation"
+          description="Créez une évaluation pour commencer la saisie des notes."
+        />
       ) : (
         <Card className="overflow-hidden">
           <Table>
@@ -147,10 +166,10 @@ export default async function AssessmentsPage({ searchParams }: { searchParams: 
               {rows.map((a) => (
                 <TR key={a.id}>
                   <TD>
-                    <Link href={`/app/assessments/${a.id}`} className="font-medium hover:text-primary">
+                    <Link href={`/app/assessments/${a.id}`} className="hover:text-primary font-medium">
                       {a.title}
                     </Link>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       {a.cs?.subject?.name}
                       {a.type?.name ? ` · ${a.type.name}` : ""} · coef. {formatScore(Number(a.coefficient))}
                     </p>

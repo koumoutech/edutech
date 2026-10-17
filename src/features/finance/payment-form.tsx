@@ -44,7 +44,14 @@ export function PaymentForm({
       : Object.entries(manual)
           .filter(([, v]) => v > 0)
           .map(([invoice_id, v]) => ({ invoice_id, amount: v }));
-  const error = mode === "auto" ? (plan.rest > 0 ? `Le montant dépasse le total dû de ${formatMoney(plan.rest, currency)}.` : amount > 0 ? null : "Montant invalide.") : validateAllocations(amount, allocations, invoices);
+  const error =
+    mode === "auto"
+      ? plan.rest > 0
+        ? `Le montant dépasse le total dû de ${formatMoney(plan.rest, currency)}.`
+        : amount > 0
+          ? null
+          : "Montant invalide."
+      : validateAllocations(amount, allocations, invoices);
   const refMissing = Boolean(method?.requires_reference && !reference.trim());
 
   const submit = () =>
@@ -79,7 +86,15 @@ export function PaymentForm({
       <CardContent className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label={`Montant (${currency})`} htmlFor="p-amount">
-            <Input id="p-amount" type="number" inputMode="decimal" min={0} step="any" value={amount || ""} onChange={(e) => setAmount(Number(e.target.value))} />
+            <Input
+              id="p-amount"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              step="any"
+              value={amount || ""}
+              onChange={(e) => setAmount(Number(e.target.value))}
+            />
           </Field>
           <Field label="Mode de paiement" htmlFor="p-method">
             <Select id="p-method" value={methodId} onChange={(e) => setMethodId(e.target.value)}>
@@ -90,11 +105,27 @@ export function PaymentForm({
               ))}
             </Select>
           </Field>
-          <Field label={`Référence de transaction${method?.requires_reference ? " *" : ""}`} htmlFor="p-ref" error={refMissing ? "Obligatoire pour ce mode de paiement" : undefined}>
-            <Input id="p-ref" value={reference} onChange={(e) => setReference(e.target.value)} maxLength={120} placeholder="N° Mobile Money, virement, chèque…" />
+          <Field
+            label={`Référence de transaction${method?.requires_reference ? " *" : ""}`}
+            htmlFor="p-ref"
+            error={refMissing ? "Obligatoire pour ce mode de paiement" : undefined}
+          >
+            <Input
+              id="p-ref"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              maxLength={120}
+              placeholder="N° Mobile Money, virement, chèque…"
+            />
           </Field>
           <Field label="Payeur" htmlFor="p-payer">
-            <Input id="p-payer" value={payer} onChange={(e) => setPayer(e.target.value)} maxLength={160} placeholder="Nom de la personne qui paie" />
+            <Input
+              id="p-payer"
+              value={payer}
+              onChange={(e) => setPayer(e.target.value)}
+              maxLength={160}
+              placeholder="Nom de la personne qui paie"
+            />
           </Field>
         </div>
 
@@ -102,10 +133,24 @@ export function PaymentForm({
           <legend className="text-sm font-medium">Affectation aux factures</legend>
           <div className="flex gap-3 text-sm">
             <label className="flex items-center gap-1.5">
-              <input type="radio" name="mode" checked={mode === "auto"} onChange={() => setMode("auto")} className="accent-[var(--primary)]" /> Automatique (échéances les plus anciennes)
+              <input
+                type="radio"
+                name="mode"
+                checked={mode === "auto"}
+                onChange={() => setMode("auto")}
+                className="accent-[var(--primary)]"
+              />{" "}
+              Automatique (échéances les plus anciennes)
             </label>
             <label className="flex items-center gap-1.5">
-              <input type="radio" name="mode" checked={mode === "manual"} onChange={() => setMode("manual")} className="accent-[var(--primary)]" /> Manuelle
+              <input
+                type="radio"
+                name="mode"
+                checked={mode === "manual"}
+                onChange={() => setMode("manual")}
+                className="accent-[var(--primary)]"
+              />{" "}
+              Manuelle
             </label>
           </div>
           <ul className="divide-y rounded-xl border">
@@ -115,7 +160,7 @@ export function PaymentForm({
                 <li key={inv.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium">{inv.number}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       Échéance {formatDate(inv.due_date)} · reste dû {formatMoney(inv.balance, currency)}
                     </p>
                   </div>

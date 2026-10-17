@@ -51,7 +51,13 @@ export function StaffFormFields({ d = {} }: { d?: StaffDefaults }) {
           <Input id="st-hire" name="hire_date" type="date" defaultValue={d.hire_date ?? ""} />
         </Field>
         <label className="flex items-center gap-2 self-end pb-2 text-sm">
-          <input type="checkbox" name="is_teacher" defaultChecked={d.is_teacher} className="size-4 accent-[var(--primary)]" /> Enseignant
+          <input
+            type="checkbox"
+            name="is_teacher"
+            defaultChecked={d.is_teacher}
+            className="size-4 accent-[var(--primary)]"
+          />{" "}
+          Enseignant
         </label>
       </div>
     </>

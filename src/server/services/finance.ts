@@ -16,7 +16,10 @@ export const invoiceListSchema = z.object({
 });
 
 export const invoiceLineSchema = z.object({
-  fee_type_id: z.uuid().optional().or(z.literal("").transform(() => undefined)),
+  fee_type_id: z
+    .uuid()
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
   description: z.string().trim().min(1).max(200),
   quantity: z.coerce.number().positive().max(1000).default(1),
   unit_amount: z.coerce.number().min(0).max(1e10),
@@ -39,16 +42,25 @@ export const paymentSchema = z.object({
   payer_name: z.string().trim().max(160).optional(),
   paid_at: z.string().optional(),
   notes: z.string().trim().max(500).optional(),
-  allocations: z.array(z.object({ invoice_id: z.uuid(), amount: z.coerce.number().positive() })).max(50).optional(),
+  allocations: z
+    .array(z.object({ invoice_id: z.uuid(), amount: z.coerce.number().positive() }))
+    .max(50)
+    .optional(),
 });
 
 export const expenseSchema = z.object({
   category_id: z.uuid("Catégorie requise"),
-  supplier_id: z.uuid().optional().or(z.literal("").transform(() => undefined)),
+  supplier_id: z
+    .uuid()
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
   description: z.string().trim().min(3).max(300),
   amount: z.coerce.number().positive().max(1e10),
   spent_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  method_id: z.uuid().optional().or(z.literal("").transform(() => undefined)),
+  method_id: z
+    .uuid()
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
   reference: z.string().trim().max(120).optional(),
 });
 
@@ -57,7 +69,10 @@ export async function listInvoices(ctx: AppContext, query: z.infer<typeof invoic
   const [from, to] = pageRange(query.page, INVOICES_PAGE_SIZE);
   let q = ctx.db
     .from("invoices")
-    .select("id, number, issue_date, due_date, total, amount_paid, balance, status, student:students!invoices_school_id_student_id_fkey!inner(id, first_name, last_name, matricule)", { count: "exact" })
+    .select(
+      "id, number, issue_date, due_date, total, amount_paid, balance, status, student:students!invoices_school_id_student_id_fkey!inner(id, first_name, last_name, matricule)",
+      { count: "exact" },
+    )
     .eq("school_id", ctx.school.id)
     .order("due_date", { ascending: true })
     .order("number")
@@ -77,7 +92,10 @@ export async function listInvoices(ctx: AppContext, query: z.infer<typeof invoic
   }
   if (query.q) {
     const term = query.q.replace(/[%_,().*\\]/g, " ").trim();
-    if (term) q = q.or(`last_name.ilike.%${term}%,first_name.ilike.%${term}%,matricule.ilike.%${term}%`, { referencedTable: "students" });
+    if (term)
+      q = q.or(`last_name.ilike.%${term}%,first_name.ilike.%${term}%,matricule.ilike.%${term}%`, {
+        referencedTable: "students",
+      });
   }
   const { data, error, count } = await q;
   if (error) throw fromDbError(error);
@@ -100,7 +118,12 @@ export async function getInvoice(ctx: AppContext, id: string) {
 
 export async function createInvoice(ctx: AppContext, input: z.infer<typeof createInvoiceSchema>) {
   assertCan(ctx, "invoices.create", ["school"]);
-  const { data: year } = await ctx.db.from("academic_years").select("id").eq("school_id", ctx.school.id).eq("is_current", true).maybeSingle();
+  const { data: year } = await ctx.db
+    .from("academic_years")
+    .select("id")
+    .eq("school_id", ctx.school.id)
+    .eq("is_current", true)
+    .maybeSingle();
   const { data, error } = await ctx.db.rpc("create_invoice", {
     p_school: ctx.school.id,
     p_student: input.student_id,
@@ -126,7 +149,13 @@ export async function cancelInvoice(ctx: AppContext, id: string, reason: string)
   if (error) throw fromDbError(error);
 }
 
-export async function generateClassInvoices(ctx: AppContext, classId: string, feeScheduleIds: string[], dueDate: string, issue: boolean) {
+export async function generateClassInvoices(
+  ctx: AppContext,
+  classId: string,
+  feeScheduleIds: string[],
+  dueDate: string,
+  issue: boolean,
+) {
   assertCan(ctx, "invoices.create", ["school"]);
   const { data, error } = await ctx.db.rpc("generate_class_invoices", {
     p_school: ctx.school.id,
@@ -178,7 +207,10 @@ export async function listPayments(ctx: AppContext, query: z.infer<typeof paymen
   const [from, to] = pageRange(query.page, INVOICES_PAGE_SIZE);
   let q = ctx.db
     .from("payments")
-    .select("id, receipt_number, amount, paid_at, reference, status, reconciled, payer_name, method:payment_methods!payments_school_id_method_id_fkey(name, kind), student:students!payments_school_id_student_id_fkey(id, first_name, last_name)", { count: "exact" })
+    .select(
+      "id, receipt_number, amount, paid_at, reference, status, reconciled, payer_name, method:payment_methods!payments_school_id_method_id_fkey(name, kind), student:students!payments_school_id_student_id_fkey(id, first_name, last_name)",
+      { count: "exact" },
+    )
     .eq("school_id", ctx.school.id)
     .order("paid_at", { ascending: false })
     .range(from, to);
@@ -207,7 +239,11 @@ export async function setReconciled(ctx: AppContext, ids: string[], reconciled: 
   assertCan(ctx, "payments.validate", ["school"]);
   const { error } = await ctx.db
     .from("payments")
-    .update({ reconciled, reconciled_at: reconciled ? new Date().toISOString() : null, reconciled_by: reconciled ? ctx.user.id : null })
+    .update({
+      reconciled,
+      reconciled_at: reconciled ? new Date().toISOString() : null,
+      reconciled_by: reconciled ? ctx.user.id : null,
+    })
     .in("id", ids)
     .eq("school_id", ctx.school.id)
     .eq("status", "completed");
@@ -233,14 +269,28 @@ export async function financeSettings(ctx: AppContext) {
     ctx.db.from("fee_types").select("id, name, category, is_active").eq("school_id", s).order("name"),
     ctx.db
       .from("fee_schedules")
-      .select("id, amount, installments, academic_year_id, fee_type:fee_types!fee_schedules_school_id_fee_type_id_fkey(id, name, category), level:levels!fee_schedules_school_id_level_id_fkey(id, name, position)")
+      .select(
+        "id, amount, installments, academic_year_id, fee_type:fee_types!fee_schedules_school_id_fee_type_id_fkey(id, name, category), level:levels!fee_schedules_school_id_level_id_fkey(id, name, position)",
+      )
       .eq("school_id", s),
-    ctx.db.from("discounts").select("id, name, kind, value, is_scholarship, applies_to_category, is_active").eq("school_id", s).order("name"),
-    ctx.db.from("payment_methods").select("id, name, kind, requires_reference, is_active").eq("school_id", s).order("name"),
+    ctx.db
+      .from("discounts")
+      .select("id, name, kind, value, is_scholarship, applies_to_category, is_active")
+      .eq("school_id", s)
+      .order("name"),
+    ctx.db
+      .from("payment_methods")
+      .select("id, name, kind, requires_reference, is_active")
+      .eq("school_id", s)
+      .order("name"),
     ctx.db.from("expense_categories").select("id, name").eq("school_id", s).order("name"),
     ctx.db.from("suppliers").select("id, name, contact_name, phone, email, is_active").eq("school_id", s).order("name"),
     ctx.db.from("levels").select("id, name, position").eq("school_id", s).order("position"),
-    ctx.db.from("academic_years").select("id, name, is_current").eq("school_id", s).order("starts_on", { ascending: false }),
+    ctx.db
+      .from("academic_years")
+      .select("id, name, is_current")
+      .eq("school_id", s)
+      .order("starts_on", { ascending: false }),
   ]);
   return {
     feeTypes: feeTypes.data ?? [],
@@ -257,13 +307,21 @@ export async function financeSettings(ctx: AppContext) {
 export const feeScheduleSchema = z.object({
   academic_year_id: z.uuid(),
   fee_type_id: z.uuid(),
-  level_id: z.uuid().optional().or(z.literal("").transform(() => undefined)),
+  level_id: z
+    .uuid()
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
   amount: z.coerce.number().min(0).max(1e10),
   installments: z
-    .array(z.object({ due_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), percent: z.coerce.number().positive().max(100) }))
+    .array(
+      z.object({ due_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), percent: z.coerce.number().positive().max(100) }),
+    )
     .max(12)
     .default([])
-    .refine((l) => l.length === 0 || Math.abs(l.reduce((s, x) => s + x.percent, 0) - 100) < 0.01, "Les pourcentages doivent totaliser 100 %"),
+    .refine(
+      (l) => l.length === 0 || Math.abs(l.reduce((s, x) => s + x.percent, 0) - 100) < 0.01,
+      "Les pourcentages doivent totaliser 100 %",
+    ),
 });
 
 export async function saveFeeSchedule(ctx: AppContext, input: z.infer<typeof feeScheduleSchema>) {
@@ -291,7 +349,12 @@ export async function saveSimple(
 
 export async function grantDiscount(ctx: AppContext, studentId: string, discountId: string, reason?: string) {
   assertCan(ctx, "finance.manage", ["school"]);
-  const { data: year } = await ctx.db.from("academic_years").select("id").eq("school_id", ctx.school.id).eq("is_current", true).maybeSingle();
+  const { data: year } = await ctx.db
+    .from("academic_years")
+    .select("id")
+    .eq("school_id", ctx.school.id)
+    .eq("is_current", true)
+    .maybeSingle();
   if (!year) throw new AppError("VALIDATION", "Aucune année scolaire en cours.");
   const { error } = await ctx.db.from("student_discounts").insert({
     school_id: ctx.school.id,
@@ -308,7 +371,9 @@ export async function listExpenses(ctx: AppContext) {
   return unwrapList(
     await ctx.db
       .from("expenses")
-      .select("id, description, amount, spent_on, status, reference, category:expense_categories!expenses_school_id_category_id_fkey(name), supplier:suppliers!expenses_school_id_supplier_id_fkey(name)")
+      .select(
+        "id, description, amount, spent_on, status, reference, category:expense_categories!expenses_school_id_category_id_fkey(name), supplier:suppliers!expenses_school_id_supplier_id_fkey(name)",
+      )
       .eq("school_id", ctx.school.id)
       .order("spent_on", { ascending: false })
       .limit(200),
@@ -317,7 +382,12 @@ export async function listExpenses(ctx: AppContext) {
 
 export async function createExpense(ctx: AppContext, input: z.infer<typeof expenseSchema>) {
   assertCan(ctx, "expenses.create", ["school"]);
-  const { data: year } = await ctx.db.from("academic_years").select("id").eq("school_id", ctx.school.id).eq("is_current", true).maybeSingle();
+  const { data: year } = await ctx.db
+    .from("academic_years")
+    .select("id")
+    .eq("school_id", ctx.school.id)
+    .eq("is_current", true)
+    .maybeSingle();
   const { error } = await ctx.db.from("expenses").insert({
     school_id: ctx.school.id,
     category_id: input.category_id,
@@ -345,7 +415,11 @@ export async function setExpenseStatus(ctx: AppContext, id: string, status: "app
   unwrap(
     await ctx.db
       .from("expenses")
-      .update({ status, approved_by: status === "approved" ? ctx.user.id : undefined, approved_at: status === "approved" ? new Date().toISOString() : undefined })
+      .update({
+        status,
+        approved_by: status === "approved" ? ctx.user.id : undefined,
+        approved_at: status === "approved" ? new Date().toISOString() : undefined,
+      })
       .eq("id", id)
       .select("id")
       .single(),
@@ -356,7 +430,10 @@ export async function saveBudget(ctx: AppContext, yearId: string, categoryId: st
   assertCan(ctx, "budgets.manage", ["school"]);
   const { error } = await ctx.db
     .from("budgets")
-    .upsert({ school_id: ctx.school.id, academic_year_id: yearId, category_id: categoryId, amount }, { onConflict: "academic_year_id,category_id" });
+    .upsert(
+      { school_id: ctx.school.id, academic_year_id: yearId, category_id: categoryId, amount },
+      { onConflict: "academic_year_id,category_id" },
+    );
   if (error) throw fromDbError(error);
 }
 
@@ -366,12 +443,16 @@ export async function familyFinance(ctx: AppContext) {
   const [invoices, payments] = await Promise.all([
     ctx.db
       .from("invoices")
-      .select("id, number, due_date, total, amount_paid, balance, status, student:students!invoices_school_id_student_id_fkey(first_name, last_name), invoice_installments(due_on, amount)")
+      .select(
+        "id, number, due_date, total, amount_paid, balance, status, student:students!invoices_school_id_student_id_fkey(first_name, last_name), invoice_installments(due_on, amount)",
+      )
       .neq("status", "cancelled")
       .order("due_date"),
     ctx.db
       .from("payments")
-      .select("id, receipt_number, amount, paid_at, status, method:payment_methods!payments_school_id_method_id_fkey(name), student:students!payments_school_id_student_id_fkey(first_name, last_name)")
+      .select(
+        "id, receipt_number, amount, paid_at, status, method:payment_methods!payments_school_id_method_id_fkey(name), student:students!payments_school_id_student_id_fkey(first_name, last_name)",
+      )
       .order("paid_at", { ascending: false })
       .limit(50),
   ]);

@@ -98,17 +98,19 @@ export default async function LeavesPage() {
             <div key={l.id} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center">
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">
-                  {fullName(l.staff)} <span className="font-normal text-muted-foreground">· {l.staff?.job_title}</span>
+                  {fullName(l.staff)} <span className="text-muted-foreground font-normal">· {l.staff?.job_title}</span>
                 </p>
                 <p className="text-sm">
                   {LEAVE_KINDS[l.kind]} · du {formatDate(l.starts_on)} au {formatDate(l.ends_on)}
                   {l.half_day ? " (demi-journée)" : ""}
                 </p>
-                {l.reason && <p className="text-xs text-muted-foreground">{l.reason}</p>}
-                {l.review_comment && <p className="text-xs text-muted-foreground">Commentaire : {l.review_comment}</p>}
+                {l.reason && <p className="text-muted-foreground text-xs">{l.reason}</p>}
+                {l.review_comment && <p className="text-muted-foreground text-xs">Commentaire : {l.review_comment}</p>}
               </div>
               <Badge variant={LEAVE_STATUS[l.status]?.variant}>{LEAVE_STATUS[l.status]?.label}</Badge>
-              {l.status === "pending" && validator && l.staff_id !== ctx.school.staff_id && <LeaveReview id={l.id} staff={fullName(l.staff)} teachers={teachers} />}
+              {l.status === "pending" && validator && l.staff_id !== ctx.school.staff_id && (
+                <LeaveReview id={l.id} staff={fullName(l.staff)} teachers={teachers} />
+              )}
               {l.status === "pending" && l.created_by === ctx.user.id && <CancelLeaveButton id={l.id} />}
             </div>
           ))}

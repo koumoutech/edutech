@@ -21,7 +21,12 @@ export default async function MessagesPage() {
         title="Messages"
         description="Échanges entre familles et personnel. Les familles ne peuvent écrire qu'au personnel de l'établissement."
         actions={
-          <FormDialog title="Nouveau message" action={startThreadAction} triggerLabel="Nouveau message" submitLabel="Envoyer">
+          <FormDialog
+            title="Nouveau message"
+            action={startThreadAction}
+            triggerLabel="Nouveau message"
+            submitLabel="Envoyer"
+          >
             <Field label="Objet" htmlFor="m-subject">
               <Input id="m-subject" name="subject" required maxLength={160} />
             </Field>
@@ -29,13 +34,20 @@ export default async function MessagesPage() {
               <legend className="mb-1.5 text-sm font-medium">Destinataires</legend>
               <div className="max-h-52 space-y-1 overflow-y-auto rounded-lg border p-2">
                 {recipients.map((r) => (
-                  <label key={r.user_id} className="flex items-center gap-2 rounded px-1 py-1 text-sm hover:bg-muted">
-                    <input type="checkbox" name="recipients" value={r.user_id} className="size-4 accent-[var(--primary)]" />
+                  <label key={r.user_id} className="hover:bg-muted flex items-center gap-2 rounded px-1 py-1 text-sm">
+                    <input
+                      type="checkbox"
+                      name="recipients"
+                      value={r.user_id}
+                      className="size-4 accent-[var(--primary)]"
+                    />
                     <span className="flex-1">{r.full_name}</span>
-                    <span className="text-xs text-muted-foreground">{r.role_names}</span>
+                    <span className="text-muted-foreground text-xs">{r.role_names}</span>
                   </label>
                 ))}
-                {recipients.length === 0 && <p className="text-sm text-muted-foreground">Aucun destinataire disponible.</p>}
+                {recipients.length === 0 && (
+                  <p className="text-muted-foreground text-sm">Aucun destinataire disponible.</p>
+                )}
               </div>
             </fieldset>
             <Field label="Message" htmlFor="m-body">
@@ -49,11 +61,18 @@ export default async function MessagesPage() {
       ) : (
         <Card className="divide-y overflow-hidden">
           {threads.map((t) => (
-            <Link key={t.id} href={`/app/messages/${t.id}`} className="flex items-center gap-3 p-4 transition-colors hover:bg-muted/50">
-              <span className={cn("size-2.5 shrink-0 rounded-full", t.unread ? "bg-primary" : "bg-transparent")} aria-hidden />
+            <Link
+              key={t.id}
+              href={`/app/messages/${t.id}`}
+              className="hover:bg-muted/50 flex items-center gap-3 p-4 transition-colors"
+            >
+              <span
+                className={cn("size-2.5 shrink-0 rounded-full", t.unread ? "bg-primary" : "bg-transparent")}
+                aria-hidden
+              />
               <div className="min-w-0 flex-1">
                 <p className={cn("truncate", t.unread && "font-semibold")}>{t.subject}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   {t.message_participants.length} participant(s) · {formatDateTime(t.last_message_at)}
                 </p>
               </div>

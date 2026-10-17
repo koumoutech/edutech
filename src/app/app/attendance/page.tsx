@@ -46,7 +46,8 @@ export default async function AttendancePage() {
             {can(ctx, "justifications.validate") && (
               <Button asChild variant="outline">
                 <Link href="/app/attendance/justifications">
-                  <FileCheckIcon /> Justificatifs {data.pendingJustifications > 0 && <Badge variant="warning">{data.pendingJustifications}</Badge>}
+                  <FileCheckIcon /> Justificatifs{" "}
+                  {data.pendingJustifications > 0 && <Badge variant="warning">{data.pendingJustifications}</Badge>}
                 </Link>
               </Button>
             )}
@@ -61,23 +62,27 @@ export default async function AttendancePage() {
         }
       />
       {data.classes.length === 0 ? (
-        <EmptyState icon={ClipboardCheckIcon} title="Aucune classe" description="Aucune classe ne vous est attribuée pour l'appel." />
+        <EmptyState
+          icon={ClipboardCheckIcon}
+          title="Aucune classe"
+          description="Aucune classe ne vous est attribuée pour l'appel."
+        />
       ) : (
         <Stagger className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {data.classes.map((c) => (
             <StaggerItem key={c.id}>
               <Card className="flex items-center gap-3 p-4">
-                <div className="flex size-11 items-center justify-center rounded-xl bg-brand-soft text-primary dark:bg-secondary">
+                <div className="bg-brand-soft text-primary dark:bg-secondary flex size-11 items-center justify-center rounded-xl">
                   <CalendarCheckIcon className="size-5" aria-hidden />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{c.name}</p>
                   {c.today ? (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       Appel fait · {c.today.absent} absent(s) · {c.today.late} retard(s)
                     </p>
                   ) : (
-                    <p className="text-xs font-medium text-[#a37800] dark:text-highlight">Appel du jour non effectué</p>
+                    <p className="dark:text-highlight text-xs font-medium text-[#a37800]">Appel du jour non effectué</p>
                   )}
                 </div>
                 {can(ctx, "attendance.create") && (
@@ -96,7 +101,9 @@ export default async function AttendancePage() {
 
 async function FamilyAttendance({ ctx }: { ctx: AppContext }) {
   const children = await linkedChildren(ctx);
-  const histories = await Promise.all(children.map(async (c) => ({ child: c, ...(await studentAttendanceHistory(ctx, c.id)) })));
+  const histories = await Promise.all(
+    children.map(async (c) => ({ child: c, ...(await studentAttendanceHistory(ctx, c.id)) })),
+  );
   return (
     <div className="space-y-5">
       <PageHeader title="Absences et retards" description="Historique et justification des absences." />
@@ -124,27 +131,38 @@ async function FamilyAttendance({ ctx }: { ctx: AppContext }) {
                       <TD>{formatDate(r.session?.date)}</TD>
                       <TD>{r.session?.cs?.subject?.name ?? "Journée"}</TD>
                       <TD>
-                        <Badge variant={STATUS[r.status]?.variant ?? "muted"}>{STATUS[r.status]?.label ?? r.status}</Badge>
-                        {r.minutes_late ? <span className="ml-2 text-xs text-muted-foreground">{r.minutes_late} min</span> : null}
+                        <Badge variant={STATUS[r.status]?.variant ?? "muted"}>
+                          {STATUS[r.status]?.label ?? r.status}
+                        </Badge>
+                        {r.minutes_late ? (
+                          <span className="text-muted-foreground ml-2 text-xs">{r.minutes_late} min</span>
+                        ) : null}
                       </TD>
                     </TR>
                   ))}
                 </TBody>
               </Table>
             ) : (
-              <p className="text-sm text-muted-foreground">Aucune absence ni retard enregistré. 👏</p>
+              <p className="text-muted-foreground text-sm">Aucune absence ni retard enregistré. 👏</p>
             )}
             {justifications.length > 0 && (
               <div>
                 <p className="mb-2 text-sm font-semibold">Justificatifs envoyés</p>
                 <ul className="space-y-2">
                   {justifications.map((j) => (
-                    <li key={j.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3 text-sm">
+                    <li
+                      key={j.id}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3 text-sm"
+                    >
                       <span>
                         Du {formatDate(j.from_date)} au {formatDate(j.to_date)} — {j.reason}
-                        {j.review_comment && <span className="block text-xs text-muted-foreground">Commentaire : {j.review_comment}</span>}
+                        {j.review_comment && (
+                          <span className="text-muted-foreground block text-xs">Commentaire : {j.review_comment}</span>
+                        )}
                       </span>
-                      <Badge variant={JUSTIF[j.status]?.variant ?? "warning"}>{JUSTIF[j.status]?.label ?? j.status}</Badge>
+                      <Badge variant={JUSTIF[j.status]?.variant ?? "warning"}>
+                        {JUSTIF[j.status]?.label ?? j.status}
+                      </Badge>
                     </li>
                   ))}
                 </ul>

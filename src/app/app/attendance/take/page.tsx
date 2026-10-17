@@ -19,7 +19,11 @@ const querySchema = z.object({
     .catch(undefined),
 });
 
-export default async function TakeAttendancePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function TakeAttendancePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const ctx = await requirePermission("attendance.create");
   const parsed = querySchema.safeParse(await searchParams);
   if (!parsed.success) notFound();
@@ -33,10 +37,16 @@ export default async function TakeAttendancePage({ searchParams }: { searchParam
         eyebrow="Appel"
         title={data.cls.name}
         description={`${formatDate(date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}${
-          data.entry ? ` · ${data.entry.cs?.subject?.name ?? ""} ${data.entry.starts_at.slice(0, 5)}–${data.entry.ends_at.slice(0, 5)}` : " · appel journalier"
+          data.entry
+            ? ` · ${data.entry.cs?.subject?.name ?? ""} ${data.entry.starts_at.slice(0, 5)}–${data.entry.ends_at.slice(0, 5)}`
+            : " · appel journalier"
         }`}
       />
-      {data.takenAt && <Alert tone="info">Un appel existe déjà pour ce créneau : vos modifications le mettront à jour (historique conservé).</Alert>}
+      {data.takenAt && (
+        <Alert tone="info">
+          Un appel existe déjà pour ce créneau : vos modifications le mettront à jour (historique conservé).
+        </Alert>
+      )}
       <RollCall
         classId={data.cls.id}
         date={date}

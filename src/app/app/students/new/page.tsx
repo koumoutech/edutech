@@ -14,7 +14,10 @@ export default async function NewStudentPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <PageHeader title="Nouvelle inscription" description={year ? `Année scolaire ${year.name}` : undefined} />
-      <NewStudentForm classes={classes.map((c) => ({ id: c.id, name: c.name }))} canEnroll={can(ctx, "enrollments.manage")} />
+      <NewStudentForm
+        classes={classes.map((c) => ({ id: c.id, name: c.name }))}
+        canEnroll={can(ctx, "enrollments.manage")}
+      />
     </div>
   );
 }

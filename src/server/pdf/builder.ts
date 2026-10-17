@@ -68,10 +68,21 @@ export class PdfBuilder {
     }
     if (right) {
       const w = this.font.widthOfTextAtSize(pdfSafe(right), 9);
-      this.page.drawText(pdfSafe(right), { x: A4[0] - MARGIN - w, y: this.y - 10, size: 9, font: this.font, color: MUTED });
+      this.page.drawText(pdfSafe(right), {
+        x: A4[0] - MARGIN - w,
+        y: this.y - 10,
+        size: 9,
+        font: this.font,
+        color: MUTED,
+      });
     }
     this.y = yy - 10;
-    this.page.drawLine({ start: { x: MARGIN, y: this.y }, end: { x: A4[0] - MARGIN, y: this.y }, thickness: 1, color: LINE });
+    this.page.drawLine({
+      start: { x: MARGIN, y: this.y },
+      end: { x: A4[0] - MARGIN, y: this.y },
+      thickness: 1,
+      color: LINE,
+    });
     this.y -= 24;
   }
 
@@ -135,7 +146,11 @@ export class PdfBuilder {
     this.y -= 4;
   }
 
-  table(columns: { label: string; width: number; align?: "left" | "right" | "center" }[], rows: string[][], opts: { zebra?: boolean; footer?: string[] } = {}) {
+  table(
+    columns: { label: string; width: number; align?: "left" | "right" | "center" }[],
+    rows: string[][],
+    opts: { zebra?: boolean; footer?: string[] } = {},
+  ) {
     const total = columns.reduce((s, c) => s + c.width, 0);
     const widths = columns.map((c) => (c.width / total) * this.width);
     const drawRow = (cells: string[], bold: boolean, fill?: ReturnType<typeof rgb>) => {
@@ -155,9 +170,18 @@ export class PdfBuilder {
         x += widths[i];
       });
       this.y -= h;
-      this.page.drawLine({ start: { x: MARGIN, y: this.y + 9 }, end: { x: MARGIN + this.width, y: this.y + 9 }, thickness: 0.5, color: LINE });
+      this.page.drawLine({
+        start: { x: MARGIN, y: this.y + 9 },
+        end: { x: MARGIN + this.width, y: this.y + 9 },
+        thickness: 0.5,
+        color: LINE,
+      });
     };
-    drawRow(columns.map((c) => c.label), true, SOFT);
+    drawRow(
+      columns.map((c) => c.label),
+      true,
+      SOFT,
+    );
     rows.forEach((r, i) => drawRow(r, false, opts.zebra && i % 2 === 1 ? rgb(0.975, 0.98, 0.977) : undefined));
     if (opts.footer) drawRow(opts.footer, true, SOFT);
     this.y -= 10;
@@ -167,7 +191,15 @@ export class PdfBuilder {
     const lines = this.wrap(text, 10, this.width - 20);
     const h = lines.length * 14 + (label ? 18 : 8) + 10;
     this.ensure(h);
-    this.page.drawRectangle({ x: MARGIN, y: this.y - h + 12, width: this.width, height: h, borderColor: LINE, borderWidth: 1, color: rgb(1, 1, 1) });
+    this.page.drawRectangle({
+      x: MARGIN,
+      y: this.y - h + 12,
+      width: this.width,
+      height: h,
+      borderColor: LINE,
+      borderWidth: 1,
+      color: rgb(1, 1, 1),
+    });
     let yy = this.y - 4;
     if (label) {
       this.page.drawText(pdfSafe(label), { x: MARGIN + 10, y: yy, size: 8, font: this.bold, color: GREEN });

@@ -16,9 +16,12 @@ interface Period {
 }
 
 export function BellScheduleEditor({ initial }: { initial: Period[] }) {
-  const [rows, setRows] = useState<Period[]>(initial.length ? initial : [{ label: "M1", starts_at: "08:00", ends_at: "08:55", is_break: false }]);
+  const [rows, setRows] = useState<Period[]>(
+    initial.length ? initial : [{ label: "M1", starts_at: "08:00", ends_at: "08:55", is_break: false }],
+  );
   const [pending, start] = useTransition();
-  const update = (i: number, patch: Partial<Period>) => setRows((r) => r.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+  const update = (i: number, patch: Partial<Period>) =>
+    setRows((r) => r.map((x, j) => (j === i ? { ...x, ...patch } : x)));
 
   return (
     <Card>
@@ -30,12 +33,35 @@ export function BellScheduleEditor({ initial }: { initial: Period[] }) {
         {rows.map((r, i) => (
           <div key={i} className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-2">
             <Input aria-label="Libellé" value={r.label} onChange={(e) => update(i, { label: e.target.value })} />
-            <Input aria-label="Début" type="time" value={r.starts_at} onChange={(e) => update(i, { starts_at: e.target.value })} className="w-28" />
-            <Input aria-label="Fin" type="time" value={r.ends_at} onChange={(e) => update(i, { ends_at: e.target.value })} className="w-28" />
+            <Input
+              aria-label="Début"
+              type="time"
+              value={r.starts_at}
+              onChange={(e) => update(i, { starts_at: e.target.value })}
+              className="w-28"
+            />
+            <Input
+              aria-label="Fin"
+              type="time"
+              value={r.ends_at}
+              onChange={(e) => update(i, { ends_at: e.target.value })}
+              className="w-28"
+            />
             <label className="flex items-center gap-1 text-xs">
-              <input type="checkbox" checked={r.is_break} onChange={(e) => update(i, { is_break: e.target.checked })} className="size-4 accent-[var(--primary)]" /> Pause
+              <input
+                type="checkbox"
+                checked={r.is_break}
+                onChange={(e) => update(i, { is_break: e.target.checked })}
+                className="size-4 accent-[var(--primary)]"
+              />{" "}
+              Pause
             </label>
-            <Button variant="ghost" size="icon-sm" onClick={() => setRows((x) => x.filter((_, j) => j !== i))} aria-label="Supprimer le créneau">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setRows((x) => x.filter((_, j) => j !== i))}
+              aria-label="Supprimer le créneau"
+            >
               <Trash2Icon />
             </Button>
           </div>
@@ -44,7 +70,17 @@ export function BellScheduleEditor({ initial }: { initial: Period[] }) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setRows((x) => [...x, { label: `C${x.length + 1}`, starts_at: x.at(-1)?.ends_at ?? "08:00", ends_at: x.at(-1)?.ends_at ?? "09:00", is_break: false }])}
+            onClick={() =>
+              setRows((x) => [
+                ...x,
+                {
+                  label: `C${x.length + 1}`,
+                  starts_at: x.at(-1)?.ends_at ?? "08:00",
+                  ends_at: x.at(-1)?.ends_at ?? "09:00",
+                  is_break: false,
+                },
+              ])
+            }
           >
             <PlusIcon /> Ajouter un créneau
           </Button>

@@ -12,7 +12,7 @@ export default function SetPasswordPage() {
       <Logo name="EduDigi" />
       <div className="space-y-1.5">
         <h1 className="text-2xl font-bold tracking-tight">Définissez votre mot de passe</h1>
-        <p className="text-sm text-muted-foreground">Il protège l&apos;accès aux données de votre établissement.</p>
+        <p className="text-muted-foreground text-sm">Il protège l&apos;accès aux données de votre établissement.</p>
       </div>
       <Suspense fallback={<Skeleton className="h-56" />}>
         <SetPasswordForm />

@@ -10,7 +10,12 @@ import {
   type AssessmentInput,
 } from "@/features/grades/domain";
 
-const A = (id: string, subject: string, max = 20, coef = 1): AssessmentInput => ({ id, subject_id: subject, max_score: max, coefficient: coef });
+const A = (id: string, subject: string, max = 20, coef = 1): AssessmentInput => ({
+  id,
+  subject_id: subject,
+  max_score: max,
+  coefficient: coef,
+});
 
 describe("roundScore", () => {
   it("rounds half up without floating point surprises", () => {
@@ -23,7 +28,15 @@ describe("roundScore", () => {
 
 describe("competitionRank", () => {
   it("gives equal ranks to ties and skips the following rank", () => {
-    const r = competitionRank(new Map<string, number | null>([["a", 15], ["b", 12], ["c", 15], ["d", 10], ["e", null]]));
+    const r = competitionRank(
+      new Map<string, number | null>([
+        ["a", 15],
+        ["b", 12],
+        ["c", 15],
+        ["d", 10],
+        ["e", null],
+      ]),
+    );
     expect(r.get("a")).toBe(1);
     expect(r.get("c")).toBe(1);
     expect(r.get("b")).toBe(3);
@@ -65,7 +78,13 @@ describe("computeSubjectAverage", () => {
       { assessment_id: "t1", student_id: "s", score: 16, is_absent: false },
       { assessment_id: "t2", student_id: "s", score: null, is_absent: true, is_excused: true },
     ];
-    expect(computeSubjectAverage(grades, assessments, { ...DEFAULT_POLICY, missing_policy: "zero", excused_policy: "exclude" })).toBe(16);
+    expect(
+      computeSubjectAverage(grades, assessments, {
+        ...DEFAULT_POLICY,
+        missing_policy: "zero",
+        excused_policy: "exclude",
+      }),
+    ).toBe(16);
   });
 
   it("returns null without any usable grade", () => {
@@ -73,10 +92,14 @@ describe("computeSubjectAverage", () => {
   });
 
   it("supports a /100 scale", () => {
-    const avg = computeSubjectAverage([{ assessment_id: "t1", student_id: "s", score: 15, is_absent: false }], assessments, {
-      ...DEFAULT_POLICY,
-      scale_max: 100,
-    });
+    const avg = computeSubjectAverage(
+      [{ assessment_id: "t1", student_id: "s", score: 15, is_absent: false }],
+      assessments,
+      {
+        ...DEFAULT_POLICY,
+        scale_max: 100,
+      },
+    );
     expect(avg).toBe(75);
   });
 });
@@ -154,11 +177,19 @@ describe("computeClassResults", () => {
   });
 
   it("can disable ranking", () => {
-    const r = computeClassResults({ studentIds: ["alice", "bob"], subjects, assessments, grades, policy: { ...DEFAULT_POLICY, ranking_enabled: false } });
+    const r = computeClassResults({
+      studentIds: ["alice", "bob"],
+      subjects,
+      assessments,
+      grades,
+      policy: { ...DEFAULT_POLICY, ranking_enabled: false },
+    });
     expect(r.students.every((s) => s.rank === null)).toBe(true);
   });
 
   it("rejects invalid assessments", () => {
-    expect(() => computeClassResults({ studentIds: [], subjects, assessments: [A("x", "math", 0)], grades: [] })).toThrow();
+    expect(() =>
+      computeClassResults({ studentIds: [], subjects, assessments: [A("x", "math", 0)], grades: [] }),
+    ).toThrow();
   });
 });

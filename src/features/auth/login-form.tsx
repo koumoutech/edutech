@@ -36,11 +36,18 @@ export function LoginForm() {
       </Field>
       <Field label="Mot de passe" htmlFor="password">
         <div className="relative">
-          <Input id="password" name="password" type={show ? "text" : "password"} autoComplete="current-password" required className="pr-11" />
+          <Input
+            id="password"
+            name="password"
+            type={show ? "text" : "password"}
+            autoComplete="current-password"
+            required
+            className="pr-11"
+          />
           <button
             type="button"
             onClick={() => setShow((s) => !s)}
-            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex w-11 items-center justify-center"
             aria-label={show ? "Masquer le mot de passe" : "Afficher le mot de passe"}
           >
             {show ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
@@ -48,7 +55,7 @@ export function LoginForm() {
         </div>
       </Field>
       <div className="flex justify-end">
-        <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
+        <Link href="/forgot-password" className="text-primary text-sm font-medium hover:underline">
           Mot de passe oublié ?
         </Link>
       </div>

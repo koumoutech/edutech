@@ -5,7 +5,8 @@ import { MAX_UPLOAD_BYTES, safeFileName, sniffMime } from "@/lib/files";
 import type { AppContext } from "@/server/auth/session";
 import { AppError, fromDbError } from "@/server/errors";
 
-export type DocumentCategory = "student_file" | "justification" | "certificate" | "report_card" | "receipt" | "hr" | "administrative" | "other";
+export type DocumentCategory =
+  "student_file" | "justification" | "certificate" | "report_card" | "receipt" | "hr" | "administrative" | "other";
 
 /**
  * Stores a file in the private `documents` bucket.
@@ -26,7 +27,8 @@ export async function storeDocument(
   },
 ): Promise<string> {
   const bytes = input.file instanceof File ? new Uint8Array(await input.file.arrayBuffer()) : input.file.bytes;
-  if (bytes.length === 0 || bytes.length > MAX_UPLOAD_BYTES) throw new AppError("VALIDATION", "Fichier vide ou trop volumineux (10 Mo maximum).");
+  if (bytes.length === 0 || bytes.length > MAX_UPLOAD_BYTES)
+    throw new AppError("VALIDATION", "Fichier vide ou trop volumineux (10 Mo maximum).");
   const mime = sniffMime(bytes);
   if (!mime) throw new AppError("VALIDATION", "Type de fichier non autorisé (PDF, PNG, JPEG ou WEBP uniquement).");
 
@@ -61,7 +63,12 @@ export async function storeDocument(
 
 /** Short-lived signed URL after an RLS-checked metadata lookup. */
 export async function signedDocumentUrl(ctx: AppContext, id: string): Promise<string> {
-  const { data: doc } = await ctx.db.from("documents").select("storage_path").eq("id", id).is("deleted_at", null).maybeSingle();
+  const { data: doc } = await ctx.db
+    .from("documents")
+    .select("storage_path")
+    .eq("id", id)
+    .is("deleted_at", null)
+    .maybeSingle();
   if (!doc?.storage_path) throw new AppError("NOT_FOUND");
   const { data, error } = await ctx.db.storage.from("documents").createSignedUrl(doc.storage_path, 60);
   if (error || !data) throw new AppError("NOT_FOUND");
@@ -69,6 +76,10 @@ export async function signedDocumentUrl(ctx: AppContext, id: string): Promise<st
 }
 
 export async function softDeleteDocument(ctx: AppContext, id: string) {
-  const { error } = await ctx.db.from("documents").update({ deleted_at: new Date().toISOString() }).eq("id", id).eq("school_id", ctx.school.id);
+  const { error } = await ctx.db
+    .from("documents")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("school_id", ctx.school.id);
   if (error) throw fromDbError(error);
 }

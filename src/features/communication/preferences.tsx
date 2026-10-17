@@ -11,7 +11,13 @@ const CHANNELS = [
   ["sms", "SMS"],
 ] as const;
 
-export function NotificationPreferences({ types, values }: { types: [string, string][]; values: Record<string, boolean> }) {
+export function NotificationPreferences({
+  types,
+  values,
+}: {
+  types: [string, string][];
+  values: Record<string, boolean>;
+}) {
   const [, start] = useTransition();
   const [state, setOptimistic] = useOptimistic(values, (s, p: { key: string; v: boolean }) => ({ ...s, [p.key]: p.v }));
   return (

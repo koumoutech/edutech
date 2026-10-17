@@ -23,25 +23,41 @@ const viewSchema = z.object({
   room: z.uuid().optional().catch(undefined),
 });
 
-export default async function TimetablePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function TimetablePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const ctx = await requirePermission("timetable.read");
   const sp = viewSchema.parse(await searchParams);
   const family = isFamilyOnly(ctx.school.roles);
-  let view: TimetableView | null = sp.class ? { kind: "class", id: sp.class } : sp.teacher ? { kind: "teacher", id: sp.teacher } : sp.room ? { kind: "room", id: sp.room } : null;
+  let view: TimetableView | null = sp.class
+    ? { kind: "class", id: sp.class }
+    : sp.teacher
+      ? { kind: "teacher", id: sp.teacher }
+      : sp.room
+        ? { kind: "room", id: sp.room }
+        : null;
   if (family || !view) view = view && !family ? view : await defaultView(ctx);
   if (family && sp.class) view = { kind: "class", id: sp.class }; // RLS filters entries of non-linked classes anyway
   const options = await timetableOptions(ctx);
   const manage = canSchoolWide(ctx, "timetable.manage");
 
   if (!view) {
-    return <EmptyState icon={CalendarClockIcon} title="Aucun emploi du temps" description="Aucune classe ou aucun cours n'est encore planifié." />;
+    return (
+      <EmptyState
+        icon={CalendarClockIcon}
+        title="Aucun emploi du temps"
+        description="Aucune classe ou aucun cours n'est encore planifié."
+      />
+    );
   }
   const data = await weekTimetable(ctx, view);
   const label =
     view.kind === "class"
       ? `Classe ${options.classes.find((c) => c.id === view.id)?.name ?? ""}`
       : view.kind === "teacher"
-        ? options.teachers.find((t) => t.id === view.id)?.name ?? "Enseignant"
+        ? (options.teachers.find((t) => t.id === view.id)?.name ?? "Enseignant")
         : `Salle ${options.rooms.find((r) => r.id === view.id)?.name ?? ""}`;
   const subsByEntry = new Map(data.substitutions.map((s) => [s.timetable_entry_id, s]));
   const hasSaturday = data.entries.some((e) => e.weekday === 6);
@@ -146,7 +162,9 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
               Afficher
             </Button>
           </form>
-          <p className="mt-2 text-xs text-muted-foreground">Choisissez un seul critère à la fois (le premier renseigné est utilisé).</p>
+          <p className="text-muted-foreground mt-2 text-xs">
+            Choisissez un seul critère à la fois (le premier renseigné est utilisé).
+          </p>
         </Card>
       )}
 
@@ -163,9 +181,19 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
               starts_at: e.starts_at,
               ends_at: e.ends_at,
               title: e.cs?.subject?.name ?? "",
-              subtitle: [view.kind !== "class" ? e.class?.name : null, view.kind !== "teacher" && e.teacher ? fullName(e.teacher) : null, e.room?.name].filter(Boolean).join(" · "),
+              subtitle: [
+                view.kind !== "class" ? e.class?.name : null,
+                view.kind !== "teacher" && e.teacher ? fullName(e.teacher) : null,
+                e.room?.name,
+              ]
+                .filter(Boolean)
+                .join(" · "),
               color: e.cs?.subject?.color ?? null,
-              badge: sub ? (sub.is_cancelled ? `Annulé le ${formatDate(sub.date)}` : `Remplacé le ${formatDate(sub.date)}`) : undefined,
+              badge: sub
+                ? sub.is_cancelled
+                  ? `Annulé le ${formatDate(sub.date)}`
+                  : `Remplacé le ${formatDate(sub.date)}`
+                : undefined,
             };
           })}
           actions={manage ? (e) => <DeleteEntryButton id={e.id} /> : undefined}
@@ -177,7 +205,12 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>Remplacements et annulations à venir</CardTitle>
             {manage && data.entries.length > 0 && (
-              <FormDialog title="Remplacement ou annulation" action={addSubstitutionAction} triggerLabel="Déclarer" triggerVariant="outline">
+              <FormDialog
+                title="Remplacement ou annulation"
+                action={addSubstitutionAction}
+                triggerLabel="Déclarer"
+                triggerVariant="outline"
+              >
                 <Field label="Cours" htmlFor="s-entry">
                   <Select id="s-entry" name="timetable_entry_id" required>
                     {data.entries.map((e) => (
@@ -211,7 +244,7 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
           </CardHeader>
           <CardContent>
             {data.substitutions.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Aucun changement prévu.</p>
+              <p className="text-muted-foreground text-sm">Aucun changement prévu.</p>
             ) : (
               <ul className="divide-y text-sm">
                 {data.substitutions.map((s) => {
@@ -219,9 +252,14 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
                   return (
                     <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                       <span>
-                        {formatDate(s.date)} · {e?.cs?.subject?.name} ({e?.class?.name}) {s.reason ? `— ${s.reason}` : ""}
+                        {formatDate(s.date)} · {e?.cs?.subject?.name} ({e?.class?.name}){" "}
+                        {s.reason ? `— ${s.reason}` : ""}
                       </span>
-                      {s.is_cancelled ? <Badge variant="danger">Annulé</Badge> : <Badge>Remplaçant : {s.substitute ? fullName(s.substitute) : "—"}</Badge>}
+                      {s.is_cancelled ? (
+                        <Badge variant="danger">Annulé</Badge>
+                      ) : (
+                        <Badge>Remplaçant : {s.substitute ? fullName(s.substitute) : "—"}</Badge>
+                      )}
                     </li>
                   );
                 })}
@@ -230,7 +268,11 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
           </CardContent>
         </Card>
       )}
-      {!can(ctx, "timetable.manage") && <p className="no-print text-xs text-muted-foreground">Les modifications d&apos;emploi du temps vous sont notifiées automatiquement.</p>}
+      {!can(ctx, "timetable.manage") && (
+        <p className="no-print text-muted-foreground text-xs">
+          Les modifications d&apos;emploi du temps vous sont notifiées automatiquement.
+        </p>
+      )}
     </div>
   );
 }

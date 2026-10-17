@@ -142,7 +142,8 @@ async function main() {
     if (cols[0].table_type !== "BASE TABLE") continue;
     out.push(`      ${name}: {`);
     out.push("        Row: {");
-    for (const c of cols) out.push(`          ${c.column_name}: ${tsType(c.udt_name)}${c.is_nullable === "YES" ? " | null" : ""};`);
+    for (const c of cols)
+      out.push(`          ${c.column_name}: ${tsType(c.udt_name)}${c.is_nullable === "YES" ? " | null" : ""};`);
     out.push("        };");
     out.push("        Insert: {");
     for (const c of cols) {
@@ -151,7 +152,9 @@ async function main() {
         continue;
       }
       const optional = c.is_nullable === "YES" || c.column_default !== null || c.is_identity === "YES";
-      out.push(`          ${c.column_name}${optional ? "?" : ""}: ${tsType(c.udt_name)}${c.is_nullable === "YES" ? " | null" : ""};`);
+      out.push(
+        `          ${c.column_name}${optional ? "?" : ""}: ${tsType(c.udt_name)}${c.is_nullable === "YES" ? " | null" : ""};`,
+      );
     }
     out.push("        };");
     out.push("        Update: {");
@@ -204,9 +207,15 @@ async function main() {
   out.push("  };");
   out.push("};");
   out.push("");
-  out.push('export type Tables<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Row"];');
-  out.push('export type TablesInsert<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Insert"];');
-  out.push('export type TablesUpdate<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Update"];');
+  out.push(
+    'export type Tables<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Row"];',
+  );
+  out.push(
+    'export type TablesInsert<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Insert"];',
+  );
+  out.push(
+    'export type TablesUpdate<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Update"];',
+  );
   out.push('export type DbFunctions = Database["public"]["Functions"];');
   out.push("");
 

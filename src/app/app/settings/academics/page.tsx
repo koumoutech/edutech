@@ -9,7 +9,13 @@ import { EmptyState, PageHeader } from "@/components/ui/misc";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BellScheduleEditor } from "@/features/classes/bell-schedule-editor";
-import { saveLevelAction, saveRoomAction, saveSubjectAction, saveYearAction, updateTermAction } from "@/features/classes/actions";
+import {
+  saveLevelAction,
+  saveRoomAction,
+  saveSubjectAction,
+  saveYearAction,
+  updateTermAction,
+} from "@/features/classes/actions";
 import { can } from "@/lib/authz";
 import { formatDate } from "@/lib/utils";
 import { requirePermission } from "@/server/auth/session";
@@ -23,7 +29,10 @@ export default async function AcademicSettingsPage() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Organisation pédagogique" description="Années scolaires, périodes, niveaux, matières, salles et horaires." />
+      <PageHeader
+        title="Organisation pédagogique"
+        description="Années scolaires, périodes, niveaux, matières, salles et horaires."
+      />
       <Tabs defaultValue="years">
         <TabsList>
           <TabsTrigger value="years">Années & périodes</TabsTrigger>
@@ -47,15 +56,26 @@ export default async function AcademicSettingsPage() {
                   <Input id="y-end" name="ends_on" type="date" required />
                 </Field>
               </div>
-              <Field label="Nombre de périodes" htmlFor="y-terms" hint="3 trimestres ou 2 semestres, ajustables ensuite.">
+              <Field
+                label="Nombre de périodes"
+                htmlFor="y-terms"
+                hint="3 trimestres ou 2 semestres, ajustables ensuite."
+              >
                 <Input id="y-terms" name="terms" type="number" min={1} max={6} defaultValue={3} />
               </Field>
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" name="is_current" className="size-4 accent-[var(--primary)]" /> Définir comme année en cours
+                <input type="checkbox" name="is_current" className="size-4 accent-[var(--primary)]" /> Définir comme
+                année en cours
               </label>
             </FormDialog>
           </div>
-          {data.years.length === 0 && <EmptyState icon={CalendarRangeIcon} title="Aucune année scolaire" description="Créez la première année pour configurer classes et périodes." />}
+          {data.years.length === 0 && (
+            <EmptyState
+              icon={CalendarRangeIcon}
+              title="Aucune année scolaire"
+              description="Créez la première année pour configurer classes et périodes."
+            />
+          )}
           {data.years.map((y) => (
             <Card key={y.id}>
               <CardHeader className="flex-row items-center justify-between">
@@ -89,21 +109,49 @@ export default async function AcademicSettingsPage() {
                           <TD>{formatDate(t.ends_on)}</TD>
                           <TD>{t.weight}</TD>
                           <TD className="text-right">
-                            <FormDialog title={`Modifier ${t.name}`} action={updateTermAction} trigger={<Button variant="ghost" size="sm">Modifier</Button>}>
+                            <FormDialog
+                              title={`Modifier ${t.name}`}
+                              action={updateTermAction}
+                              trigger={
+                                <Button variant="ghost" size="sm">
+                                  Modifier
+                                </Button>
+                              }
+                            >
                               <input type="hidden" name="id" value={t.id} />
                               <Field label="Libellé" htmlFor={`t-${t.id}`}>
                                 <Input id={`t-${t.id}`} name="name" defaultValue={t.name} required />
                               </Field>
                               <div className="grid grid-cols-2 gap-3">
                                 <Field label="Début" htmlFor={`ts-${t.id}`}>
-                                  <Input id={`ts-${t.id}`} name="starts_on" type="date" defaultValue={t.starts_on} required />
+                                  <Input
+                                    id={`ts-${t.id}`}
+                                    name="starts_on"
+                                    type="date"
+                                    defaultValue={t.starts_on}
+                                    required
+                                  />
                                 </Field>
                                 <Field label="Fin" htmlFor={`te-${t.id}`}>
-                                  <Input id={`te-${t.id}`} name="ends_on" type="date" defaultValue={t.ends_on} required />
+                                  <Input
+                                    id={`te-${t.id}`}
+                                    name="ends_on"
+                                    type="date"
+                                    defaultValue={t.ends_on}
+                                    required
+                                  />
                                 </Field>
                               </div>
                               <Field label="Poids dans la moyenne annuelle" htmlFor={`tw-${t.id}`}>
-                                <Input id={`tw-${t.id}`} name="weight" type="number" step="0.5" min="0.5" max="10" defaultValue={t.weight} />
+                                <Input
+                                  id={`tw-${t.id}`}
+                                  name="weight"
+                                  type="number"
+                                  step="0.5"
+                                  min="0.5"
+                                  max="10"
+                                  defaultValue={t.weight}
+                                />
                               </Field>
                             </FormDialog>
                           </TD>
@@ -183,12 +231,18 @@ export default async function AcademicSettingsPage() {
           </div>
           <Card>
             <CardContent className="grid gap-2 pt-5 sm:grid-cols-2 lg:grid-cols-3">
-              {data.subjects.length === 0 && <EmptyState icon={BookOpenIcon} title="Aucune matière" className="sm:col-span-3" />}
+              {data.subjects.length === 0 && (
+                <EmptyState icon={BookOpenIcon} title="Aucune matière" className="sm:col-span-3" />
+              )}
               {data.subjects.map((s) => (
                 <div key={s.id} className="flex items-center gap-3 rounded-lg border p-3">
-                  <span className="size-3 rounded-full" style={{ background: s.color ?? "var(--primary)" }} aria-hidden />
+                  <span
+                    className="size-3 rounded-full"
+                    style={{ background: s.color ?? "var(--primary)" }}
+                    aria-hidden
+                  />
                   <span className="flex-1 text-sm font-medium">{s.name}</span>
-                  <code className="text-xs text-muted-foreground">{s.code}</code>
+                  <code className="text-muted-foreground text-xs">{s.code}</code>
                 </div>
               ))}
             </CardContent>
@@ -241,7 +295,14 @@ export default async function AcademicSettingsPage() {
 
         {can(ctx, "timetable.manage") && (
           <TabsContent value="bells">
-            <BellScheduleEditor initial={data.periods.map((p) => ({ label: p.label, starts_at: p.starts_at.slice(0, 5), ends_at: p.ends_at.slice(0, 5), is_break: p.is_break }))} />
+            <BellScheduleEditor
+              initial={data.periods.map((p) => ({
+                label: p.label,
+                starts_at: p.starts_at.slice(0, 5),
+                ends_at: p.ends_at.slice(0, 5),
+                is_break: p.is_break,
+              }))}
+            />
           </TabsContent>
         )}
       </Tabs>

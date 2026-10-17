@@ -35,7 +35,8 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
           <span className="flex flex-wrap items-center gap-2">
             <Badge variant={ASSESSMENT_STATUS[a.status]?.variant}>{ASSESSMENT_STATUS[a.status]?.label}</Badge>
             <span>
-              {formatDate(a.held_on)} · barème /{formatScore(Number(a.max_score))} · coef. {formatScore(Number(a.coefficient))}
+              {formatDate(a.held_on)} · barème /{formatScore(Number(a.max_score))} · coef.{" "}
+              {formatScore(Number(a.coefficient))}
               {a.cs?.teacher ? ` · ${fullName(a.cs.teacher)}` : ""}
             </span>
           </span>
@@ -58,7 +59,9 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
           <span className="inline-flex items-center gap-1">
             <LockIcon className="size-3.5" aria-hidden /> Évaluation validée le {formatDateTime(a.validated_at)}.
           </span>{" "}
-          {sheet.canCorrect ? "Utilisez le bouton de correction : chaque modification est motivée et historisée." : "Seule la direction des études peut corriger une note validée."}
+          {sheet.canCorrect
+            ? "Utilisez le bouton de correction : chaque modification est motivée et historisée."
+            : "Seule la direction des études peut corriger une note validée."}
         </Alert>
       )}
 
@@ -80,12 +83,28 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
                   <TR key={s.id}>
                     <TD className="font-medium">{fullName(s)}</TD>
                     <TD className="text-right tabular-nums">
-                      {g ? g.is_absent ? <Badge variant="muted">Absent</Badge> : `${formatScore(g.score)}/${formatScore(Number(a.max_score))}` : "—"}
+                      {g ? (
+                        g.is_absent ? (
+                          <Badge variant="muted">Absent</Badge>
+                        ) : (
+                          `${formatScore(g.score)}/${formatScore(Number(a.max_score))}`
+                        )
+                      ) : (
+                        "—"
+                      )}
                     </TD>
-                    <TD className="hidden text-sm text-muted-foreground sm:table-cell">{g?.comment}</TD>
+                    <TD className="text-muted-foreground hidden text-sm sm:table-cell">{g?.comment}</TD>
                     {sheet.canCorrect && (
                       <TD className="text-right">
-                        {g && <CorrectGradeButton gradeId={g.id} studentName={fullName(s)} score={g.score === null ? null : Number(g.score)} isAbsent={g.is_absent} maxScore={Number(a.max_score)} />}
+                        {g && (
+                          <CorrectGradeButton
+                            gradeId={g.id}
+                            studentName={fullName(s)}
+                            score={g.score === null ? null : Number(g.score)}
+                            isAbsent={g.is_absent}
+                            maxScore={Number(a.max_score)}
+                          />
+                        )}
                       </TD>
                     )}
                   </TR>
@@ -107,17 +126,22 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
       {sheet.revisions.length > 0 && (
         <Card>
           <CardHeader className="flex-row items-center gap-2">
-            <HistoryIcon className="size-4 text-muted-foreground" aria-hidden />
+            <HistoryIcon className="text-muted-foreground size-4" aria-hidden />
             <CardTitle>Historique des corrections</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm">
               {sheet.revisions.map((r) => (
                 <li key={r.id} className="rounded-lg border p-3">
-                  <span className="font-medium">{names.get(r.student_id) ?? "Élève"}</span> : {formatScore(r.old_score)} → {formatScore(r.new_score)}
+                  <span className="font-medium">{names.get(r.student_id) ?? "Élève"}</span> : {formatScore(r.old_score)}{" "}
+                  → {formatScore(r.new_score)}
                   <span className="text-muted-foreground"> · {formatDateTime(r.changed_at)}</span>
-                  {r.assessment_status !== "draft" && r.assessment_status !== "submitted" && <Badge variant="warning" className="ml-2">après validation</Badge>}
-                  {r.reason && <p className="mt-1 text-xs text-muted-foreground">Motif : {r.reason}</p>}
+                  {r.assessment_status !== "draft" && r.assessment_status !== "submitted" && (
+                    <Badge variant="warning" className="ml-2">
+                      après validation
+                    </Badge>
+                  )}
+                  {r.reason && <p className="text-muted-foreground mt-1 text-xs">Motif : {r.reason}</p>}
                 </li>
               ))}
             </ul>

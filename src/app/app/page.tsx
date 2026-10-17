@@ -28,6 +28,10 @@ export default async function DashboardPage() {
     case "student":
       return <StudentDashboard ctx={ctx} />;
     default:
-      return canSchoolWide(ctx, "attendance.read") ? <DirectionDashboard ctx={ctx} academicOnly /> : <StaffDashboard ctx={ctx} />;
+      return canSchoolWide(ctx, "attendance.read") ? (
+        <DirectionDashboard ctx={ctx} academicOnly />
+      ) : (
+        <StaffDashboard ctx={ctx} />
+      );
   }
 }

@@ -19,7 +19,13 @@ import { Stagger, StaggerItem } from "@/components/ui/motion";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { formatDate, formatMoney, fullName } from "@/lib/utils";
 import type { AppContext } from "@/server/auth/session";
-import { accountantData, hrData, recentAnnouncements, recentNotifications, secretaryData } from "@/server/services/dashboard";
+import {
+  accountantData,
+  hrData,
+  recentAnnouncements,
+  recentNotifications,
+  secretaryData,
+} from "@/server/services/dashboard";
 import { AlertsList, AnnouncementsList, Greeting, NotificationsList, Section } from "./widgets";
 
 const MONTH = new Intl.DateTimeFormat("fr-FR", { month: "short", year: "2-digit" });
@@ -34,7 +40,14 @@ export async function AccountantDashboard({ ctx }: { ctx: AppContext }) {
       <Greeting name={ctx.user.fullName} subtitle={`Finances · ${d.year?.name ?? "aucune année configurée"}`} />
       <Stagger className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StaggerItem>
-          <StatCard label="Montant facturé" value={0} formatted={formatMoney(s?.billed, cur)} icon={ReceiptIcon} hint={`${s?.invoices ?? 0} factures`} href="/app/finance/invoices" />
+          <StatCard
+            label="Montant facturé"
+            value={0}
+            formatted={formatMoney(s?.billed, cur)}
+            icon={ReceiptIcon}
+            hint={`${s?.invoices ?? 0} factures`}
+            href="/app/finance/invoices"
+          />
         </StaggerItem>
         <StaggerItem>
           <StatCard
@@ -47,7 +60,14 @@ export async function AccountantDashboard({ ctx }: { ctx: AppContext }) {
           />
         </StaggerItem>
         <StaggerItem>
-          <StatCard label="Reste dû" value={0} formatted={formatMoney(s?.outstanding, cur)} icon={AlertTriangleIcon} tone="warning" href="/app/finance/invoices?filter=open" />
+          <StatCard
+            label="Reste dû"
+            value={0}
+            formatted={formatMoney(s?.outstanding, cur)}
+            icon={AlertTriangleIcon}
+            tone="warning"
+            href="/app/finance/invoices?filter=open"
+          />
         </StaggerItem>
         <StaggerItem>
           <StatCard
@@ -62,10 +82,18 @@ export async function AccountantDashboard({ ctx }: { ctx: AppContext }) {
         </StaggerItem>
       </Stagger>
       <div className="grid gap-4 lg:grid-cols-3">
-        <Section title="Trésorerie mensuelle" description="Encaissements nets et dépenses approuvées (6 mois)" className="lg:col-span-2">
+        <Section
+          title="Trésorerie mensuelle"
+          description="Encaissements nets et dépenses approuvées (6 mois)"
+          className="lg:col-span-2"
+        >
           <BarChartView
             label="Encaissements et dépenses par mois"
-            data={d.cashflow.map((m) => ({ mois: MONTH.format(new Date(`${m.month}T12:00:00`)), encaisse: Number(m.collected), depense: Number(m.spent) }))}
+            data={d.cashflow.map((m) => ({
+              mois: MONTH.format(new Date(`${m.month}T12:00:00`)),
+              encaisse: Number(m.collected),
+              depense: Number(m.spent),
+            }))}
             xKey="mois"
             series={[
               { key: "encaisse", label: "Encaissements", slot: 1 },
@@ -78,14 +106,30 @@ export async function AccountantDashboard({ ctx }: { ctx: AppContext }) {
         <Section title="À traiter">
           <AlertsList
             alerts={[
-              ...(d.unreconciled ? [{ label: "Paiements à rapprocher", count: d.unreconciled, href: "/app/finance/payments?filter=unreconciled", tone: "info" as const }] : []),
+              ...(d.unreconciled
+                ? [
+                    {
+                      label: "Paiements à rapprocher",
+                      count: d.unreconciled,
+                      href: "/app/finance/payments?filter=unreconciled",
+                      tone: "info" as const,
+                    },
+                  ]
+                : []),
               ...d.alerts,
             ]}
           />
         </Section>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
-        <Section title="Plus gros impayés échus" action={<Button asChild variant="ghost" size="sm"><Link href="/app/finance/invoices?filter=overdue">Tout voir</Link></Button>}>
+        <Section
+          title="Plus gros impayés échus"
+          action={
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/app/finance/invoices?filter=overdue">Tout voir</Link>
+            </Button>
+          }
+        >
           {d.overdue.length ? (
             <Table>
               <THead>
@@ -100,7 +144,7 @@ export async function AccountantDashboard({ ctx }: { ctx: AppContext }) {
                 {d.overdue.map((i) => (
                   <TR key={i.id}>
                     <TD>
-                      <Link href={`/app/finance/invoices/${i.id}`} className="font-medium hover:text-primary">
+                      <Link href={`/app/finance/invoices/${i.id}`} className="hover:text-primary font-medium">
                         {i.number}
                       </Link>
                     </TD>
@@ -112,7 +156,7 @@ export async function AccountantDashboard({ ctx }: { ctx: AppContext }) {
               </TBody>
             </Table>
           ) : (
-            <p className="text-sm text-muted-foreground">Aucun impayé échu. 👏</p>
+            <p className="text-muted-foreground text-sm">Aucun impayé échu. 👏</p>
           )}
         </Section>
         <Section title="Budgets par catégorie" description="Dépenses approuvées / budget de l'année">
@@ -135,7 +179,7 @@ export async function AccountantDashboard({ ctx }: { ctx: AppContext }) {
               })}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">Aucune catégorie de dépense.</p>
+            <p className="text-muted-foreground text-sm">Aucune catégorie de dépense.</p>
           )}
         </Section>
       </div>
@@ -156,20 +200,33 @@ export async function SecretaryDashboard({ ctx }: { ctx: AppContext }) {
           <StatCard label="Inscriptions ce mois" value={d.newThisMonth} icon={UserPlusIcon} href="/app/students/new" />
         </StaggerItem>
         <StaggerItem>
-          <StatCard label="Dossiers incomplets" value={d.incomplete.length} icon={FileWarningIcon} tone={d.incomplete.length ? "warning" : "default"} href="/app/students?filter=incomplete" />
+          <StatCard
+            label="Dossiers incomplets"
+            value={d.incomplete.length}
+            icon={FileWarningIcon}
+            tone={d.incomplete.length ? "warning" : "default"}
+            href="/app/students?filter=incomplete"
+          />
         </StaggerItem>
         <StaggerItem>
           <StatCard label="Demandes en cours" value={d.requests.length} icon={InboxIcon} href="/app/requests" />
         </StaggerItem>
       </Stagger>
       <div className="grid gap-4 lg:grid-cols-3">
-        <Section title="Dossiers incomplets" description="Pièces obligatoires ou informations manquantes" className="lg:col-span-2">
+        <Section
+          title="Dossiers incomplets"
+          description="Pièces obligatoires ou informations manquantes"
+          className="lg:col-span-2"
+        >
           {d.incomplete.length ? (
             <ul className="divide-y">
               {d.incomplete.map((s) => (
-                <li key={s.student_id} className="flex flex-col gap-1 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                  <Link href={`/app/students/${s.student_id}`} className="text-sm font-medium hover:text-primary">
-                    {fullName(s)} <span className="text-xs text-muted-foreground">· {s.matricule}</span>
+                <li
+                  key={s.student_id}
+                  className="flex flex-col gap-1 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <Link href={`/app/students/${s.student_id}`} className="hover:text-primary text-sm font-medium">
+                    {fullName(s)} <span className="text-muted-foreground text-xs">· {s.matricule}</span>
                   </Link>
                   <div className="flex flex-wrap gap-1">
                     {(s.missing ?? []).map((m) => (
@@ -182,7 +239,7 @@ export async function SecretaryDashboard({ ctx }: { ctx: AppContext }) {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">Tous les dossiers sont complets.</p>
+            <p className="text-muted-foreground text-sm">Tous les dossiers sont complets.</p>
           )}
         </Section>
         <Section title="À traiter">
@@ -193,7 +250,11 @@ export async function SecretaryDashboard({ ctx }: { ctx: AppContext }) {
         <Section title="Effectifs par niveau">
           <BarChartView
             label="Effectifs par niveau"
-            data={d.byLevel.map((l) => ({ niveau: l.level_name, eleves: Number(l.students), capacite: Number(l.capacity) }))}
+            data={d.byLevel.map((l) => ({
+              niveau: l.level_name,
+              eleves: Number(l.students),
+              capacite: Number(l.capacity),
+            }))}
             xKey="niveau"
             series={[
               { key: "eleves", label: "Inscrits", slot: 1 },
@@ -207,15 +268,18 @@ export async function SecretaryDashboard({ ctx }: { ctx: AppContext }) {
             <ul className="space-y-2">
               {d.requests.map((r) => (
                 <li key={r.id}>
-                  <Link href={`/app/requests#${r.id}`} className="block rounded-lg border p-3 text-sm hover:bg-muted/50">
+                  <Link
+                    href={`/app/requests#${r.id}`}
+                    className="hover:bg-muted/50 block rounded-lg border p-3 text-sm"
+                  >
                     <p className="font-medium">{r.subject}</p>
-                    <p className="text-xs text-muted-foreground">{formatDate(r.created_at)}</p>
+                    <p className="text-muted-foreground text-xs">{formatDate(r.created_at)}</p>
                   </Link>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">Aucune demande en attente.</p>
+            <p className="text-muted-foreground text-sm">Aucune demande en attente.</p>
           )}
         </Section>
         <Section title="Transferts et départs récents">
@@ -224,14 +288,15 @@ export async function SecretaryDashboard({ ctx }: { ctx: AppContext }) {
               {d.transfers.map((t) => (
                 <li key={t.id} className="py-2">
                   <p className="font-medium">{fullName(t.student)}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {t.status === "transferred" ? "Changement de classe / transfert" : "Départ"} · {formatDate(t.left_on)}
+                  <p className="text-muted-foreground text-xs">
+                    {t.status === "transferred" ? "Changement de classe / transfert" : "Départ"} ·{" "}
+                    {formatDate(t.left_on)}
                   </p>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">Aucun transfert récent.</p>
+            <p className="text-muted-foreground text-sm">Aucun transfert récent.</p>
           )}
         </Section>
       </div>
@@ -266,7 +331,13 @@ export async function HrDashboard({ ctx }: { ctx: AppContext }) {
           <StatCard label="Enseignants" value={d.teachers} icon={GraduationCapIcon} href="/app/staff?filter=teachers" />
         </StaggerItem>
         <StaggerItem>
-          <StatCard label="Demandes en attente" value={d.pending.length} icon={CalendarOffIcon} tone={d.pending.length ? "warning" : "default"} href="/app/staff/leaves" />
+          <StatCard
+            label="Demandes en attente"
+            value={d.pending.length}
+            icon={CalendarOffIcon}
+            tone={d.pending.length ? "warning" : "default"}
+            href="/app/staff/leaves"
+          />
         </StaggerItem>
         <StaggerItem>
           <StatCard label="Absents aujourd'hui" value={d.onLeave} icon={CalendarOffIcon} />
@@ -280,7 +351,7 @@ export async function HrDashboard({ ctx }: { ctx: AppContext }) {
                 <li key={l.id} className="flex items-center justify-between gap-2 py-2.5 text-sm">
                   <div>
                     <p className="font-medium">{fullName(l.staff)}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       {LEAVE_LABELS[l.kind] ?? l.kind} · du {formatDate(l.starts_on)} au {formatDate(l.ends_on)}
                     </p>
                   </div>
@@ -291,7 +362,7 @@ export async function HrDashboard({ ctx }: { ctx: AppContext }) {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">Aucune demande en attente.</p>
+            <p className="text-muted-foreground text-sm">Aucune demande en attente.</p>
           )}
         </Section>
         <Section title="Contrats arrivant à échéance (60 j)">
@@ -305,7 +376,7 @@ export async function HrDashboard({ ctx }: { ctx: AppContext }) {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">Aucun contrat n&apos;arrive à échéance.</p>
+            <p className="text-muted-foreground text-sm">Aucun contrat n&apos;arrive à échéance.</p>
           )}
         </Section>
       </div>
@@ -318,10 +389,17 @@ export async function StaffDashboard({ ctx }: { ctx: AppContext }) {
   const [notifications, announcements] = await Promise.all([recentNotifications(ctx, 8), recentAnnouncements(ctx, 5)]);
   return (
     <div className="space-y-6">
-      <Greeting name={ctx.user.fullName} subtitle={`${ctx.school.name} · ${ctx.school.roles.map((r) => r.name).join(", ")}`} />
+      <Greeting
+        name={ctx.user.fullName}
+        subtitle={`${ctx.school.name} · ${ctx.school.roles.map((r) => r.name).join(", ")}`}
+      />
       <div className="grid gap-4 lg:grid-cols-2">
         <Section title="Notifications">
-          {notifications.length ? <NotificationsList items={notifications} /> : <EmptyState icon={InboxIcon} title="Aucune notification" className="py-8" />}
+          {notifications.length ? (
+            <NotificationsList items={notifications} />
+          ) : (
+            <EmptyState icon={InboxIcon} title="Aucune notification" className="py-8" />
+          )}
         </Section>
         <Section title="Annonces">
           <AnnouncementsList items={announcements} />
@@ -330,4 +408,3 @@ export async function StaffDashboard({ ctx }: { ctx: AppContext }) {
     </div>
   );
 }
-

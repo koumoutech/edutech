@@ -18,7 +18,10 @@ export default async function JustificationsPage() {
   const items = await pendingJustifications(ctx);
   return (
     <div className="space-y-5">
-      <PageHeader title="Justificatifs d'absence" description="Les justificatifs acceptés transforment les absences de la période en absences justifiées." />
+      <PageHeader
+        title="Justificatifs d'absence"
+        description="Les justificatifs acceptés transforment les absences de la période en absences justifiées."
+      />
       {items.length === 0 ? (
         <EmptyState icon={FileCheckIcon} title="Aucun justificatif" />
       ) : (
@@ -34,7 +37,7 @@ export default async function JustificationsPage() {
                 <p className="text-sm">
                   Du {formatDate(j.from_date)} au {formatDate(j.to_date)} — {j.reason}
                 </p>
-                <p className="text-xs text-muted-foreground">Reçu le {formatDateTime(j.submitted_at)}</p>
+                <p className="text-muted-foreground text-xs">Reçu le {formatDateTime(j.submitted_at)}</p>
               </div>
               {j.document_id && (
                 <Button asChild variant="outline" size="sm">
@@ -65,7 +68,9 @@ export default async function JustificationsPage() {
                   />
                 </div>
               ) : (
-                <Badge variant={j.status === "accepted" ? "default" : "danger"}>{j.status === "accepted" ? "Acceptée" : "Refusée"}</Badge>
+                <Badge variant={j.status === "accepted" ? "default" : "danger"}>
+                  {j.status === "accepted" ? "Acceptée" : "Refusée"}
+                </Badge>
               )}
             </div>
           ))}

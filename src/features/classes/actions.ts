@@ -2,7 +2,16 @@
 
 import { refresh } from "next/cache";
 import { z } from "zod";
-import { bellPeriodSchema, classSchema, classSubjectSchema, levelSchema, roomSchema, subjectSchema, termSchema, yearSchema } from "@/schemas/academics";
+import {
+  bellPeriodSchema,
+  classSchema,
+  classSubjectSchema,
+  levelSchema,
+  roomSchema,
+  subjectSchema,
+  termSchema,
+  yearSchema,
+} from "@/schemas/academics";
 import { parseInput, runAction } from "@/server/actions";
 import { requireContext } from "@/server/auth/session";
 import { AppError } from "@/server/errors";
@@ -22,7 +31,11 @@ import {
 
 type FormAction = (prev: unknown, fd: FormData) => Promise<unknown>;
 
-function formAction<S extends z.ZodType>(schema: S, run: (ctx: Awaited<ReturnType<typeof requireContext>>, data: z.infer<S>) => Promise<unknown>, message: string): FormAction {
+function formAction<S extends z.ZodType>(
+  schema: S,
+  run: (ctx: Awaited<ReturnType<typeof requireContext>>, data: z.infer<S>) => Promise<unknown>,
+  message: string,
+): FormAction {
   return async (_prev, fd) =>
     runAction(async () => {
       const ctx = await requireContext();
@@ -32,7 +45,11 @@ function formAction<S extends z.ZodType>(schema: S, run: (ctx: Awaited<ReturnTyp
 }
 
 export async function saveYearAction(prev: unknown, fd: FormData) {
-  return formAction(yearSchema, (ctx, d) => saveYear(ctx, { ...d, is_current: fd.get("is_current") === "on" }), "Année scolaire enregistrée.")(prev, fd);
+  return formAction(
+    yearSchema,
+    (ctx, d) => saveYear(ctx, { ...d, is_current: fd.get("is_current") === "on" }),
+    "Année scolaire enregistrée.",
+  )(prev, fd);
 }
 export async function updateTermAction(prev: unknown, fd: FormData) {
   return formAction(termSchema, updateTerm, "Période mise à jour.")(prev, fd);

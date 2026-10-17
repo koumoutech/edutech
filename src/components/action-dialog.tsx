@@ -5,7 +5,16 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Button, type ButtonProps } from "@/components/ui/button";
-import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Field, Textarea } from "@/components/ui/form-controls";
 import type { ActionResult } from "@/server/errors";
 
@@ -68,7 +77,14 @@ export function ConfirmDialog({
               {children}
               {reason && (
                 <Field label={reason.label} htmlFor="reason">
-                  <Textarea id="reason" name="reason" required minLength={reason.minLength ?? 5} placeholder={reason.placeholder} rows={3} />
+                  <Textarea
+                    id="reason"
+                    name="reason"
+                    required
+                    minLength={reason.minLength ?? 5}
+                    placeholder={reason.placeholder}
+                    rows={3}
+                  />
                 </Field>
               )}
             </DialogBody>

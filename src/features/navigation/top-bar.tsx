@@ -32,7 +32,7 @@ export function SchoolSwitcher({ schools, activeId }: { schools: SchoolOption[];
   if (schools.length <= 1) {
     return (
       <div className="flex min-w-0 items-center gap-2 text-sm font-semibold">
-        <SchoolIcon className="size-4 shrink-0 text-primary" aria-hidden />
+        <SchoolIcon className="text-primary size-4 shrink-0" aria-hidden />
         <span className="truncate">{active?.name}</span>
         {active?.isDemo && <Badge variant="warning">Démo</Badge>}
       </div>
@@ -82,11 +82,15 @@ export function NotificationBell({ userId, initialUnread }: { userId: string; in
     const supabase = getBrowserClient();
     const channel = supabase
       .channel(`notifications:${userId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` }, (payload) => {
-        setUnread((n) => n + 1);
-        const title = (payload.new as { title?: string }).title;
-        if (title) toast(title);
-      })
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
+        (payload) => {
+          setUnread((n) => n + 1);
+          const title = (payload.new as { title?: string }).title;
+          if (title) toast(title);
+        },
+      )
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
@@ -98,7 +102,7 @@ export function NotificationBell({ userId, initialUnread }: { userId: string; in
       <Link href="/app/notifications" aria-label={unread ? `Notifications : ${unread} non lues` : "Notifications"}>
         <BellIcon />
         {unread > 0 && (
-          <span className="absolute top-1.5 right-1.5 flex min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-4 font-bold text-white">
+          <span className="bg-destructive absolute top-1.5 right-1.5 flex min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-4 font-bold text-white">
             {unread > 99 ? "99+" : unread}
           </span>
         )}
@@ -111,14 +115,17 @@ export function UserMenu({ name, email, roles }: { name: string; email: string; 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Menu du compte">
+        <button
+          className="focus-visible:ring-ring rounded-full outline-none focus-visible:ring-2"
+          aria-label="Menu du compte"
+        >
           <Avatar name={name} />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <div className="px-2.5 py-2">
           <p className="truncate text-sm font-semibold">{name}</p>
-          <p className="truncate text-xs text-muted-foreground">{email}</p>
+          <p className="text-muted-foreground truncate text-xs">{email}</p>
           <div className="mt-2 flex flex-wrap gap-1">
             {roles.map((r) => (
               <Badge key={r} variant="muted">

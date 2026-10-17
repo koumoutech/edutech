@@ -38,7 +38,15 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
         description={`${s.job_title}${s.department ? ` · ${s.department}` : ""}${s.hire_date ? ` · depuis le ${formatDate(s.hire_date)}` : ""}`}
         actions={
           canSchoolWide(ctx, "staff.manage") && (
-            <FormDialog title="Modifier la fiche" action={saveStaffAction} trigger={<Button variant="outline" size="sm">Modifier</Button>}>
+            <FormDialog
+              title="Modifier la fiche"
+              action={saveStaffAction}
+              trigger={
+                <Button variant="outline" size="sm">
+                  Modifier
+                </Button>
+              }
+            >
               <StaffFormFields d={s} />
             </FormDialog>
           )
@@ -88,7 +96,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted-foreground">Aucune affectation d&apos;enseignement.</p>
+              <p className="text-muted-foreground text-sm">Aucune affectation d&apos;enseignement.</p>
             )}
           </CardContent>
         </Card>
@@ -99,7 +107,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
           <Card>
             <CardHeader className="flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <LockIcon className="size-4 text-muted-foreground" aria-hidden /> Contrats
+                <LockIcon className="text-muted-foreground size-4" aria-hidden /> Contrats
               </CardTitle>
               {hrManage && (
                 <FormDialog title="Nouveau contrat" action={addContractAction} triggerLabel="Ajouter">
@@ -146,7 +154,9 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
                       <TD>
                         {formatDate(c.starts_on)} → {c.ends_on ? formatDate(c.ends_on) : "indéterminée"}
                       </TD>
-                      <TD className="text-right tabular-nums">{c.monthly_salary === null ? "—" : formatMoney(Number(c.monthly_salary), ctx.school.currency)}</TD>
+                      <TD className="text-right tabular-nums">
+                        {c.monthly_salary === null ? "—" : formatMoney(Number(c.monthly_salary), ctx.school.currency)}
+                      </TD>
                     </TR>
                   ))}
                 </TBody>
@@ -156,7 +166,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
           <Card>
             <CardHeader className="flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <LockIcon className="size-4 text-muted-foreground" aria-hidden /> Évaluations professionnelles
+                <LockIcon className="text-muted-foreground size-4" aria-hidden /> Évaluations professionnelles
               </CardTitle>
               {hrManage && !d.isSelf && (
                 <FormDialog title="Nouvelle évaluation" action={addEvaluationAction} triggerLabel="Ajouter">
@@ -184,22 +194,23 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
                   {d.evaluations.map((e) => (
                     <li key={e.id} className="rounded-lg border p-3">
                       <p className="font-semibold">
-                        {e.period_label} {e.score !== null && <Badge className="ml-1">{formatScore(Number(e.score))}/20</Badge>}
+                        {e.period_label}{" "}
+                        {e.score !== null && <Badge className="ml-1">{formatScore(Number(e.score))}/20</Badge>}
                       </p>
                       {e.strengths && <p className="mt-1">+ {e.strengths}</p>}
-                      {e.improvements && <p className="mt-1 text-muted-foreground">→ {e.improvements}</p>}
+                      {e.improvements && <p className="text-muted-foreground mt-1">→ {e.improvements}</p>}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-muted-foreground">Aucune évaluation.</p>
+                <p className="text-muted-foreground text-sm">Aucune évaluation.</p>
               )}
             </CardContent>
           </Card>
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileTextIcon className="size-4 text-muted-foreground" aria-hidden /> Documents RH
+                <FileTextIcon className="text-muted-foreground size-4" aria-hidden /> Documents RH
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -208,19 +219,25 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
                 {d.documents.map((doc) => (
                   <li key={doc.id} className="flex items-center justify-between py-2">
                     <span>{doc.title}</span>
-                    <a href={`/api/documents/${doc.id}`} target="_blank" rel="noopener" className="text-primary hover:underline">
+                    <a
+                      href={`/api/documents/${doc.id}`}
+                      target="_blank"
+                      rel="noopener"
+                      className="text-primary hover:underline"
+                    >
                       Ouvrir
                     </a>
                   </li>
                 ))}
-                {d.documents.length === 0 && <li className="py-2 text-muted-foreground">Aucun document.</li>}
+                {d.documents.length === 0 && <li className="text-muted-foreground py-2">Aucun document.</li>}
               </ul>
             </CardContent>
           </Card>
         </div>
       ) : (
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <LockIcon className="size-4" aria-hidden /> Les informations RH (contrats, rémunération, évaluations) sont réservées aux personnes habilitées.
+        <p className="text-muted-foreground flex items-center gap-2 text-sm">
+          <LockIcon className="size-4" aria-hidden /> Les informations RH (contrats, rémunération, évaluations) sont
+          réservées aux personnes habilitées.
         </p>
       )}
 
@@ -241,7 +258,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">Aucune demande.</p>
+            <p className="text-muted-foreground text-sm">Aucune demande.</p>
           )}
         </CardContent>
       </Card>

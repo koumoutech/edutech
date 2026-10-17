@@ -17,7 +17,9 @@ export async function GET() {
     from.setDate(from.getDate() - 30);
     const { data, error } = await ctx.db
       .from("attendance_records")
-      .select("status, minutes_late, student:students!attendance_records_school_id_student_id_fkey(matricule, first_name, last_name), session:attendance_sessions!attendance_records_school_id_session_id_fkey!inner(date, class:classes!attendance_sessions_school_id_class_id_fkey(name))")
+      .select(
+        "status, minutes_late, student:students!attendance_records_school_id_student_id_fkey(matricule, first_name, last_name), session:attendance_sessions!attendance_records_school_id_session_id_fkey!inner(date, class:classes!attendance_sessions_school_id_class_id_fkey(name))",
+      )
       .eq("school_id", ctx.school.id)
       .gte("session.date", isoDate(from))
       .limit(20000);

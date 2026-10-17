@@ -101,21 +101,39 @@ export default async function ExpensesPage() {
                 <div key={b.category_id} className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2 text-sm">
                     <span className="font-medium">{b.category_name}</span>
-                    <span className="flex items-center gap-2 text-muted-foreground tabular-nums">
+                    <span className="text-muted-foreground flex items-center gap-2 tabular-nums">
                       {formatMoney(b.spent, cur)} / {amount ? formatMoney(amount, cur) : "non défini"}
                       {can(ctx, "budgets.manage") && year && (
-                        <FormDialog title={`Budget — ${b.category_name}`} action={saveBudgetAction} trigger={<Button variant="ghost" size="sm">Modifier</Button>}>
+                        <FormDialog
+                          title={`Budget — ${b.category_name}`}
+                          action={saveBudgetAction}
+                          trigger={
+                            <Button variant="ghost" size="sm">
+                              Modifier
+                            </Button>
+                          }
+                        >
                           <input type="hidden" name="year_id" value={year.id} />
                           <input type="hidden" name="category_id" value={b.category_id} />
                           <Field label={`Montant annuel (${cur})`} htmlFor={`b-${b.category_id}`}>
-                            <Input id={`b-${b.category_id}`} name="amount" type="number" min={0} step="any" defaultValue={amount || ""} required />
+                            <Input
+                              id={`b-${b.category_id}`}
+                              name="amount"
+                              type="number"
+                              min={0}
+                              step="any"
+                              defaultValue={amount || ""}
+                              required
+                            />
                           </Field>
                         </FormDialog>
                       )}
                     </span>
                   </div>
                   <Progress value={pct} tone={pct > 100 ? "danger" : pct > 85 ? "warning" : "brand"} />
-                  {pct > 100 && <p className="text-xs font-medium text-destructive">Dépassement de {Math.round(pct - 100)} %</p>}
+                  {pct > 100 && (
+                    <p className="text-destructive text-xs font-medium">Dépassement de {Math.round(pct - 100)} %</p>
+                  )}
                 </div>
               );
             })}
@@ -145,7 +163,9 @@ export default async function ExpensesPage() {
                     <TD className="whitespace-nowrap">{formatDate(e.spent_on)}</TD>
                     <TD>
                       {e.description}
-                      {e.supplier?.name && <span className="block text-xs text-muted-foreground">{e.supplier.name}</span>}
+                      {e.supplier?.name && (
+                        <span className="text-muted-foreground block text-xs">{e.supplier.name}</span>
+                      )}
                     </TD>
                     <TD className="hidden md:table-cell">{e.category?.name}</TD>
                     <TD className="text-right font-semibold tabular-nums">{formatMoney(Number(e.amount), cur)}</TD>

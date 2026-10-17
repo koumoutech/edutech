@@ -23,7 +23,13 @@ export default async function ClassesPage() {
   if (!can(ctx, "students.read") && !can(ctx, "academics.manage")) redirect("/app/forbidden");
   const year = await getCurrentYear(ctx.db, ctx.school.id);
   if (!year) {
-    return <EmptyState icon={SchoolIcon} title="Aucune année scolaire" description="Configurez l'année scolaire dans les paramètres." />;
+    return (
+      <EmptyState
+        icon={SchoolIcon}
+        title="Aucune année scolaire"
+        description="Configurez l'année scolaire dans les paramètres."
+      />
+    );
   }
   const overview = await classesOverview(ctx, year.id);
   let classes = overview.classes;
@@ -97,7 +103,8 @@ export default async function ClassesPage() {
           <ul className="list-disc pl-5">
             {[...overloads.entries()].map(([id, o]) => (
               <li key={id}>
-                {staffName.get(id) ?? "Enseignant"} : {o.assigned} h/semaine attribuées pour {o.max} h prévues au contrat.
+                {staffName.get(id) ?? "Enseignant"} : {o.assigned} h/semaine attribuées pour {o.max} h prévues au
+                contrat.
               </li>
             ))}
           </ul>
@@ -105,19 +112,26 @@ export default async function ClassesPage() {
       )}
 
       {classes.length === 0 ? (
-        <EmptyState icon={SchoolIcon} title="Aucune classe" description={manage ? "Créez les classes de l'année en cours." : "Aucune classe ne vous est attribuée."} />
+        <EmptyState
+          icon={SchoolIcon}
+          title="Aucune classe"
+          description={manage ? "Créez les classes de l'année en cours." : "Aucune classe ne vous est attribuée."}
+        />
       ) : (
         <Stagger className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {classes.map((c) => {
             const status = classLoadStatus({ id: c.id, name: c.name, capacity: c.capacity, enrolled: c.enrolled });
             return (
               <StaggerItem key={c.id}>
-                <Link href={`/app/classes/${c.id}`} className="block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <Link
+                  href={`/app/classes/${c.id}`}
+                  className="focus-visible:ring-ring block rounded-xl outline-none focus-visible:ring-2"
+                >
                   <Card className="p-4 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)]">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="text-lg font-bold">{c.name}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-muted-foreground text-xs">
                           {c.level?.name}
                           {c.room?.name ? ` · ${c.room.name}` : ""}
                         </p>
@@ -131,12 +145,18 @@ export default async function ClassesPage() {
                       ) : null}
                     </div>
                     <div className="mt-4 flex items-center gap-2 text-sm">
-                      <UsersIcon className="size-4 text-muted-foreground" aria-hidden />
+                      <UsersIcon className="text-muted-foreground size-4" aria-hidden />
                       <span className="font-semibold tabular-nums">{c.enrolled}</span>
                       <span className="text-muted-foreground">/ {c.capacity} places</span>
                     </div>
-                    <Progress className="mt-2" value={(c.enrolled / c.capacity) * 100} tone={status === "ok" ? "brand" : status === "near_full" ? "warning" : "danger"} />
-                    <p className="mt-3 text-xs text-muted-foreground">Professeur principal : {c.homeroom ? fullName(c.homeroom) : "non désigné"}</p>
+                    <Progress
+                      className="mt-2"
+                      value={(c.enrolled / c.capacity) * 100}
+                      tone={status === "ok" ? "brand" : status === "near_full" ? "warning" : "danger"}
+                    />
+                    <p className="text-muted-foreground mt-3 text-xs">
+                      Professeur principal : {c.homeroom ? fullName(c.homeroom) : "non désigné"}
+                    </p>
                   </Card>
                 </Link>
               </StaggerItem>

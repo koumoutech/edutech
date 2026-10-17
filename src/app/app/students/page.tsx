@@ -17,11 +17,16 @@ import { listStudents, STUDENTS_PAGE_SIZE } from "@/server/services/students";
 
 export const metadata: Metadata = { title: "Élèves" };
 
-export default async function StudentsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+export default async function StudentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const ctx = await requirePermission("students.read");
   const query = studentListQuerySchema.parse(await searchParams);
   const result = await listStudents(ctx, query);
-  const classes = result.year && canSchoolWide(ctx, "students.read") ? await listClasses(ctx.db, ctx.school.id, result.year.id) : [];
+  const classes =
+    result.year && canSchoolWide(ctx, "students.read") ? await listClasses(ctx.db, ctx.school.id, result.year.id) : [];
 
   return (
     <div className="space-y-5">
@@ -59,7 +64,10 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
         <form className="grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]" role="search">
           <label className="relative">
             <span className="sr-only">Rechercher</span>
-            <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <SearchIcon
+              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+              aria-hidden
+            />
             <Input name="q" defaultValue={query.q} placeholder="Nom, prénom ou matricule…" className="pl-9" />
           </label>
           {classes.length > 0 && (
@@ -89,7 +97,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
           <div className="mt-2 flex flex-wrap gap-2 text-sm">
             <Link
               href={query.filter === "incomplete" ? "/app/students" : "/app/students?filter=incomplete"}
-              className="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-muted-foreground transition-colors hover:bg-muted"
+              className="text-muted-foreground hover:bg-muted inline-flex items-center gap-1 rounded-full border px-3 py-1 transition-colors"
               aria-pressed={query.filter === "incomplete"}
             >
               <FileWarningIcon className="size-3.5" aria-hidden /> Dossiers incomplets
@@ -103,9 +111,12 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
           {result.incomplete.length ? (
             <ul className="divide-y">
               {result.incomplete.map((s) => (
-                <li key={s.student_id} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-                  <Link href={`/app/students/${s.student_id}`} className="font-medium hover:text-primary">
-                    {fullName(s)} <span className="text-xs text-muted-foreground">· {s.matricule}</span>
+                <li
+                  key={s.student_id}
+                  className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <Link href={`/app/students/${s.student_id}`} className="hover:text-primary font-medium">
+                    {fullName(s)} <span className="text-muted-foreground text-xs">· {s.matricule}</span>
                   </Link>
                   <div className="flex flex-wrap gap-1">
                     {(s.missing ?? []).map((m) => (
@@ -125,7 +136,11 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
         <EmptyState
           icon={UsersIcon}
           title={query.q ? "Aucun élève ne correspond à la recherche" : "Aucun élève"}
-          description={query.q ? "Essayez avec un autre nom ou matricule." : "Inscrivez un élève ou importez une liste au format CSV."}
+          description={
+            query.q
+              ? "Essayez avec un autre nom ou matricule."
+              : "Inscrivez un élève ou importez une liste au format CSV."
+          }
         />
       ) : (
         <Card className="overflow-hidden">
@@ -133,11 +148,11 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
           <ul className="divide-y sm:hidden">
             {result.rows.map((s) => (
               <li key={s.id}>
-                <Link href={`/app/students/${s.id}`} className="flex items-center gap-3 p-3 active:bg-muted">
+                <Link href={`/app/students/${s.id}`} className="active:bg-muted flex items-center gap-3 p-3">
                   <Avatar name={fullName(s)} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{fullName(s)}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       {s.matricule} · {s.className ?? "Non affecté"}
                     </p>
                   </div>
@@ -162,7 +177,10 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
                 {result.rows.map((s) => (
                   <TR key={s.id}>
                     <TD>
-                      <Link href={`/app/students/${s.id}`} className="flex items-center gap-3 font-medium hover:text-primary">
+                      <Link
+                        href={`/app/students/${s.id}`}
+                        className="hover:text-primary flex items-center gap-3 font-medium"
+                      >
                         <Avatar name={fullName(s)} className="size-8" />
                         {fullName(s)}
                       </Link>
@@ -171,7 +189,9 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
                     <TD>{s.className ?? <span className="text-muted-foreground">Non affecté</span>}</TD>
                     <TD>{formatDate(s.birth_date)}</TD>
                     <TD>
-                      <Badge variant={s.status === "active" ? "default" : "muted"}>{STUDENT_STATUS_LABELS[s.status] ?? s.status}</Badge>
+                      <Badge variant={s.status === "active" ? "default" : "muted"}>
+                        {STUDENT_STATUS_LABELS[s.status] ?? s.status}
+                      </Badge>
                     </TD>
                   </TR>
                 ))}

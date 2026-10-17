@@ -147,7 +147,10 @@ export function computeSubjectAverage(
   return weights > 0 ? roundScore(sum / weights, policy.decimals, policy.rounding) : null;
 }
 
-export function computeGeneralAverage(lines: { average: number | null; coefficient: number }[], policy: GradingPolicy): number | null {
+export function computeGeneralAverage(
+  lines: { average: number | null; coefficient: number }[],
+  policy: GradingPolicy,
+): number | null {
   let sum = 0;
   let weights = 0;
   for (const l of lines) {
@@ -228,7 +231,14 @@ export function computeClassResults(input: {
     });
     const average = computeGeneralAverage(lines, policy);
     general.set(st, average);
-    return { student_id: st, average, rank: null, mention: mentionFor(average, policy), passed: average === null ? null : average >= policy.passing_mark, lines };
+    return {
+      student_id: st,
+      average,
+      rank: null,
+      mention: mentionFor(average, policy),
+      passed: average === null ? null : average >= policy.passing_mark,
+      lines,
+    };
   });
 
   const ranks = policy.ranking_enabled ? competitionRank(general) : new Map<string, number | null>();

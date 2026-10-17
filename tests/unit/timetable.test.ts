@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { findConflicts, overlaps, scheduledMinutesByKey, toMinutes, type Slot } from "@/features/timetable/domain";
 
-const base: Slot = { id: "e1", weekday: 1, starts_at: "08:00", ends_at: "09:00", class_id: "6A", teacher_id: "T1", room_id: "R1" };
+const base: Slot = {
+  id: "e1",
+  weekday: 1,
+  starts_at: "08:00",
+  ends_at: "09:00",
+  class_id: "6A",
+  teacher_id: "T1",
+  room_id: "R1",
+};
 
 describe("overlaps", () => {
   it("treats touching slots as non-overlapping", () => {
@@ -13,10 +21,24 @@ describe("overlaps", () => {
 
 describe("findConflicts", () => {
   it("detects class, teacher and room conflicts separately", () => {
-    const candidate: Slot = { weekday: 1, starts_at: "08:30", ends_at: "09:30", class_id: "6B", teacher_id: "T1", room_id: "R1" };
+    const candidate: Slot = {
+      weekday: 1,
+      starts_at: "08:30",
+      ends_at: "09:30",
+      class_id: "6B",
+      teacher_id: "T1",
+      room_id: "R1",
+    };
     const kinds = findConflicts(candidate, [base]).map((c) => c.kind);
     expect(kinds).toEqual(["teacher", "room"]);
-    const sameClass: Slot = { weekday: 1, starts_at: "08:30", ends_at: "09:30", class_id: "6A", teacher_id: "T2", room_id: "R2" };
+    const sameClass: Slot = {
+      weekday: 1,
+      starts_at: "08:30",
+      ends_at: "09:30",
+      class_id: "6A",
+      teacher_id: "T2",
+      room_id: "R2",
+    };
     expect(findConflicts(sameClass, [base]).map((c) => c.kind)).toEqual(["class"]);
   });
 
@@ -26,9 +48,13 @@ describe("findConflicts", () => {
   });
 
   it("uses names in messages", () => {
-    const c = findConflicts({ weekday: 1, starts_at: "08:00", ends_at: "08:30", class_id: "x", teacher_id: "T1", room_id: null }, [base], {
-      teachers: new Map([["T1", "Jean KOUASSI"]]),
-    });
+    const c = findConflicts(
+      { weekday: 1, starts_at: "08:00", ends_at: "08:30", class_id: "x", teacher_id: "T1", room_id: null },
+      [base],
+      {
+        teachers: new Map([["T1", "Jean KOUASSI"]]),
+      },
+    );
     expect(c[0].message).toContain("Jean KOUASSI");
   });
 });

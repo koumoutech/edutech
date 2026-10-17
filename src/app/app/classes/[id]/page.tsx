@@ -58,7 +58,15 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
               </Link>
             </Button>
             {manage && ref && (
-              <FormDialog title={`Modifier ${cls.name}`} action={saveClassAction} trigger={<Button variant="outline" size="sm">Modifier</Button>}>
+              <FormDialog
+                title={`Modifier ${cls.name}`}
+                action={saveClassAction}
+                trigger={
+                  <Button variant="outline" size="sm">
+                    Modifier
+                  </Button>
+                }
+              >
                 <input type="hidden" name="id" value={cls.id} />
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Nom" htmlFor="e-name">
@@ -113,18 +121,23 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
               <ul className="divide-y">
                 {roster.map((r, i) => (
                   <li key={r.id}>
-                    <Link href={`/app/students/${r.student!.id}`} className="flex items-center gap-3 py-2 text-sm hover:text-primary">
-                      <span className="w-6 text-right text-xs text-muted-foreground tabular-nums">{i + 1}</span>
+                    <Link
+                      href={`/app/students/${r.student!.id}`}
+                      className="hover:text-primary flex items-center gap-3 py-2 text-sm"
+                    >
+                      <span className="text-muted-foreground w-6 text-right text-xs tabular-nums">{i + 1}</span>
                       <Avatar name={fullName(r.student)} className="size-8" />
                       <span className="flex-1 font-medium">{fullName(r.student)}</span>
-                      <span className="hidden text-xs text-muted-foreground sm:inline">{r.student!.matricule}</span>
-                      <span className="hidden text-xs text-muted-foreground sm:inline">{formatDate(r.student!.birth_date)}</span>
+                      <span className="text-muted-foreground hidden text-xs sm:inline">{r.student!.matricule}</span>
+                      <span className="text-muted-foreground hidden text-xs sm:inline">
+                        {formatDate(r.student!.birth_date)}
+                      </span>
                     </Link>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted-foreground">Aucun élève affecté à cette classe.</p>
+              <p className="text-muted-foreground text-sm">Aucun élève affecté à cette classe.</p>
             )}
           </CardContent>
         </Card>
@@ -161,7 +174,15 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
                 </Field>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Coefficient" htmlFor="cs-coef">
-                    <Input id="cs-coef" name="coefficient" type="number" step="0.5" min="0.5" defaultValue={1} required />
+                    <Input
+                      id="cs-coef"
+                      name="coefficient"
+                      type="number"
+                      step="0.5"
+                      min="0.5"
+                      defaultValue={1}
+                      required
+                    />
                   </Field>
                   <Field label="Heures / semaine" htmlFor="cs-hours">
                     <Input id="cs-hours" name="weekly_hours" type="number" step="0.5" min="0" />
@@ -185,7 +206,11 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
                   <TR key={s.id}>
                     <TD>
                       <span className="flex items-center gap-2">
-                        <span className="size-2.5 rounded-full" style={{ background: s.subject?.color ?? "var(--primary)" }} aria-hidden />
+                        <span
+                          className="size-2.5 rounded-full"
+                          style={{ background: s.subject?.color ?? "var(--primary)" }}
+                          aria-hidden
+                        />
                         {s.subject?.name}
                       </span>
                     </TD>
@@ -193,7 +218,15 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
                     <TD className="text-right tabular-nums">{formatScore(Number(s.coefficient))}</TD>
                     {manage && ref && (
                       <TD className="text-right whitespace-nowrap">
-                        <FormDialog title={`${s.subject?.name} — ${cls.name}`} action={saveClassSubjectAction} trigger={<Button variant="ghost" size="sm">Modifier</Button>}>
+                        <FormDialog
+                          title={`${s.subject?.name} — ${cls.name}`}
+                          action={saveClassSubjectAction}
+                          trigger={
+                            <Button variant="ghost" size="sm">
+                              Modifier
+                            </Button>
+                          }
+                        >
                           <input type="hidden" name="id" value={s.id} />
                           <input type="hidden" name="class_id" value={cls.id} />
                           <input type="hidden" name="subject_id" value={s.subject_id} />
@@ -209,21 +242,43 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
                           </Field>
                           <div className="grid grid-cols-2 gap-3">
                             <Field label="Coefficient" htmlFor={`c-${s.id}`}>
-                              <Input id={`c-${s.id}`} name="coefficient" type="number" step="0.5" min="0.5" defaultValue={Number(s.coefficient)} />
+                              <Input
+                                id={`c-${s.id}`}
+                                name="coefficient"
+                                type="number"
+                                step="0.5"
+                                min="0.5"
+                                defaultValue={Number(s.coefficient)}
+                              />
                             </Field>
                             <Field label="Heures / semaine" htmlFor={`h-${s.id}`}>
-                              <Input id={`h-${s.id}`} name="weekly_hours" type="number" step="0.5" min="0" defaultValue={s.weekly_hours ?? ""} />
+                              <Input
+                                id={`h-${s.id}`}
+                                name="weekly_hours"
+                                type="number"
+                                step="0.5"
+                                min="0"
+                                defaultValue={s.weekly_hours ?? ""}
+                              />
                             </Field>
                           </div>
                         </FormDialog>
-                        <ConfirmDialogServerSafe classSubjectId={s.id} label={s.subject?.name ?? ""} trigger={<Button variant="ghost" size="icon-sm" aria-label="Retirer"><Trash2Icon /></Button>} />
+                        <ConfirmDialogServerSafe
+                          classSubjectId={s.id}
+                          label={s.subject?.name ?? ""}
+                          trigger={
+                            <Button variant="ghost" size="icon-sm" aria-label="Retirer">
+                              <Trash2Icon />
+                            </Button>
+                          }
+                        />
                       </TD>
                     )}
                   </TR>
                 ))}
               </TBody>
             </Table>
-            <p className="mt-3 text-xs text-muted-foreground">Total des coefficients : {formatScore(totalCoef)}</p>
+            <p className="text-muted-foreground mt-3 text-xs">Total des coefficients : {formatScore(totalCoef)}</p>
           </CardContent>
         </Card>
       </div>

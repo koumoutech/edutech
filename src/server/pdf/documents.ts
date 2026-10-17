@@ -11,7 +11,10 @@ export interface SchoolHeader {
   currency: string;
 }
 
-const headerLines = (s: SchoolHeader) => [[s.address, s.city].filter(Boolean).join(", "), [s.phone, s.email].filter(Boolean).join(" · ")];
+const headerLines = (s: SchoolHeader) => [
+  [s.address, s.city].filter(Boolean).join(", "),
+  [s.phone, s.email].filter(Boolean).join(" · "),
+];
 
 export async function reportCardPdf(
   school: SchoolHeader,
@@ -29,7 +32,11 @@ export async function reportCardPdf(
     status: string;
     student: { first_name: string; last_name: string; matricule: string; birth_date: string | null } | null;
     term: { name: string } | null;
-    class: { name: string; homeroom: { first_name: string; last_name: string } | null; year: { name: string } | null } | null;
+    class: {
+      name: string;
+      homeroom: { first_name: string; last_name: string } | null;
+      year: { name: string } | null;
+    } | null;
     report_card_lines: {
       subject_name: string;
       teacher_name: string | null;
@@ -77,7 +84,18 @@ export async function reportCardPdf(
       l.rank ? String(l.rank) : "—",
       l.teacher_comment ?? "",
     ]),
-    { zebra: true, footer: ["Moyenne générale", formatScore(totalCoef), formatScore(rc.average === null ? null : Number(rc.average)), formatScore(rc.class_average === null ? null : Number(rc.class_average)), "", rc.rank ? `${rc.rank}/${rc.class_size}` : "—", rc.mention ?? ""] },
+    {
+      zebra: true,
+      footer: [
+        "Moyenne générale",
+        formatScore(totalCoef),
+        formatScore(rc.average === null ? null : Number(rc.average)),
+        formatScore(rc.class_average === null ? null : Number(rc.class_average)),
+        "",
+        rc.rank ? `${rc.rank}/${rc.class_size}` : "—",
+        rc.mention ?? "",
+      ],
+    },
   );
   pdf.keyValues(
     [
@@ -138,7 +156,10 @@ export async function receiptPdf(
   return pdf.finish(`${school.name} · Reçu ${p.receipt_number}`);
 }
 
-export async function certificatePdf(school: SchoolHeader, doc: { title: string; body: string; signatory: string; reference: string }): Promise<Uint8Array> {
+export async function certificatePdf(
+  school: SchoolHeader,
+  doc: { title: string; body: string; signatory: string; reference: string },
+): Promise<Uint8Array> {
   const pdf = await PdfBuilder.create({ title: doc.title, author: school.name });
   pdf.header({ name: school.name, lines: headerLines(school) }, `Réf. ${doc.reference}`);
   pdf.spacer(20);
@@ -149,10 +170,19 @@ export async function certificatePdf(school: SchoolHeader, doc: { title: string;
   return pdf.finish(`${school.name} · ${doc.title} · Réf. ${doc.reference}`);
 }
 
-export async function classListPdf(school: SchoolHeader, title: string, columns: string[], rows: string[][]): Promise<Uint8Array> {
+export async function classListPdf(
+  school: SchoolHeader,
+  title: string,
+  columns: string[],
+  rows: string[][],
+): Promise<Uint8Array> {
   const pdf = await PdfBuilder.create({ title, author: school.name });
   pdf.header({ name: school.name, lines: headerLines(school) });
   pdf.title(title);
-  pdf.table(columns.map((c, i) => ({ label: c, width: i === 0 ? 0.6 : 2 })), rows, { zebra: true });
+  pdf.table(
+    columns.map((c, i) => ({ label: c, width: i === 0 ? 0.6 : 2 })),
+    rows,
+    { zebra: true },
+  );
   return pdf.finish(`${school.name} · ${title}`);
 }

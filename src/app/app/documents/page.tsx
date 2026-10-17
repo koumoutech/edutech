@@ -42,18 +42,35 @@ export default async function DocumentsPage() {
       .limit(100);
     return (
       <div className="space-y-5">
-        <PageHeader title="Documents" description="Documents partagés par l'établissement (certificats, attestations…)." />
+        <PageHeader
+          title="Documents"
+          description="Documents partagés par l'établissement (certificats, attestations…)."
+        />
         {(data ?? []).length === 0 ? (
-          <EmptyState icon={FileTextIcon} title="Aucun document partagé" description="Pour obtenir un certificat, faites une demande administrative." action={<Button asChild><Link href="/app/requests">Faire une demande</Link></Button>} />
+          <EmptyState
+            icon={FileTextIcon}
+            title="Aucun document partagé"
+            description="Pour obtenir un certificat, faites une demande administrative."
+            action={
+              <Button asChild>
+                <Link href="/app/requests">Faire une demande</Link>
+              </Button>
+            }
+          />
         ) : (
           <Card className="divide-y">
             {(data ?? []).map((d) => (
               <div key={d.id} className="flex items-center gap-3 p-4 text-sm">
-                <FileTextIcon className="size-4 text-primary" aria-hidden />
+                <FileTextIcon className="text-primary size-4" aria-hidden />
                 <span className="flex-1">
                   {d.title} <span className="text-muted-foreground">· {fullName(d.student)}</span>
                 </span>
-                <a href={`/api/documents/${d.id}`} target="_blank" rel="noopener" className="font-medium text-primary hover:underline">
+                <a
+                  href={`/api/documents/${d.id}`}
+                  target="_blank"
+                  rel="noopener"
+                  className="text-primary font-medium hover:underline"
+                >
                   Ouvrir
                 </a>
               </div>
@@ -68,7 +85,13 @@ export default async function DocumentsPage() {
     listTemplates(ctx),
     can(ctx, "documents.read") ? recentDocuments(ctx) : [],
     canSchoolWide(ctx, "documents.create")
-      ? ctx.db.from("students").select("id, first_name, last_name, matricule").eq("school_id", ctx.school.id).eq("status", "active").order("last_name").limit(2000)
+      ? ctx.db
+          .from("students")
+          .select("id, first_name, last_name, matricule")
+          .eq("school_id", ctx.school.id)
+          .eq("status", "active")
+          .order("last_name")
+          .limit(2000)
       : null,
   ]);
   const canGenerate = canSchoolWide(ctx, "documents.create") && templates.length > 0;
@@ -81,7 +104,12 @@ export default async function DocumentsPage() {
         description="Certificats, attestations et convocations générés en PDF à partir de modèles personnalisables."
         actions={
           canGenerate && (
-            <FormDialog title="Générer un document" action={generateCertificateAction} triggerLabel="Générer un document" submitLabel="Générer le PDF">
+            <FormDialog
+              title="Générer un document"
+              action={generateCertificateAction}
+              triggerLabel="Générer un document"
+              submitLabel="Générer le PDF"
+            >
               <Field label="Modèle" htmlFor="g-tpl">
                 <Select id="g-tpl" name="template_id" required>
                   {templates
@@ -109,7 +137,13 @@ export default async function DocumentsPage() {
                 <Textarea id="g-msg" name="custom_message" rows={3} maxLength={2000} />
               </Field>
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" name="visible_to_family" defaultChecked className="size-4 accent-[var(--primary)]" /> Partager avec la famille
+                <input
+                  type="checkbox"
+                  name="visible_to_family"
+                  defaultChecked
+                  className="size-4 accent-[var(--primary)]"
+                />{" "}
+                Partager avec la famille
               </label>
             </FormDialog>
           )
@@ -128,18 +162,26 @@ export default async function DocumentsPage() {
               <ul className="divide-y text-sm">
                 {docs.map((d) => (
                   <li key={d.id} className="flex flex-wrap items-center gap-2 py-2.5">
-                    <FileTextIcon className="size-4 text-primary" aria-hidden />
+                    <FileTextIcon className="text-primary size-4" aria-hidden />
                     <span className="min-w-0 flex-1">
                       <span className="font-medium">{d.title}</span>
                       {d.student && (
-                        <Link href={`/app/students/${d.student.id}`} className="block text-xs text-muted-foreground hover:text-primary">
+                        <Link
+                          href={`/app/students/${d.student.id}`}
+                          className="text-muted-foreground hover:text-primary block text-xs"
+                        >
                           {fullName(d.student)}
                         </Link>
                       )}
                     </span>
                     {d.visible_to_family && <Badge variant="muted">Partagé</Badge>}
-                    <span className="text-xs text-muted-foreground">{formatDateTime(d.created_at)}</span>
-                    <a href={`/api/documents/${d.id}`} target="_blank" rel="noopener" className="font-medium text-primary hover:underline">
+                    <span className="text-muted-foreground text-xs">{formatDateTime(d.created_at)}</span>
+                    <a
+                      href={`/api/documents/${d.id}`}
+                      target="_blank"
+                      rel="noopener"
+                      className="text-primary font-medium hover:underline"
+                    >
                       Ouvrir
                     </a>
                   </li>
@@ -161,13 +203,21 @@ export default async function DocumentsPage() {
             <ul className="space-y-2">
               {templates.map((t) => (
                 <li key={t.id} className="flex items-center gap-2 rounded-lg border p-3 text-sm">
-                  <ScrollTextIcon className="size-4 text-primary" aria-hidden />
+                  <ScrollTextIcon className="text-primary size-4" aria-hidden />
                   <span className="flex-1">
                     <span className="font-medium">{t.name}</span>
-                    <span className="block text-xs text-muted-foreground">{KINDS[t.kind]}</span>
+                    <span className="text-muted-foreground block text-xs">{KINDS[t.kind]}</span>
                   </span>
                   {manageTemplates && (
-                    <FormDialog title={`Modifier — ${t.name}`} action={saveTemplateAction} trigger={<Button variant="ghost" size="sm">Modifier</Button>}>
+                    <FormDialog
+                      title={`Modifier — ${t.name}`}
+                      action={saveTemplateAction}
+                      trigger={
+                        <Button variant="ghost" size="sm">
+                          Modifier
+                        </Button>
+                      }
+                    >
                       <TemplateFields t={t} />
                     </FormDialog>
                   )}
@@ -202,12 +252,16 @@ function TemplateFields({ t }: { t?: { id: string; kind: string; name: string; t
       <Field label="Titre du document" htmlFor={`tp-title-${t?.id ?? "new"}`}>
         <Input id={`tp-title-${t?.id ?? "new"}`} name="title" defaultValue={t?.title} required />
       </Field>
-      <Field label="Texte" htmlFor={`tp-body-${t?.id ?? "new"}`} hint="Champs disponibles ci-dessous, à écrire entre doubles accolades.">
+      <Field
+        label="Texte"
+        htmlFor={`tp-body-${t?.id ?? "new"}`}
+        hint="Champs disponibles ci-dessous, à écrire entre doubles accolades."
+      >
         <Textarea id={`tp-body-${t?.id ?? "new"}`} name="body" defaultValue={t?.body} rows={8} required />
       </Field>
       <div className="flex flex-wrap gap-1">
         {Object.entries(TEMPLATE_PLACEHOLDERS).map(([k, v]) => (
-          <code key={k} title={v} className="rounded bg-muted px-1.5 py-0.5 text-[11px]">
+          <code key={k} title={v} className="bg-muted rounded px-1.5 py-0.5 text-[11px]">
             {`{{${k}}}`}
           </code>
         ))}

@@ -54,8 +54,18 @@ export async function reviewLeaveAction(id: string, status: string, comment: str
   return runAction(async () => {
     const ctx = await requireContext();
     const v = parseInput(
-      z.object({ id: z.uuid(), status: z.enum(["approved", "rejected"]), comment: z.string().max(500).optional(), substitute: z.uuid().optional() }),
-      { id, status, comment: comment || undefined, substitute: (fd?.get("substitute_staff_id") as string) || undefined },
+      z.object({
+        id: z.uuid(),
+        status: z.enum(["approved", "rejected"]),
+        comment: z.string().max(500).optional(),
+        substitute: z.uuid().optional(),
+      }),
+      {
+        id,
+        status,
+        comment: comment || undefined,
+        substitute: (fd?.get("substitute_staff_id") as string) || undefined,
+      },
     );
     await reviewLeave(ctx, v.id, v.status, v.comment, v.substitute);
     refresh();

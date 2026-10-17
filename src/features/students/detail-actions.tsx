@@ -5,9 +5,23 @@ import { ConfirmDialog } from "@/components/action-dialog";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/form-controls";
 import { RELATIONSHIP_LABELS } from "@/schemas/students";
-import { addGuardianAction, archiveStudentAction, enrollStudentAction, unlinkGuardianAction, withdrawStudentAction } from "./actions";
+import {
+  addGuardianAction,
+  archiveStudentAction,
+  enrollStudentAction,
+  unlinkGuardianAction,
+  withdrawStudentAction,
+} from "./actions";
 
-export function EnrollButton({ studentId, classes, currentClassId }: { studentId: string; classes: { id: string; name: string }[]; currentClassId: string | null }) {
+export function EnrollButton({
+  studentId,
+  classes,
+  currentClassId,
+}: {
+  studentId: string;
+  classes: { id: string; name: string }[];
+  currentClassId: string | null;
+}) {
   return (
     <ConfirmDialog
       trigger={
@@ -126,7 +140,8 @@ export function AddGuardianButton({ studentId }: { studentId: string }) {
           <Input id="g-email" name="email" type="email" />
         </Field>
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="is_emergency_contact" className="size-4 accent-[var(--primary)]" /> Contact d&apos;urgence
+          <input type="checkbox" name="is_emergency_contact" className="size-4 accent-[var(--primary)]" /> Contact
+          d&apos;urgence
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="is_billing_contact" className="size-4 accent-[var(--primary)]" /> Facturation
@@ -136,7 +151,15 @@ export function AddGuardianButton({ studentId }: { studentId: string }) {
   );
 }
 
-export function UnlinkGuardianButton({ studentId, guardianId, name }: { studentId: string; guardianId: string; name: string }) {
+export function UnlinkGuardianButton({
+  studentId,
+  guardianId,
+  name,
+}: {
+  studentId: string;
+  guardianId: string;
+  name: string;
+}) {
   return (
     <ConfirmDialog
       trigger={

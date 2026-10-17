@@ -9,7 +9,12 @@ export function DeleteEntryButton({ id }: { id: string }) {
   return (
     <ConfirmDialog
       trigger={
-        <Button variant="ghost" size="icon-sm" aria-label="Supprimer le créneau" className="opacity-60 hover:opacity-100">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Supprimer le créneau"
+          className="opacity-60 hover:opacity-100"
+        >
           <Trash2Icon />
         </Button>
       }

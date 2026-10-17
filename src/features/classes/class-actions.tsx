@@ -5,7 +5,15 @@ import { ConfirmDialog } from "@/components/action-dialog";
 import { deleteClassSubjectAction } from "./actions";
 
 /** Remove a teaching assignment (blocked server-side when assessments exist). */
-export function ConfirmDialogServerSafe({ classSubjectId, label, trigger }: { classSubjectId: string; label: string; trigger: ReactNode }) {
+export function ConfirmDialogServerSafe({
+  classSubjectId,
+  label,
+  trigger,
+}: {
+  classSubjectId: string;
+  label: string;
+  trigger: ReactNode;
+}) {
   return (
     <ConfirmDialog
       trigger={trigger}

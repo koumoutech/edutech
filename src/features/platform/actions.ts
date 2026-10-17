@@ -23,11 +23,21 @@ export async function createSchoolAction(_prev: unknown, fd: FormData) {
     const v = parseInput(
       z.object({
         name: z.string().trim().min(2).max(160),
-        slug: z.string().trim().toLowerCase().regex(/^[a-z0-9-]{3,48}$/, "3 à 48 caractères : minuscules, chiffres, tirets"),
+        slug: z
+          .string()
+          .trim()
+          .toLowerCase()
+          .regex(/^[a-z0-9-]{3,48}$/, "3 à 48 caractères : minuscules, chiffres, tirets"),
         country: z.string().trim().length(2).toUpperCase(),
-        currency: z.string().trim().regex(/^[A-Z]{3}$/),
+        currency: z
+          .string()
+          .trim()
+          .regex(/^[A-Z]{3}$/),
         timezone: z.string().trim().min(3).max(60),
-        is_demo: z.literal("on").optional().transform((x) => x === "on"),
+        is_demo: z
+          .literal("on")
+          .optional()
+          .transform((x) => x === "on"),
       }),
       fd,
     );
@@ -60,7 +70,10 @@ export async function updateBrandingAction(_prev: unknown, fd: FormData) {
       ["product.tagline", v.tagline],
       ["product.support_email", v.support_email],
     ] as const) {
-      const { error } = await db.from("platform_settings").update({ value, updated_by: user.id, updated_at: new Date().toISOString() }).eq("key", key);
+      const { error } = await db
+        .from("platform_settings")
+        .update({ value, updated_by: user.id, updated_at: new Date().toISOString() })
+        .eq("key", key);
       if (error) throw fromDbError(error);
     }
     updateTag(PLATFORM_SETTINGS_TAG);

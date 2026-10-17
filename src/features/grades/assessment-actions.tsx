@@ -105,7 +105,19 @@ export function AssessmentWorkflow({
   );
 }
 
-export function CorrectGradeButton({ gradeId, studentName, score, isAbsent, maxScore }: { gradeId: string; studentName: string; score: number | null; isAbsent: boolean; maxScore: number }) {
+export function CorrectGradeButton({
+  gradeId,
+  studentName,
+  score,
+  isAbsent,
+  maxScore,
+}: {
+  gradeId: string;
+  studentName: string;
+  score: number | null;
+  isAbsent: boolean;
+  maxScore: number;
+}) {
   return (
     <ConfirmDialog
       trigger={
@@ -121,10 +133,25 @@ export function CorrectGradeButton({ gradeId, studentName, score, isAbsent, maxS
     >
       <div className="flex items-end gap-3">
         <Field label={`Nouvelle note (/${maxScore})`} htmlFor="score">
-          <Input id="score" name="score" type="number" step="0.25" min={0} max={maxScore} defaultValue={score ?? ""} className="w-28" />
+          <Input
+            id="score"
+            name="score"
+            type="number"
+            step="0.25"
+            min={0}
+            max={maxScore}
+            defaultValue={score ?? ""}
+            className="w-28"
+          />
         </Field>
         <label className="flex h-10 items-center gap-2 text-sm">
-          <input type="checkbox" name="is_absent" defaultChecked={isAbsent} className="size-4 accent-[var(--primary)]" /> Absent
+          <input
+            type="checkbox"
+            name="is_absent"
+            defaultChecked={isAbsent}
+            className="size-4 accent-[var(--primary)]"
+          />{" "}
+          Absent
         </label>
       </div>
     </ConfirmDialog>

@@ -48,7 +48,11 @@ export async function withdrawStudentAction(studentId: string, status: string, r
   return runAction(async () => {
     const ctx = await requireContext();
     const p = parseInput(
-      z.object({ studentId: z.uuid(), status: z.enum(["transferred", "withdrawn", "graduated"]), reason: z.string().trim().min(3).max(500) }),
+      z.object({
+        studentId: z.uuid(),
+        status: z.enum(["transferred", "withdrawn", "graduated"]),
+        reason: z.string().trim().min(3).max(500),
+      }),
       { studentId, status, reason },
     );
     await withdrawStudent(ctx, p.studentId, p.status, p.reason);
@@ -59,7 +63,10 @@ export async function withdrawStudentAction(studentId: string, status: string, r
 export async function archiveStudentAction(studentId: string, reason: string) {
   return runAction(async () => {
     const ctx = await requireContext();
-    const p = parseInput(z.object({ studentId: z.uuid(), reason: z.string().trim().min(5, "Motif requis (5 caractères min.)").max(500) }), { studentId, reason });
+    const p = parseInput(
+      z.object({ studentId: z.uuid(), reason: z.string().trim().min(5, "Motif requis (5 caractères min.)").max(500) }),
+      { studentId, reason },
+    );
     await archiveStudent(ctx, p.studentId, p.reason);
     refresh();
   }, "Dossier archivé.");
@@ -113,7 +120,8 @@ export async function confirmImportAction(csv: string) {
     const ctx = await requireContext();
     if (typeof csv !== "string" || csv.length > MAX_CSV_BYTES) throw new AppError("VALIDATION");
     const preview = validateStudentImport(csv, await importContext(ctx));
-    if (preview.errors.length) throw new AppError("VALIDATION", "Le fichier contient des erreurs : corrigez-les puis recommencez.");
+    if (preview.errors.length)
+      throw new AppError("VALIDATION", "Le fichier contient des erreurs : corrigez-les puis recommencez.");
     const results = await importStudents(ctx, preview.rows);
     refresh();
     return { imported: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok) };

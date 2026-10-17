@@ -5,9 +5,12 @@ vi.mock("server-only", () => ({}));
 
 describe("renderTemplate", () => {
   it("substitutes whitelisted placeholders, tolerating spaces", () => {
-    expect(renderTemplate("Élève {{student_full_name}} en {{ class_name }}.", { student_full_name: "Awa KONÉ", class_name: "6e A" })).toBe(
-      "Élève Awa KONÉ en 6e A.",
-    );
+    expect(
+      renderTemplate("Élève {{student_full_name}} en {{ class_name }}.", {
+        student_full_name: "Awa KONÉ",
+        class_name: "6e A",
+      }),
+    ).toBe("Élève Awa KONÉ en 6e A.");
   });
 
   it("shows a dash for missing values and keeps unknown placeholders visible", () => {
@@ -29,7 +32,13 @@ describe("pdfSafe + PDF generation", () => {
     pdf.header({ name: "Groupe Scolaire Les Palmiers", lines: ["Abidjan"] }, "Réf. 1");
     pdf.title("CERTIFICAT DE SCOLARITÉ", "Année 2026-2027");
     pdf.paragraph("Je soussigné, certifie que l’élève est inscrit(e).");
-    pdf.table([{ label: "Matière", width: 3 }, { label: "Moyenne", width: 1, align: "right" }], [["Mathématiques", "14,5"]]);
+    pdf.table(
+      [
+        { label: "Matière", width: 3 },
+        { label: "Moyenne", width: 1, align: "right" },
+      ],
+      [["Mathématiques", "14,5"]],
+    );
     const bytes = await pdf.finish("Généré le 17/10/2026");
     expect(new TextDecoder().decode(bytes.slice(0, 5))).toBe("%PDF-");
     expect(bytes.length).toBeGreaterThan(1000);

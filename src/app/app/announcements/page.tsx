@@ -61,7 +61,13 @@ export default async function AnnouncementsPage() {
                 <div className="grid grid-cols-2 gap-1.5">
                   {(roles?.data ?? []).map((r) => (
                     <label key={r.key} className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" name="audience_roles" value={r.key} className="size-4 accent-[var(--primary)]" /> {r.name}
+                      <input
+                        type="checkbox"
+                        name="audience_roles"
+                        value={r.key}
+                        className="size-4 accent-[var(--primary)]"
+                      />{" "}
+                      {r.name}
                     </label>
                   ))}
                 </div>
@@ -72,7 +78,13 @@ export default async function AnnouncementsPage() {
                   <div className="flex flex-wrap gap-2">
                     {(classes?.data ?? []).map((c) => (
                       <label key={c.id} className="flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm">
-                        <input type="checkbox" name="audience_class_ids" value={c.id} className="size-3.5 accent-[var(--primary)]" /> {c.name}
+                        <input
+                          type="checkbox"
+                          name="audience_class_ids"
+                          value={c.id}
+                          className="size-3.5 accent-[var(--primary)]"
+                        />{" "}
+                        {c.name}
                       </label>
                     ))}
                   </div>
@@ -83,7 +95,8 @@ export default async function AnnouncementsPage() {
               </label>
               {canSchoolWide(ctx, "announcements.publish") && (
                 <label className="flex items-center gap-2 text-sm font-medium">
-                  <input type="checkbox" name="publish" className="size-4 accent-[var(--primary)]" /> Publier immédiatement
+                  <input type="checkbox" name="publish" className="size-4 accent-[var(--primary)]" /> Publier
+                  immédiatement
                 </label>
               )}
             </FormDialog>
@@ -95,20 +108,50 @@ export default async function AnnouncementsPage() {
       ) : (
         <div className="space-y-3">
           {items.map((a) => (
-            <Card key={a.id} className={a.priority === "urgent" ? "border-destructive/40" : a.priority === "important" ? "border-highlight/60" : ""}>
+            <Card
+              key={a.id}
+              className={
+                a.priority === "urgent"
+                  ? "border-destructive/40"
+                  : a.priority === "important"
+                    ? "border-highlight/60"
+                    : ""
+              }
+            >
               <article className="space-y-2 p-4 sm:p-5">
                 <header className="flex flex-wrap items-start gap-2">
-                  {a.is_pinned && <PinIcon className="size-4 text-primary" aria-label="Épinglée" />}
+                  {a.is_pinned && <PinIcon className="text-primary size-4" aria-label="Épinglée" />}
                   <h2 className="flex-1 font-semibold">{a.title}</h2>
-                  {a.priority !== "normal" && <Badge variant={a.priority === "urgent" ? "danger" : "warning"}>{a.priority === "urgent" ? "Urgent" : "Important"}</Badge>}
-                  {author && a.status !== "published" && <Badge variant="muted">{a.status === "draft" ? "Brouillon" : "Archivée"}</Badge>}
-                  {author && <AnnouncementActions id={a.id} status={a.status} canPublish={canSchoolWide(ctx, "announcements.publish")} />}
-                </header>
-                <p className="text-sm whitespace-pre-line text-muted-foreground">{a.body}</p>
-                <footer className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  <span>{a.published_at ? `Publiée le ${formatDateTime(a.published_at)}` : `Créée le ${formatDateTime(a.created_at)}`}</span>
+                  {a.priority !== "normal" && (
+                    <Badge variant={a.priority === "urgent" ? "danger" : "warning"}>
+                      {a.priority === "urgent" ? "Urgent" : "Important"}
+                    </Badge>
+                  )}
+                  {author && a.status !== "published" && (
+                    <Badge variant="muted">{a.status === "draft" ? "Brouillon" : "Archivée"}</Badge>
+                  )}
                   {author && (
-                    <span>· Public : {a.audience_roles.length ? a.audience_roles.map((k) => roleNames.get(k) ?? k).join(", ") : "tout l'établissement"}</span>
+                    <AnnouncementActions
+                      id={a.id}
+                      status={a.status}
+                      canPublish={canSchoolWide(ctx, "announcements.publish")}
+                    />
+                  )}
+                </header>
+                <p className="text-muted-foreground text-sm whitespace-pre-line">{a.body}</p>
+                <footer className="text-muted-foreground flex flex-wrap gap-2 text-xs">
+                  <span>
+                    {a.published_at
+                      ? `Publiée le ${formatDateTime(a.published_at)}`
+                      : `Créée le ${formatDateTime(a.created_at)}`}
+                  </span>
+                  {author && (
+                    <span>
+                      · Public :{" "}
+                      {a.audience_roles.length
+                        ? a.audience_roles.map((k) => roleNames.get(k) ?? k).join(", ")
+                        : "tout l'établissement"}
+                    </span>
                   )}
                 </footer>
               </article>

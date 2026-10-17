@@ -31,16 +31,16 @@ export default async function FinancePage() {
       <PageHeader title="Frais de scolarité" description="Factures, échéances et paiements de vos enfants." />
       <div className="grid gap-3 sm:grid-cols-3">
         <Card className="p-4">
-          <p className="text-sm text-muted-foreground">Total facturé</p>
+          <p className="text-muted-foreground text-sm">Total facturé</p>
           <p className="text-2xl font-bold tabular-nums">{formatMoney(total, cur)}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-muted-foreground">Déjà payé</p>
+          <p className="text-muted-foreground text-sm">Déjà payé</p>
           <p className="text-2xl font-bold tabular-nums">{formatMoney(total - due, cur)}</p>
           <Progress className="mt-2" value={total ? ((total - due) / total) * 100 : 0} />
         </Card>
         <Card className="border-highlight/50 bg-highlight/10 p-4">
-          <p className="text-sm text-muted-foreground">Reste à payer</p>
+          <p className="text-muted-foreground text-sm">Reste à payer</p>
           <p className="text-2xl font-bold tabular-nums">{formatMoney(due, cur)}</p>
         </Card>
       </div>
@@ -56,29 +56,32 @@ export default async function FinancePage() {
               <div key={i.id} className="rounded-xl border p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-semibold">{i.number}</p>
-                  <Badge variant={INVOICE_STATUS[i.status]?.variant ?? "muted"}>{INVOICE_STATUS[i.status]?.label}</Badge>
+                  <Badge variant={INVOICE_STATUS[i.status]?.variant ?? "muted"}>
+                    {INVOICE_STATUS[i.status]?.label}
+                  </Badge>
                   {Number(i.balance) > 0 && i.due_date < today && <Badge variant="danger">Échéance dépassée</Badge>}
-                  <span className="ml-auto text-sm text-muted-foreground">{fullName(i.student)}</span>
+                  <span className="text-muted-foreground ml-auto text-sm">{fullName(i.student)}</span>
                 </div>
                 <div className="mt-2 grid grid-cols-3 gap-2 text-sm">
                   <div>
-                    <p className="text-xs text-muted-foreground">Montant</p>
+                    <p className="text-muted-foreground text-xs">Montant</p>
                     <p className="font-medium tabular-nums">{formatMoney(i.total, cur)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Payé</p>
+                    <p className="text-muted-foreground text-xs">Payé</p>
                     <p className="font-medium tabular-nums">{formatMoney(i.amount_paid, cur)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Reste dû</p>
+                    <p className="text-muted-foreground text-xs">Reste dû</p>
                     <p className="font-bold tabular-nums">{formatMoney(i.balance, cur)}</p>
                   </div>
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground">Échéance : {formatDate(i.due_date)}</p>
+                <p className="text-muted-foreground mt-2 text-xs">Échéance : {formatDate(i.due_date)}</p>
               </div>
             ))}
-            <p className="text-xs text-muted-foreground">
-              Les paiements se font auprès de la comptabilité de l&apos;établissement (espèces, Mobile Money, virement). Un reçu vous est remis pour chaque paiement.
+            <p className="text-muted-foreground text-xs">
+              Les paiements se font auprès de la comptabilité de l&apos;établissement (espèces, Mobile Money, virement).
+              Un reçu vous est remis pour chaque paiement.
             </p>
           </CardContent>
         </Card>

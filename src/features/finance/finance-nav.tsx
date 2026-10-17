@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export function FinanceNav({ items }: { items: { href: string; label: string }[] }) {
   const pathname = usePathname();
   return (
-    <nav aria-label="Finances" className="flex gap-1 overflow-x-auto rounded-xl bg-muted p-1">
+    <nav aria-label="Finances" className="bg-muted flex gap-1 overflow-x-auto rounded-xl p-1">
       {items.map((i) => {
         const active = i.href === "/app/finance" ? pathname === i.href : pathname.startsWith(i.href);
         return (

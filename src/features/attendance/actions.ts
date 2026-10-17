@@ -5,7 +5,13 @@ import { z } from "zod";
 import { parseInput, runAction } from "@/server/actions";
 import { requireContext } from "@/server/auth/session";
 import { storeDocument } from "@/server/services/documents";
-import { justificationSchema, reviewJustification, saveAttendance, saveAttendanceSchema, submitJustification } from "@/server/services/attendance";
+import {
+  justificationSchema,
+  reviewJustification,
+  saveAttendance,
+  saveAttendanceSchema,
+  submitJustification,
+} from "@/server/services/attendance";
 
 export async function saveAttendanceAction(input: unknown) {
   return runAction(async () => {
@@ -38,11 +44,14 @@ export async function submitJustificationAction(_prev: unknown, fd: FormData) {
 export async function reviewJustificationAction(id: string, status: string, comment: string) {
   return runAction(async () => {
     const ctx = await requireContext();
-    const p = parseInput(z.object({ id: z.uuid(), status: z.enum(["accepted", "rejected"]), comment: z.string().max(500).optional() }), {
-      id,
-      status,
-      comment: comment || undefined,
-    });
+    const p = parseInput(
+      z.object({ id: z.uuid(), status: z.enum(["accepted", "rejected"]), comment: z.string().max(500).optional() }),
+      {
+        id,
+        status,
+        comment: comment || undefined,
+      },
+    );
     await reviewJustification(ctx, p.id, p.status, p.comment);
     refresh();
   }, "Décision enregistrée.");

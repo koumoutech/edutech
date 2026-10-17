@@ -49,8 +49,8 @@ export default async function RolesPage() {
         }
       />
       <Alert tone="info">
-        Les permissions sont vérifiées par le serveur et par la base de données (Row Level Security). Masquer un bouton ne suffit jamais : retirer une permission ici
-        retire réellement l&apos;accès aux données.
+        Les permissions sont vérifiées par le serveur et par la base de données (Row Level Security). Masquer un bouton
+        ne suffit jamais : retirer une permission ici retire réellement l&apos;accès aux données.
       </Alert>
       <Card>
         <CardContent className="pt-5">

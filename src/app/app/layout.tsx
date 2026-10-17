@@ -31,7 +31,7 @@ async function Shell({ children }: { children: ReactNode }) {
     <div className="min-h-dvh">
       <Sidebar items={nav} productName={branding.productName} schoolName={ctx.school.name} />
       <div className="lg:pl-64">
-        <header className="no-print sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-background/85 px-4 backdrop-blur-lg sm:px-6">
+        <header className="no-print bg-background/85 sticky top-0 z-20 flex h-16 items-center gap-3 border-b px-4 backdrop-blur-lg sm:px-6">
           <div className="min-w-0 flex-1">
             <SchoolSwitcher
               activeId={ctx.school.id}
@@ -54,7 +54,7 @@ async function Shell({ children }: { children: ReactNode }) {
 function ShellSkeleton() {
   return (
     <div className="min-h-dvh lg:pl-64">
-      <div className="fixed inset-y-0 left-0 hidden w-64 border-r bg-sidebar p-4 lg:block">
+      <div className="bg-sidebar fixed inset-y-0 left-0 hidden w-64 border-r p-4 lg:block">
         <Skeleton className="mb-8 h-9 w-36" />
         {Array.from({ length: 8 }).map((_, i) => (
           <Skeleton key={i} className="mb-3 h-8" />

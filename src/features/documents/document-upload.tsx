@@ -39,7 +39,14 @@ export function DocumentUpload({
           {staffId && <input type="hidden" name="staff_id" value={staffId} />}
           <input type="hidden" name="category" value={category} />
           <Field label="Fichier (PDF, image — 10 Mo max.)" htmlFor="file">
-            <Input id="file" name="file" type="file" accept="application/pdf,image/png,image/jpeg,image/webp" required className="pt-1.5" />
+            <Input
+              id="file"
+              name="file"
+              type="file"
+              accept="application/pdf,image/png,image/jpeg,image/webp"
+              required
+              className="pt-1.5"
+            />
           </Field>
           {documentTypes.length > 0 ? (
             <Field label="Type de pièce" htmlFor="document_type_id">
@@ -67,7 +74,8 @@ export function DocumentUpload({
           )}
           {allowFamilyVisibility && (
             <label className="flex items-center gap-2 text-sm sm:col-span-3">
-              <input type="checkbox" name="visible_to_family" className="size-4 accent-[var(--primary)]" /> Visible par la famille
+              <input type="checkbox" name="visible_to_family" className="size-4 accent-[var(--primary)]" /> Visible par
+              la famille
             </label>
           )}
         </form>

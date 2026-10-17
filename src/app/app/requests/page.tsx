@@ -36,17 +36,29 @@ const STATUS: Record<string, { label: string; variant: "warning" | "default" | "
 export default async function RequestsPage() {
   const ctx = await requireContext();
   if (!can(ctx, "requests.create") && !can(ctx, "requests.manage")) redirect("/app/forbidden");
-  const [items, children] = await Promise.all([listRequests(ctx), isFamilyOnly(ctx.school.roles) ? linkedChildren(ctx) : Promise.resolve([])]);
+  const [items, children] = await Promise.all([
+    listRequests(ctx),
+    isFamilyOnly(ctx.school.roles) ? linkedChildren(ctx) : Promise.resolve([]),
+  ]);
   const manage = canSchoolWide(ctx, "requests.manage");
 
   return (
     <div className="space-y-5">
       <PageHeader
         title="Demandes administratives"
-        description={manage ? "Demandes des familles et du personnel : certificats, rendez-vous, informations…" : "Certificats, rendez-vous, informations : suivez vos demandes."}
+        description={
+          manage
+            ? "Demandes des familles et du personnel : certificats, rendez-vous, informations…"
+            : "Certificats, rendez-vous, informations : suivez vos demandes."
+        }
         actions={
           can(ctx, "requests.create") && (
-            <FormDialog title="Nouvelle demande" action={createRequestAction} triggerLabel="Nouvelle demande" submitLabel="Envoyer">
+            <FormDialog
+              title="Nouvelle demande"
+              action={createRequestAction}
+              triggerLabel="Nouvelle demande"
+              submitLabel="Envoyer"
+            >
               <Field label="Type" htmlFor="rq-kind">
                 <Select id="rq-kind" name="kind">
                   {Object.entries(KINDS).map(([k, v]) => (
@@ -89,13 +101,13 @@ export default async function RequestsPage() {
             <div key={r.id} id={r.id} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-start">
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">{r.subject}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   {KINDS[r.kind]} · {formatDateTime(r.created_at)}
                   {r.student ? ` · ${fullName(r.student)}` : ""}
                   {r.preferred_date ? ` · souhaité le ${formatDateTime(r.preferred_date)}` : ""}
                 </p>
                 {r.details && <p className="mt-1 text-sm whitespace-pre-line">{r.details}</p>}
-                {r.resolution && <p className="mt-2 rounded-lg bg-muted/60 p-2 text-sm">Réponse : {r.resolution}</p>}
+                {r.resolution && <p className="bg-muted/60 mt-2 rounded-lg p-2 text-sm">Réponse : {r.resolution}</p>}
               </div>
               <div className="flex flex-col items-start gap-2 sm:items-end">
                 <Badge variant={STATUS[r.status]?.variant}>{STATUS[r.status]?.label}</Badge>

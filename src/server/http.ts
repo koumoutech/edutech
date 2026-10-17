@@ -15,7 +15,8 @@ export function csvResponse(csv: string, filename: string): NextResponse {
 
 export function errorResponse(e: unknown): NextResponse {
   if (e instanceof AppError) {
-    const status = e.code === "FORBIDDEN" ? 403 : e.code === "NOT_FOUND" ? 404 : e.code === "UNAUTHENTICATED" ? 401 : 400;
+    const status =
+      e.code === "FORBIDDEN" ? 403 : e.code === "NOT_FOUND" ? 404 : e.code === "UNAUTHENTICATED" ? 401 : 400;
     return NextResponse.json({ error: e.message }, { status });
   }
   console.error("[api] unexpected error", e instanceof Error ? e.message : e);

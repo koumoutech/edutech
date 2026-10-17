@@ -6,10 +6,24 @@ import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/action-dialog";
 import { SubmitButton } from "@/components/form-status";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Field, Input, Select } from "@/components/ui/form-controls";
 import { Alert } from "@/components/ui/misc";
-import { assignRoleAction, inviteUserAction, removeRoleAction, revokeInvitationAction, setMemberStatusAction } from "./actions";
+import {
+  assignRoleAction,
+  inviteUserAction,
+  removeRoleAction,
+  revokeInvitationAction,
+  setMemberStatusAction,
+} from "./actions";
 
 export function InviteDialog({
   roles,
@@ -41,8 +55,10 @@ export function InviteDialog({
             {result ? (
               <div className="space-y-3">
                 <Alert tone="success" title="Invitation créée">
-                  {result.delivered ? "Un e-mail a été envoyé." : "Envoi d'e-mail non configuré : transmettez le lien ci-dessous."} Le lien est valable 7 jours et ne fonctionne
-                  qu&apos;avec l&apos;adresse invitée.
+                  {result.delivered
+                    ? "Un e-mail a été envoyé."
+                    : "Envoi d'e-mail non configuré : transmettez le lien ci-dessous."}{" "}
+                  Le lien est valable 7 jours et ne fonctionne qu&apos;avec l&apos;adresse invitée.
                 </Alert>
                 <div className="flex gap-2">
                   <Input readOnly value={result.link} aria-label="Lien d'invitation" />
@@ -62,7 +78,11 @@ export function InviteDialog({
                 <Field label="Adresse e-mail" htmlFor="i-email">
                   <Input id="i-email" name="email" type="email" required />
                 </Field>
-                <Field label="Rôle" htmlFor="i-role" hint="Les rôles privilégiés ne peuvent être attribués que par un administrateur.">
+                <Field
+                  label="Rôle"
+                  htmlFor="i-role"
+                  hint="Les rôles privilégiés ne peuvent être attribués que par un administrateur."
+                >
                   <Select id="i-role" name="role_id" required>
                     {roles.map((r) => (
                       <option key={r.id} value={r.id}>
@@ -72,7 +92,11 @@ export function InviteDialog({
                     ))}
                   </Select>
                 </Field>
-                <Field label="Relier à une fiche existante" htmlFor="i-kind" hint="Indispensable pour un parent, un élève ou un enseignant.">
+                <Field
+                  label="Relier à une fiche existante"
+                  htmlFor="i-kind"
+                  hint="Indispensable pour un parent, un élève ou un enseignant."
+                >
                   <Select id="i-kind" name="link_kind" value={kind} onChange={(e) => setKind(e.target.value)}>
                     <option value="">Aucune</option>
                     <option value="guardian">Responsable légal (parent)</option>

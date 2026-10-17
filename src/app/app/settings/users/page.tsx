@@ -22,12 +22,38 @@ export default async function UsersPage() {
 
   const links = canInvite
     ? await Promise.all([
-        ctx.db.from("guardians").select("id, first_name, last_name, email").eq("school_id", ctx.school.id).is("user_id", null).order("last_name").limit(1000),
-        ctx.db.from("students").select("id, first_name, last_name, matricule").eq("school_id", ctx.school.id).is("user_id", null).eq("status", "active").order("last_name").limit(1000),
-        ctx.db.from("staff_members").select("id, first_name, last_name, job_title").eq("school_id", ctx.school.id).is("user_id", null).order("last_name"),
+        ctx.db
+          .from("guardians")
+          .select("id, first_name, last_name, email")
+          .eq("school_id", ctx.school.id)
+          .is("user_id", null)
+          .order("last_name")
+          .limit(1000),
+        ctx.db
+          .from("students")
+          .select("id, first_name, last_name, matricule")
+          .eq("school_id", ctx.school.id)
+          .is("user_id", null)
+          .eq("status", "active")
+          .order("last_name")
+          .limit(1000),
+        ctx.db
+          .from("staff_members")
+          .select("id, first_name, last_name, job_title")
+          .eq("school_id", ctx.school.id)
+          .is("user_id", null)
+          .order("last_name"),
       ]).then(([g, s, st]) => [
-        ...(g.data ?? []).map((x) => ({ kind: "guardian" as const, id: x.id, label: `${fullName(x)}${x.email ? ` — ${x.email}` : ""}` })),
-        ...(s.data ?? []).map((x) => ({ kind: "student" as const, id: x.id, label: `${fullName(x)} — ${x.matricule}` })),
+        ...(g.data ?? []).map((x) => ({
+          kind: "guardian" as const,
+          id: x.id,
+          label: `${fullName(x)}${x.email ? ` — ${x.email}` : ""}`,
+        })),
+        ...(s.data ?? []).map((x) => ({
+          kind: "student" as const,
+          id: x.id,
+          label: `${fullName(x)} — ${x.matricule}`,
+        })),
         ...(st.data ?? []).map((x) => ({ kind: "staff" as const, id: x.id, label: `${fullName(x)} — ${x.job_title}` })),
       ])
     : [];
@@ -57,7 +83,7 @@ export default async function UsersPage() {
                 <li key={i.id} className="flex flex-wrap items-center gap-2 py-2">
                   <span className="flex-1 font-medium">{i.email}</span>
                   <Badge variant="muted">{roleName.get(i.role_id)}</Badge>
-                  <span className="text-xs text-muted-foreground">expire le {formatDate(i.expires_at)}</span>
+                  <span className="text-muted-foreground text-xs">expire le {formatDate(i.expires_at)}</span>
                   {canInvite && <RevokeInvitationButton id={i.id} />}
                 </li>
               ))}
@@ -74,7 +100,7 @@ export default async function UsersPage() {
                 <p className="truncate font-semibold">
                   {m.name} {m.status !== "active" && <Badge variant="danger">Suspendu</Badge>}
                 </p>
-                <p className="truncate text-xs text-muted-foreground">{m.email}</p>
+                <p className="text-muted-foreground truncate text-xs">{m.email}</p>
                 {!canManage && (
                   <div className="mt-1 flex flex-wrap gap-1">
                     {m.roles.map((r) => (
@@ -86,7 +112,16 @@ export default async function UsersPage() {
                 )}
               </div>
             </div>
-            {canManage && <MemberActions userId={m.user_id} name={m.name} status={m.status} roles={grantable} memberRoles={m.roles} isSelf={m.user_id === ctx.user.id} />}
+            {canManage && (
+              <MemberActions
+                userId={m.user_id}
+                name={m.name}
+                status={m.status}
+                roles={grantable}
+                memberRoles={m.roles}
+                isSelf={m.user_id === ctx.user.id}
+              />
+            )}
           </div>
         ))}
       </Card>

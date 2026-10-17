@@ -1,4 +1,7 @@
-export const INVOICE_STATUS: Record<string, { label: string; variant: "default" | "warning" | "danger" | "muted" | "solid" }> = {
+export const INVOICE_STATUS: Record<
+  string,
+  { label: string; variant: "default" | "warning" | "danger" | "muted" | "solid" }
+> = {
   draft: { label: "Brouillon", variant: "muted" },
   issued: { label: "À payer", variant: "warning" },
   partially_paid: { label: "Paiement partiel", variant: "warning" },

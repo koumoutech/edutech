@@ -23,7 +23,15 @@ function err(errors: FieldErrors, path: string): string | undefined {
   return (cur as { message?: string } | undefined)?.message;
 }
 
-function StudentFieldsBlock({ register, errors, prefix }: { register: ReturnType<typeof useForm<CreateInput>>["register"]; errors: FieldErrors; prefix: string }) {
+function StudentFieldsBlock({
+  register,
+  errors,
+  prefix,
+}: {
+  register: ReturnType<typeof useForm<CreateInput>>["register"];
+  errors: FieldErrors;
+  prefix: string;
+}) {
   const r = (name: string) => register(`${prefix}${name}` as never);
   const e = (name: string) => err(errors, `${prefix}${name}`);
   return (
@@ -50,7 +58,12 @@ function StudentFieldsBlock({ register, errors, prefix }: { register: ReturnType
       <Field label="Nationalité" htmlFor="nationality" error={e("nationality")}>
         <Input id="nationality" {...r("nationality")} />
       </Field>
-      <Field label="Matricule" htmlFor="matricule" hint="Laissez vide pour une génération automatique." error={e("matricule")}>
+      <Field
+        label="Matricule"
+        htmlFor="matricule"
+        hint="Laissez vide pour une génération automatique."
+        error={e("matricule")}
+      >
         <Input id="matricule" className="uppercase" {...r("matricule")} />
       </Field>
       <Field label="Établissement précédent" htmlFor="previous_school" error={e("previous_school")}>
@@ -72,14 +85,22 @@ function StudentFieldsBlock({ register, errors, prefix }: { register: ReturnType
   );
 }
 
-export function NewStudentForm({ classes, canEnroll }: { classes: { id: string; name: string }[]; canEnroll: boolean }) {
+export function NewStudentForm({
+  classes,
+  canEnroll,
+}: {
+  classes: { id: string; name: string }[];
+  canEnroll: boolean;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const form = useForm<CreateInput>({
     resolver: zodResolver(createStudentSchema),
     defaultValues: {
       student: { first_name: "", last_name: "" },
-      guardians: [{ first_name: "", last_name: "", relationship: "mother", is_emergency_contact: true, is_billing_contact: true }],
+      guardians: [
+        { first_name: "", last_name: "", relationship: "mother", is_emergency_contact: true, is_billing_contact: true },
+      ],
       class_id: "",
     },
   });
@@ -121,7 +142,15 @@ export function NewStudentForm({ classes, canEnroll }: { classes: { id: string; 
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => guardians.append({ first_name: "", last_name: "", relationship: "father", is_emergency_contact: false, is_billing_contact: false })}
+              onClick={() =>
+                guardians.append({
+                  first_name: "",
+                  last_name: "",
+                  relationship: "father",
+                  is_emergency_contact: false,
+                  is_billing_contact: false,
+                })
+              }
             >
               <PlusIcon /> Ajouter
             </Button>
@@ -132,7 +161,13 @@ export function NewStudentForm({ classes, canEnroll }: { classes: { id: string; 
             <div key={f.id} className="rounded-xl border p-4">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-semibold">Responsable {i + 1}</p>
-                <Button type="button" variant="ghost" size="icon-sm" onClick={() => guardians.remove(i)} aria-label={`Retirer le responsable ${i + 1}`}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => guardians.remove(i)}
+                  aria-label={`Retirer le responsable ${i + 1}`}
+                >
                   <Trash2Icon />
                 </Button>
               </div>
@@ -162,17 +197,29 @@ export function NewStudentForm({ classes, canEnroll }: { classes: { id: string; 
                   <Input id={`g${i}-job`} {...form.register(`guardians.${i}.profession`)} />
                 </Field>
                 <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" className="size-4 accent-[var(--primary)]" {...form.register(`guardians.${i}.is_emergency_contact`)} />
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-[var(--primary)]"
+                    {...form.register(`guardians.${i}.is_emergency_contact`)}
+                  />
                   Contact d&apos;urgence
                 </label>
                 <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" className="size-4 accent-[var(--primary)]" {...form.register(`guardians.${i}.is_billing_contact`)} />
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-[var(--primary)]"
+                    {...form.register(`guardians.${i}.is_billing_contact`)}
+                  />
                   Responsable de la facturation
                 </label>
               </div>
             </div>
           ))}
-          {guardians.fields.length === 0 && <p className="text-sm text-muted-foreground">Aucun responsable : le dossier sera signalé comme incomplet.</p>}
+          {guardians.fields.length === 0 && (
+            <p className="text-muted-foreground text-sm">
+              Aucun responsable : le dossier sera signalé comme incomplet.
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -180,7 +227,9 @@ export function NewStudentForm({ classes, canEnroll }: { classes: { id: string; 
         <Card>
           <CardHeader>
             <CardTitle>Affectation</CardTitle>
-            <CardDescription>Inscription dans une classe de l&apos;année en cours (capacité contrôlée).</CardDescription>
+            <CardDescription>
+              Inscription dans une classe de l&apos;année en cours (capacité contrôlée).
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Field label="Classe" htmlFor="class_id">
@@ -197,7 +246,7 @@ export function NewStudentForm({ classes, canEnroll }: { classes: { id: string; 
         </Card>
       )}
 
-      <div className="sticky bottom-20 z-10 flex justify-end gap-2 rounded-xl border bg-card/95 p-3 backdrop-blur lg:bottom-4">
+      <div className="bg-card/95 sticky bottom-20 z-10 flex justify-end gap-2 rounded-xl border p-3 backdrop-blur lg:bottom-4">
         <Button type="button" variant="ghost" onClick={() => router.back()}>
           Annuler
         </Button>

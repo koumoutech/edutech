@@ -23,7 +23,11 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
   if (!snap.student) notFound(); // RLS: not one of the parent's children
   return (
     <div className="space-y-5">
-      <PageHeader eyebrow={`Matricule ${snap.student.matricule}`} title={fullName(snap.student)} description={`${snap.className ?? "Classe non affectée"} · ${snap.term?.name ?? ""}`} />
+      <PageHeader
+        eyebrow={`Matricule ${snap.student.matricule}`}
+        title={fullName(snap.student)}
+        description={`${snap.className ?? "Classe non affectée"} · ${snap.term?.name ?? ""}`}
+      />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           ["Moyenne", `${formatScore(snap.average)}/20`],
@@ -32,16 +36,34 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
           ["Reste dû", formatMoney(snap.balance, ctx.school.currency)],
         ].map(([k, v]) => (
           <Card key={k} className="p-4">
-            <p className="text-xs text-muted-foreground">{k}</p>
+            <p className="text-muted-foreground text-xs">{k}</p>
             <p className="text-xl font-bold tabular-nums">{v}</p>
           </Card>
         ))}
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button asChild variant="outline" size="sm"><Link href={`/app/assessments`}><NotebookPenIcon /> Résultats</Link></Button>
-        <Button asChild variant="outline" size="sm"><Link href={`/app/report-cards`}><FileBadgeIcon /> Bulletins</Link></Button>
-        <Button asChild variant="outline" size="sm"><Link href={`/app/timetable`}><CalendarClockIcon /> Emploi du temps</Link></Button>
-        {can(ctx, "finance.read") && <Button asChild variant="outline" size="sm"><Link href="/app/finance"><WalletIcon /> Frais</Link></Button>}
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/app/assessments`}>
+            <NotebookPenIcon /> Résultats
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/app/report-cards`}>
+            <FileBadgeIcon /> Bulletins
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/app/timetable`}>
+            <CalendarClockIcon /> Emploi du temps
+          </Link>
+        </Button>
+        {can(ctx, "finance.read") && (
+          <Button asChild variant="outline" size="sm">
+            <Link href="/app/finance">
+              <WalletIcon /> Frais
+            </Link>
+          </Button>
+        )}
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <Section title="Moyennes par matière" description={snap.term?.name}>
@@ -56,12 +78,14 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
               {snap.upcoming.map((a) => (
                 <li key={a.id} className="rounded-lg border p-3">
                   <p className="font-medium">{a.title}</p>
-                  <p className="text-xs text-muted-foreground">{a.cs?.subject?.name} · {formatDate(a.held_on)}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {a.cs?.subject?.name} · {formatDate(a.held_on)}
+                  </p>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">Aucune évaluation programmée.</p>
+            <p className="text-muted-foreground text-sm">Aucune évaluation programmée.</p>
           )}
         </Section>
       </div>

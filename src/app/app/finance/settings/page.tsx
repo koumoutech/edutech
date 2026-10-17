@@ -23,7 +23,10 @@ export default async function FinanceSettingsPage() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Frais & paramètres financiers" description={`Devise : ${cur}. Barème des frais par niveau, réductions, bourses et modes de paiement.`} />
+      <PageHeader
+        title="Frais & paramètres financiers"
+        description={`Devise : ${cur}. Barème des frais par niveau, réductions, bourses et modes de paiement.`}
+      />
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">
@@ -60,7 +63,15 @@ export default async function FinanceSettingsPage() {
                 {[0, 1, 2].map((i) => (
                   <div key={i} className="grid grid-cols-2 gap-2">
                     <Input name="due_on" type="date" aria-label={`Échéance ${i + 1}`} />
-                    <Input name="percent" type="number" min={1} max={100} step="any" placeholder="%" aria-label={`Pourcentage ${i + 1}`} />
+                    <Input
+                      name="percent"
+                      type="number"
+                      min={1}
+                      max={100}
+                      step="any"
+                      placeholder="%"
+                      aria-label={`Pourcentage ${i + 1}`}
+                    />
                   </div>
                 ))}
               </fieldset>
@@ -86,9 +97,11 @@ export default async function FinanceSettingsPage() {
                     <TD className="font-medium">{x.fee_type?.name}</TD>
                     <TD>{x.level?.name ?? "Tous"}</TD>
                     <TD className="text-right tabular-nums">{formatMoney(Number(x.amount), cur)}</TD>
-                    <TD className="hidden text-xs text-muted-foreground sm:table-cell">
+                    <TD className="text-muted-foreground hidden text-xs sm:table-cell">
                       {Array.isArray(x.installments) && x.installments.length
-                        ? (x.installments as { due_on: string; percent: number }[]).map((i) => `${formatDate(i.due_on)} : ${i.percent} %`).join(" · ")
+                        ? (x.installments as { due_on: string; percent: number }[])
+                            .map((i) => `${formatDate(i.due_on)} : ${i.percent} %`)
+                            .join(" · ")
                         : "Paiement unique"}
                     </TD>
                   </TR>
@@ -103,7 +116,11 @@ export default async function FinanceSettingsPage() {
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>Réductions & bourses</CardTitle>
             {manage && (
-              <FormDialog title="Nouvelle réduction" action={saveSimpleAction.bind(null, "discounts")} triggerLabel="Ajouter">
+              <FormDialog
+                title="Nouvelle réduction"
+                action={saveSimpleAction.bind(null, "discounts")}
+                triggerLabel="Ajouter"
+              >
                 <Field label="Nom" htmlFor="d-name">
                   <Input id="d-name" name="name" required />
                 </Field>
@@ -141,8 +158,9 @@ export default async function FinanceSettingsPage() {
                   <span>
                     {d.name} {d.is_scholarship && <Badge variant="warning">Bourse</Badge>}
                   </span>
-                  <span className="tabular-nums text-muted-foreground">
-                    {d.kind === "percent" ? `${d.value} %` : formatMoney(Number(d.value), cur)} · {d.applies_to_category ? FEE_CATEGORIES[d.applies_to_category] : "tous frais"}
+                  <span className="text-muted-foreground tabular-nums">
+                    {d.kind === "percent" ? `${d.value} %` : formatMoney(Number(d.value), cur)} ·{" "}
+                    {d.applies_to_category ? FEE_CATEGORIES[d.applies_to_category] : "tous frais"}
                   </span>
                 </li>
               ))}
@@ -154,7 +172,11 @@ export default async function FinanceSettingsPage() {
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>Modes de paiement</CardTitle>
             {manage && (
-              <FormDialog title="Nouveau mode de paiement" action={saveSimpleAction.bind(null, "payment_methods")} triggerLabel="Ajouter">
+              <FormDialog
+                title="Nouveau mode de paiement"
+                action={saveSimpleAction.bind(null, "payment_methods")}
+                triggerLabel="Ajouter"
+              >
                 <Field label="Nom" htmlFor="m-name">
                   <Input id="m-name" name="name" required placeholder="Orange Money, Wave, MTN MoMo…" />
                 </Field>
@@ -168,7 +190,13 @@ export default async function FinanceSettingsPage() {
                   </Select>
                 </Field>
                 <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" name="requires_reference" defaultChecked className="size-4 accent-[var(--primary)]" /> Référence de transaction obligatoire
+                  <input
+                    type="checkbox"
+                    name="requires_reference"
+                    defaultChecked
+                    className="size-4 accent-[var(--primary)]"
+                  />{" "}
+                  Référence de transaction obligatoire
                 </label>
               </FormDialog>
             )}
@@ -192,7 +220,11 @@ export default async function FinanceSettingsPage() {
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>Types de frais</CardTitle>
             {manage && (
-              <FormDialog title="Nouveau type de frais" action={saveSimpleAction.bind(null, "fee_types")} triggerLabel="Ajouter">
+              <FormDialog
+                title="Nouveau type de frais"
+                action={saveSimpleAction.bind(null, "fee_types")}
+                triggerLabel="Ajouter"
+              >
                 <Field label="Nom" htmlFor="ft-name">
                   <Input id="ft-name" name="name" required />
                 </Field>
@@ -226,7 +258,12 @@ export default async function FinanceSettingsPage() {
             <CardTitle>Fournisseurs & catégories de dépenses</CardTitle>
             <div className="flex gap-2">
               {canSchoolWide(ctx, "expenses.create") && (
-                <FormDialog title="Nouveau fournisseur" action={saveSimpleAction.bind(null, "suppliers")} triggerLabel="Fournisseur" triggerVariant="outline">
+                <FormDialog
+                  title="Nouveau fournisseur"
+                  action={saveSimpleAction.bind(null, "suppliers")}
+                  triggerLabel="Fournisseur"
+                  triggerVariant="outline"
+                >
                   <Field label="Nom" htmlFor="sp-name">
                     <Input id="sp-name" name="name" required />
                   </Field>
@@ -244,7 +281,12 @@ export default async function FinanceSettingsPage() {
                 </FormDialog>
               )}
               {manage && (
-                <FormDialog title="Nouvelle catégorie" action={saveSimpleAction.bind(null, "expense_categories")} triggerLabel="Catégorie" triggerVariant="outline">
+                <FormDialog
+                  title="Nouvelle catégorie"
+                  action={saveSimpleAction.bind(null, "expense_categories")}
+                  triggerLabel="Catégorie"
+                  triggerVariant="outline"
+                >
                   <Field label="Nom" htmlFor="ec-name">
                     <Input id="ec-name" name="name" required />
                   </Field>

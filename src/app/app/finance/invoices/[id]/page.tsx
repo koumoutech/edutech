@@ -26,11 +26,19 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   const inv = await getInvoice(ctx, id).catch(() => null);
   if (!inv) notFound();
   const cur = inv.currency;
-  const canPay = canSchoolWide(ctx, "payments.create") && ["issued", "partially_paid"].includes(inv.status) && Number(inv.balance) > 0;
+  const canPay =
+    canSchoolWide(ctx, "payments.create") &&
+    ["issued", "partially_paid"].includes(inv.status) &&
+    Number(inv.balance) > 0;
   const [open, methods] = canPay
     ? await Promise.all([
         openInvoicesOf(ctx, inv.student_id),
-        ctx.db.from("payment_methods").select("id, name, requires_reference").eq("school_id", ctx.school.id).eq("is_active", true).order("name"),
+        ctx.db
+          .from("payment_methods")
+          .select("id, name, requires_reference")
+          .eq("school_id", ctx.school.id)
+          .eq("is_active", true)
+          .order("name"),
       ])
     : [[], null];
 
@@ -45,7 +53,9 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             <Link href={`/app/students/${inv.student?.id}`} className="hover:text-primary">
               {fullName(inv.student)} ({inv.student?.matricule})
             </Link>
-            <span>· émise le {formatDate(inv.issue_date)} · échéance {formatDate(inv.due_date)}</span>
+            <span>
+              · émise le {formatDate(inv.issue_date)} · échéance {formatDate(inv.due_date)}
+            </span>
           </span>
         }
         actions={
@@ -87,7 +97,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           ["Reste dû", inv.balance],
         ].map(([k, v]) => (
           <Card key={k as string} className="p-4">
-            <p className="text-xs text-muted-foreground">{k}</p>
+            <p className="text-muted-foreground text-xs">{k}</p>
             <p className="text-lg font-bold tabular-nums sm:text-2xl">{formatMoney(Number(v), cur)}</p>
           </Card>
         ))}
@@ -117,14 +127,18 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                       <TD>{l.description}</TD>
                       <TD className="text-right tabular-nums">{l.quantity}</TD>
                       <TD className="text-right tabular-nums">{formatMoney(Number(l.unit_amount), cur)}</TD>
-                      <TD className="text-right tabular-nums">{Number(l.discount_amount) ? `− ${formatMoney(Number(l.discount_amount), cur)}` : "—"}</TD>
-                      <TD className="text-right font-semibold tabular-nums">{formatMoney(Number(l.line_total), cur)}</TD>
+                      <TD className="text-right tabular-nums">
+                        {Number(l.discount_amount) ? `− ${formatMoney(Number(l.discount_amount), cur)}` : "—"}
+                      </TD>
+                      <TD className="text-right font-semibold tabular-nums">
+                        {formatMoney(Number(l.line_total), cur)}
+                      </TD>
                     </TR>
                   ))}
               </TBody>
             </Table>
-            {inv.notes && <p className="mt-3 rounded-lg bg-muted/60 p-3 text-sm">{inv.notes}</p>}
-            {inv.cancelled_reason && <p className="mt-3 text-sm text-destructive">Annulée : {inv.cancelled_reason}</p>}
+            {inv.notes && <p className="bg-muted/60 mt-3 rounded-lg p-3 text-sm">{inv.notes}</p>}
+            {inv.cancelled_reason && <p className="text-destructive mt-3 text-sm">Annulée : {inv.cancelled_reason}</p>}
           </CardContent>
         </Card>
         <Card className="lg:col-span-2">
@@ -133,20 +147,31 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           </CardHeader>
           <CardContent>
             {(inv.payment_allocations ?? []).length === 0 ? (
-              <p className="text-sm text-muted-foreground">Aucun paiement.</p>
+              <p className="text-muted-foreground text-sm">Aucun paiement.</p>
             ) : (
               <ul className="divide-y text-sm">
                 {(inv.payment_allocations ?? []).map((a) => (
                   <li key={a.id} className="flex items-center justify-between gap-2 py-2">
                     <span>
-                      <a href={`/api/receipts/${a.payment?.id}`} target="_blank" rel="noopener" className="font-medium hover:text-primary">
+                      <a
+                        href={`/api/receipts/${a.payment?.id}`}
+                        target="_blank"
+                        rel="noopener"
+                        className="hover:text-primary font-medium"
+                      >
                         {a.payment?.receipt_number}
                       </a>
-                      <span className="block text-xs text-muted-foreground">
+                      <span className="text-muted-foreground block text-xs">
                         {formatDate(a.payment?.paid_at)} · {a.payment?.method?.name}
                       </span>
                     </span>
-                    <span className={a.is_active ? "font-semibold tabular-nums" : "text-muted-foreground line-through tabular-nums"}>{formatMoney(Number(a.amount), cur)}</span>
+                    <span
+                      className={
+                        a.is_active ? "font-semibold tabular-nums" : "text-muted-foreground tabular-nums line-through"
+                      }
+                    >
+                      {formatMoney(Number(a.amount), cur)}
+                    </span>
                   </li>
                 ))}
               </ul>

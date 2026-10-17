@@ -15,12 +15,20 @@ export interface OpenInvoice {
 export const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
 
 /** Oldest-due-first allocation plan. `rest` > 0 means the amount exceeds what is owed. */
-export function planAllocation(amount: number, invoices: OpenInvoice[]): { allocations: { invoice_id: string; amount: number }[]; rest: number } {
+export function planAllocation(
+  amount: number,
+  invoices: OpenInvoice[],
+): { allocations: { invoice_id: string; amount: number }[]; rest: number } {
   let remaining = round2(amount);
   const allocations: { invoice_id: string; amount: number }[] = [];
   const sorted = [...invoices]
     .filter((i) => i.balance > 0)
-    .sort((a, b) => a.due_date.localeCompare(b.due_date) || a.issue_date.localeCompare(b.issue_date) || a.number.localeCompare(b.number));
+    .sort(
+      (a, b) =>
+        a.due_date.localeCompare(b.due_date) ||
+        a.issue_date.localeCompare(b.issue_date) ||
+        a.number.localeCompare(b.number),
+    );
   for (const inv of sorted) {
     if (remaining <= 0) break;
     const part = round2(Math.min(inv.balance, remaining));
@@ -30,7 +38,11 @@ export function planAllocation(amount: number, invoices: OpenInvoice[]): { alloc
   return { allocations, rest: remaining };
 }
 
-export function validateAllocations(amount: number, allocations: { invoice_id: string; amount: number }[], invoices: OpenInvoice[]): string | null {
+export function validateAllocations(
+  amount: number,
+  allocations: { invoice_id: string; amount: number }[],
+  invoices: OpenInvoice[],
+): string | null {
   if (!(amount > 0)) return "Le montant doit être positif.";
   const byId = new Map(invoices.map((i) => [i.id, i]));
   let total = 0;
@@ -56,7 +68,10 @@ export function lineDiscount(amount: number, category: string, discounts: Discou
 }
 
 /** Splits a total into installments from percentages; rounding remainder goes to the last one. */
-export function splitInstallments(total: number, plan: { due_on: string; percent: number }[]): { due_on: string; amount: number }[] {
+export function splitInstallments(
+  total: number,
+  plan: { due_on: string; percent: number }[],
+): { due_on: string; amount: number }[] {
   if (!plan.length) return [];
   const sum = plan.reduce((s, p) => s + p.percent, 0);
   if (Math.abs(sum - 100) > 0.001) throw new Error("Les pourcentages de l'échéancier doivent totaliser 100 %.");

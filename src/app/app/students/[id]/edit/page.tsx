@@ -14,7 +14,9 @@ export default async function EditStudentPage({ params }: { params: Promise<{ id
   if (!z.uuid().safeParse(id).success) notFound();
   const { data: s } = await ctx.db
     .from("students")
-    .select("id, matricule, first_name, last_name, gender, birth_date, birth_place, nationality, address, phone, email, previous_school, notes")
+    .select(
+      "id, matricule, first_name, last_name, gender, birth_date, birth_place, nationality, address, phone, email, previous_school, notes",
+    )
     .eq("id", id)
     .maybeSingle();
   if (!s) notFound();

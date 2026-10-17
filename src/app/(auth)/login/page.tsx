@@ -12,7 +12,7 @@ export default function LoginPage() {
     <div className="animate-fade-up space-y-6">
       <div className="space-y-1.5">
         <h1 className="text-2xl font-bold tracking-tight">Bon retour 👋</h1>
-        <p className="text-sm text-muted-foreground">Connectez-vous à l&apos;espace de votre établissement.</p>
+        <p className="text-muted-foreground text-sm">Connectez-vous à l&apos;espace de votre établissement.</p>
       </div>
       {!isSupabaseConfigured() && (
         <Alert tone="warning" title="Configuration requise">
@@ -22,7 +22,7 @@ export default function LoginPage() {
       <Suspense fallback={<Skeleton className="h-72" />}>
         <LoginForm />
       </Suspense>
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-center text-xs">
         Pas encore de compte ? Les accès sont créés sur invitation de votre établissement.
       </p>
     </div>

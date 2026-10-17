@@ -13,9 +13,20 @@ import { listNotifications, NOTIFICATION_TYPES, notificationPreferences } from "
 export const metadata: Metadata = { title: "Notifications" };
 
 /** Defaults mirror private.channel_enabled() in the database. */
-const EMAIL_DEFAULT = new Set(["attendance.absence", "report_card.published", "invoice.issued", "payment.received", "leave.reviewed", "announcement.urgent"]);
+const EMAIL_DEFAULT = new Set([
+  "attendance.absence",
+  "report_card.published",
+  "invoice.issued",
+  "payment.received",
+  "leave.reviewed",
+  "announcement.urgent",
+]);
 
-export default async function NotificationsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function NotificationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const ctx = await requireContext();
   const page = Math.max(1, Number((await searchParams).page) || 1);
   const [{ rows, total }, prefs] = await Promise.all([listNotifications(ctx, page), notificationPreferences(ctx)]);
@@ -50,7 +61,11 @@ export default async function NotificationsPage({ searchParams }: { searchParams
       <div className="grid gap-4 lg:grid-cols-5">
         <Card className="lg:col-span-3">
           <CardContent className="pt-3">
-            {rows.length ? <NotificationsList items={rows} /> : <EmptyState icon={BellIcon} title="Aucune notification" className="my-4" />}
+            {rows.length ? (
+              <NotificationsList items={rows} />
+            ) : (
+              <EmptyState icon={BellIcon} title="Aucune notification" className="my-4" />
+            )}
             <Pagination page={page} pageSize={30} total={total} basePath="/app/notifications" params={{}} />
           </CardContent>
         </Card>
@@ -60,7 +75,10 @@ export default async function NotificationsPage({ searchParams }: { searchParams
           </CardHeader>
           <CardContent>
             <NotificationPreferences types={Object.entries(NOTIFICATION_TYPES)} values={values} />
-            <p className="mt-3 text-xs text-muted-foreground">Les SMS sont envoyés uniquement si l&apos;établissement a configuré un prestataire et si votre numéro est renseigné.</p>
+            <p className="text-muted-foreground mt-3 text-xs">
+              Les SMS sont envoyés uniquement si l&apos;établissement a configuré un prestataire et si votre numéro est
+              renseigné.
+            </p>
           </CardContent>
         </Card>
       </div>

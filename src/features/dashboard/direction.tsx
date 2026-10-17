@@ -17,15 +17,20 @@ export async function DirectionDashboard({ ctx, academicOnly = false }: { ctx: A
   const totalStudents = d.byLevel.reduce((s, l) => s + Number(l.students), 0);
   const girls = d.byLevel.reduce((s, l) => s + Number(l.girls), 0);
   const att = d.attendance.reduce(
-    (acc, r) => ({ p: acc.p + Number(r.present) + Number(r.late), t: acc.t + Number(r.present) + Number(r.absent) + Number(r.late) + Number(r.excused) }),
+    (acc, r) => ({
+      p: acc.p + Number(r.present) + Number(r.late),
+      t: acc.t + Number(r.present) + Number(r.absent) + Number(r.late) + Number(r.excused),
+    }),
     { p: 0, t: 0 },
   );
   const attendanceRate = att.t ? att.p / att.t : null;
   const schoolAverage = d.performance.length
-    ? d.performance.reduce((s, c) => s + Number(c.average) * Number(c.students), 0) / d.performance.reduce((s, c) => s + Number(c.students), 0)
+    ? d.performance.reduce((s, c) => s + Number(c.average) * Number(c.students), 0) /
+      d.performance.reduce((s, c) => s + Number(c.students), 0)
     : null;
   const showFinance = !academicOnly && canSchoolWide(ctx, "finance.read") && d.finance;
-  const recovery = d.finance && Number(d.finance.billed) > 0 ? Number(d.finance.collected) / Number(d.finance.billed) : null;
+  const recovery =
+    d.finance && Number(d.finance.billed) > 0 ? Number(d.finance.collected) / Number(d.finance.billed) : null;
 
   return (
     <div className="space-y-6">
@@ -50,7 +55,13 @@ export async function DirectionDashboard({ ctx, academicOnly = false }: { ctx: A
 
       <Stagger className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StaggerItem>
-          <StatCard label="Élèves inscrits" value={totalStudents} icon={GraduationCapIcon} hint={totalStudents ? `${formatPercent(girls / totalStudents)} de filles` : undefined} href="/app/students" />
+          <StatCard
+            label="Élèves inscrits"
+            value={totalStudents}
+            icon={GraduationCapIcon}
+            hint={totalStudents ? `${formatPercent(girls / totalStudents)} de filles` : undefined}
+            href="/app/students"
+          />
         </StaggerItem>
         <StaggerItem>
           <StatCard
@@ -87,13 +98,22 @@ export async function DirectionDashboard({ ctx, academicOnly = false }: { ctx: A
               href="/app/finance"
             />
           ) : (
-            <StatCard label="Alertes à traiter" value={d.alerts.reduce((s, a) => s + a.count, 0)} icon={AlertTriangleIcon} tone={d.alerts.length ? "warning" : "default"} />
+            <StatCard
+              label="Alertes à traiter"
+              value={d.alerts.reduce((s, a) => s + a.count, 0)}
+              icon={AlertTriangleIcon}
+              tone={d.alerts.length ? "warning" : "default"}
+            />
           )}
         </StaggerItem>
       </Stagger>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Section title="Présences des 30 derniers jours" description="Élèves présents (y compris retards) et absents par jour d'appel" className="lg:col-span-2">
+        <Section
+          title="Présences des 30 derniers jours"
+          description="Élèves présents (y compris retards) et absents par jour d'appel"
+          className="lg:col-span-2"
+        >
           {d.attendance.length ? (
             <BarChartView
               label="Présences par jour"
@@ -110,7 +130,11 @@ export async function DirectionDashboard({ ctx, academicOnly = false }: { ctx: A
               ]}
             />
           ) : (
-            <EmptyState icon={CalendarCheckIcon} title="Aucun appel enregistré" description="Les statistiques apparaîtront après les premiers appels." />
+            <EmptyState
+              icon={CalendarCheckIcon}
+              title="Aucun appel enregistré"
+              description="Les statistiques apparaîtront après les premiers appels."
+            />
           )}
         </Section>
         <Section title="À traiter" description="Décisions et validations en attente">
@@ -154,7 +178,11 @@ export async function DirectionDashboard({ ctx, academicOnly = false }: { ctx: A
 
       <div className="grid gap-4 lg:grid-cols-3">
         {d.termAverages.length >= 2 ? (
-          <Section title="Évolution des performances" description="Moyenne générale par trimestre" className="lg:col-span-2">
+          <Section
+            title="Évolution des performances"
+            description="Moyenne générale par trimestre"
+            className="lg:col-span-2"
+          >
             <AreaChartView
               label="Évolution de la moyenne par trimestre"
               data={d.termAverages.map((t) => ({ periode: t.term_name, moyenne: Number(t.average) }))}
@@ -179,7 +207,7 @@ export async function DirectionDashboard({ ctx, academicOnly = false }: { ctx: A
                   {d.absentees.map((a) => (
                     <TR key={a.student_id}>
                       <TD>
-                        <Link href={`/app/students/${a.student_id}`} className="font-medium hover:text-primary">
+                        <Link href={`/app/students/${a.student_id}`} className="hover:text-primary font-medium">
                           {fullName(a)}
                         </Link>
                       </TD>
@@ -191,18 +219,30 @@ export async function DirectionDashboard({ ctx, academicOnly = false }: { ctx: A
                 </TBody>
               </Table>
             ) : (
-              <p className="text-sm text-muted-foreground">Aucune absence sur la période.</p>
+              <p className="text-muted-foreground text-sm">Aucune absence sur la période.</p>
             )}
-            <p className="mt-3 text-xs text-muted-foreground">La comparaison entre trimestres s&apos;affichera dès que deux trimestres auront des notes validées.</p>
+            <p className="text-muted-foreground mt-3 text-xs">
+              La comparaison entre trimestres s&apos;affichera dès que deux trimestres auront des notes validées.
+            </p>
           </Section>
         )}
-        <Section title="Annonces récentes" action={<Button asChild variant="ghost" size="sm"><Link href="/app/announcements">Tout voir</Link></Button>}>
+        <Section
+          title="Annonces récentes"
+          action={
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/app/announcements">Tout voir</Link>
+            </Button>
+          }
+        >
           <AnnouncementsList items={announcements} />
         </Section>
       </div>
 
       {showFinance && d.finance && (
-        <Section title="Indicateurs financiers" description="Année en cours — montants facturés, encaissés et restant dus">
+        <Section
+          title="Indicateurs financiers"
+          description="Année en cours — montants facturés, encaissés et restant dus"
+        >
           <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {[
               ["Facturé", d.finance.billed],
@@ -210,8 +250,8 @@ export async function DirectionDashboard({ ctx, academicOnly = false }: { ctx: A
               ["Reste dû", d.finance.outstanding],
               ["Dont en retard", d.finance.overdue],
             ].map(([label, value]) => (
-              <div key={label as string} className="rounded-lg bg-muted/60 p-3">
-                <dt className="text-xs text-muted-foreground">{label}</dt>
+              <div key={label as string} className="bg-muted/60 rounded-lg p-3">
+                <dt className="text-muted-foreground text-xs">{label}</dt>
                 <dd className="mt-1 font-bold tabular-nums">{formatMoney(Number(value), ctx.school.currency)}</dd>
               </div>
             ))}

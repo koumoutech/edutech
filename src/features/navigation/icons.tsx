@@ -51,4 +51,3 @@ export const NAV_ICONS: Record<NavIcon, LucideIcon> = {
   users: UsersIcon,
   audit: ScrollTextIcon,
 };
-

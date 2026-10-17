@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-export const emailSchema = z.email("Adresse e-mail invalide").max(254).transform((v) => v.trim().toLowerCase());
+export const emailSchema = z
+  .email("Adresse e-mail invalide")
+  .max(254)
+  .transform((v) => v.trim().toLowerCase());
 
 /** Password policy: 10+ characters with letters and digits; long passphrases are welcome. */
 export const passwordSchema = z

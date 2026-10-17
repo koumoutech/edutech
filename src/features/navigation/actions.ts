@@ -27,7 +27,11 @@ export async function switchSchool(schoolId: string) {
 export async function markNotificationsRead(ids?: string[]) {
   return runAction(async () => {
     const ctx = await requireContext();
-    let query = ctx.db.from("notifications").update({ read_at: new Date().toISOString() }).eq("user_id", ctx.user.id).is("read_at", null);
+    let query = ctx.db
+      .from("notifications")
+      .update({ read_at: new Date().toISOString() })
+      .eq("user_id", ctx.user.id)
+      .is("read_at", null);
     if (ids?.length) {
       const parsed = parseInput(z.object({ ids: z.array(z.uuid()).max(200) }), { ids });
       query = query.in("id", parsed.ids);

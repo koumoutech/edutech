@@ -9,7 +9,7 @@ const opts = {
 
 describe("CSV export", () => {
   it("neutralises formula injection", () => {
-    expect(sanitizeCell("=HYPERLINK(\"http://evil\")")).toBe("'=HYPERLINK(\"http://evil\")");
+    expect(sanitizeCell('=HYPERLINK("http://evil")')).toBe('\'=HYPERLINK("http://evil")');
     expect(sanitizeCell("+33 6 00")).toBe("'+33 6 00");
     expect(sanitizeCell("@cmd")).toBe("'@cmd");
     expect(sanitizeCell("Awa")).toBe("Awa");
@@ -18,10 +18,13 @@ describe("CSV export", () => {
   });
 
   it("produces a ; separated file with BOM and quoted cells", () => {
-    const csv = toCsv([{ n: "Koné; Awa", v: 12 }], [
-      { header: "Nom", value: (r) => r.n },
-      { header: "Note", value: (r) => r.v },
-    ]);
+    const csv = toCsv(
+      [{ n: "Koné; Awa", v: 12 }],
+      [
+        { header: "Nom", value: (r) => r.n },
+        { header: "Note", value: (r) => r.v },
+      ],
+    );
     expect(csv.startsWith("﻿")).toBe(true);
     expect(csv).toContain('"Nom";"Note"');
     expect(csv).toContain('"Koné; Awa";"12"');

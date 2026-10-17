@@ -33,7 +33,9 @@ export default async function ReportCardPage({ params }: { params: Promise<{ id:
       <PageHeader
         eyebrow={`${rc.class?.name} · ${rc.term?.name}`}
         title={`Bulletin — ${fullName(rc.student)}`}
-        description={<Badge variant={REPORT_CARD_STATUS[rc.status]?.variant}>{REPORT_CARD_STATUS[rc.status]?.label}</Badge>}
+        description={
+          <Badge variant={REPORT_CARD_STATUS[rc.status]?.variant}>{REPORT_CARD_STATUS[rc.status]?.label}</Badge>
+        }
         actions={
           <>
             {editable && (
@@ -48,10 +50,22 @@ export default async function ReportCardPage({ params }: { params: Promise<{ id:
                 action={saveAppreciationAction.bind(null, rc.id)}
               >
                 <Field label="Appréciation" htmlFor="appreciation">
-                  <Textarea id="appreciation" name="appreciation" defaultValue={rc.appreciation ?? ""} maxLength={1000} rows={4} />
+                  <Textarea
+                    id="appreciation"
+                    name="appreciation"
+                    defaultValue={rc.appreciation ?? ""}
+                    maxLength={1000}
+                    rows={4}
+                  />
                 </Field>
                 <Field label="Décision (facultatif)" htmlFor="decision">
-                  <Input id="decision" name="decision" defaultValue={rc.decision ?? ""} maxLength={200} placeholder="Félicitations, encouragements, avertissement…" />
+                  <Input
+                    id="decision"
+                    name="decision"
+                    defaultValue={rc.decision ?? ""}
+                    maxLength={200}
+                    placeholder="Félicitations, encouragements, avertissement…"
+                  />
                 </Field>
               </ConfirmDialog>
             )}
@@ -71,7 +85,7 @@ export default async function ReportCardPage({ params }: { params: Promise<{ id:
           ["Absences / retards", `${rc.absences_count} / ${rc.lates_count}`],
         ].map(([k, v]) => (
           <Card key={k} className="p-4">
-            <p className="text-xs text-muted-foreground">{k}</p>
+            <p className="text-muted-foreground text-xs">{k}</p>
             <p className="text-xl font-bold tabular-nums">{v}</p>
           </Card>
         ))}
@@ -93,7 +107,7 @@ export default async function ReportCardPage({ params }: { params: Promise<{ id:
               <TR key={l.subject_id}>
                 <TD>
                   <p className="font-medium">{l.subject_name}</p>
-                  {l.teacher_name && <p className="text-xs text-muted-foreground">{l.teacher_name}</p>}
+                  {l.teacher_name && <p className="text-muted-foreground text-xs">{l.teacher_name}</p>}
                 </TD>
                 <TD className="text-center tabular-nums">{formatScore(Number(l.coefficient))}</TD>
                 <TD className="text-right font-semibold tabular-nums">{formatScore(n(l.average))}</TD>

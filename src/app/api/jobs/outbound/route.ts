@@ -15,7 +15,8 @@ const BATCH = 50;
 export async function GET(req: NextRequest) {
   const secret = serverEnv().CRON_SECRET;
   const auth = req.headers.get("authorization") ?? "";
-  if (!secret || !safeEqual(auth, `Bearer ${secret}`)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!secret || !safeEqual(auth, `Bearer ${secret}`))
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const admin = createAdminClient();
   const { productName } = await getBranding();
@@ -32,13 +33,27 @@ export async function GET(req: NextRequest) {
   let failed = 0;
   for (const m of (queued ?? []) as OutboundMessage[]) {
     // Claim the message (prevents double sending when two workers overlap).
-    const { data: claimed } = await admin.from("outbound_messages").update({ status: "sending" }).eq("id", m.id).eq("status", "queued").select("id");
+    const { data: claimed } = await admin
+      .from("outbound_messages")
+      .update({ status: "sending" })
+      .eq("id", m.id)
+      .eq("status", "queued")
+      .select("id");
     if (!claimed?.length) continue;
     const attempts = m.attempts + 1;
     const result = await deliver(m, productName);
     if (result.ok) {
       sent++;
-      await admin.from("outbound_messages").update({ status: "sent", attempts, sent_at: new Date().toISOString(), provider_message_id: result.providerId ?? null, last_error: null }).eq("id", m.id);
+      await admin
+        .from("outbound_messages")
+        .update({
+          status: "sent",
+          attempts,
+          sent_at: new Date().toISOString(),
+          provider_message_id: result.providerId ?? null,
+          last_error: null,
+        })
+        .eq("id", m.id);
     } else {
       failed++;
       const giveUp = result.permanent || attempts >= m.max_attempts;

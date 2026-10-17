@@ -27,18 +27,18 @@ export function StatCard({
   const body = (
     <div
       className={cn(
-        "group relative h-full overflow-hidden rounded-xl border bg-card p-4 shadow-[var(--shadow-soft)] transition-all duration-200",
+        "group bg-card relative h-full overflow-hidden rounded-xl border p-4 shadow-[var(--shadow-soft)] transition-all duration-200",
         href && "hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)]",
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>
+        <p className="text-muted-foreground text-sm font-medium">{label}</p>
         <span
           className={cn(
             "flex size-9 shrink-0 items-center justify-center rounded-lg",
             tone === "default" && "bg-brand-soft text-primary dark:bg-secondary",
             tone === "success" && "bg-brand-soft text-primary dark:bg-secondary",
-            tone === "warning" && "bg-highlight/25 text-[#7a5b00] dark:text-highlight",
+            tone === "warning" && "bg-highlight/25 dark:text-highlight text-[#7a5b00]",
             tone === "danger" && "bg-destructive/12 text-destructive",
           )}
         >
@@ -47,13 +47,13 @@ export function StatCard({
       </div>
       <p className="mt-2 text-2xl font-bold tracking-tight">
         {formatted ?? <AnimatedNumber value={value} />}
-        {suffix && <span className="ml-0.5 text-base font-semibold text-muted-foreground">{suffix}</span>}
+        {suffix && <span className="text-muted-foreground ml-0.5 text-base font-semibold">{suffix}</span>}
       </p>
-      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+      {hint && <p className="text-muted-foreground mt-1 text-xs">{hint}</p>}
     </div>
   );
   return href ? (
-    <Link href={href} className="block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring">
+    <Link href={href} className="focus-visible:ring-ring block rounded-xl outline-none focus-visible:ring-2">
       {body}
     </Link>
   ) : (

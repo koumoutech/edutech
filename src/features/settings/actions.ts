@@ -80,16 +80,22 @@ export async function removeRoleAction(userId: string, roleId: string) {
 }
 
 export async function setMemberStatusAction(userId: string, status: string, reason: string) {
-  return runAction(async () => {
-    const ctx = await requireContext();
-    const v = parseInput(z.object({ userId: z.uuid(), status: z.enum(["active", "suspended"]), reason: z.string().max(300).optional() }), {
-      userId,
-      status,
-      reason: reason || undefined,
-    });
-    await setMemberStatus(ctx, v.userId, v.status, v.reason);
-    refresh();
-  }, status === "suspended" ? "Compte suspendu : ses sessions ont été fermées." : "Compte réactivé.");
+  return runAction(
+    async () => {
+      const ctx = await requireContext();
+      const v = parseInput(
+        z.object({ userId: z.uuid(), status: z.enum(["active", "suspended"]), reason: z.string().max(300).optional() }),
+        {
+          userId,
+          status,
+          reason: reason || undefined,
+        },
+      );
+      await setMemberStatus(ctx, v.userId, v.status, v.reason);
+      refresh();
+    },
+    status === "suspended" ? "Compte suspendu : ses sessions ont été fermées." : "Compte réactivé.",
+  );
 }
 
 export async function createRoleAction(_prev: unknown, fd: FormData) {
@@ -104,7 +110,11 @@ export async function setGrantAction(roleId: string, permission: string, scope: 
   return runAction(async () => {
     const ctx = await requireContext();
     const v = parseInput(
-      z.object({ roleId: z.uuid(), permission: z.enum(PERMISSIONS), scope: z.enum(["school", "assigned", "linked", "self", "none"]) }),
+      z.object({
+        roleId: z.uuid(),
+        permission: z.enum(PERMISSIONS),
+        scope: z.enum(["school", "assigned", "linked", "self", "none"]),
+      }),
       { roleId, permission, scope },
     );
     await setGrant(ctx, v.roleId, v.permission, v.scope === "none" ? null : v.scope);

@@ -81,12 +81,18 @@ export async function recordPaymentAction(input: unknown) {
 }
 
 export async function reconcileAction(ids: string[], reconciled: boolean) {
-  return runAction(async () => {
-    const ctx = await requireContext();
-    const v = parseInput(z.object({ ids: z.array(z.uuid()).min(1).max(500), reconciled: z.boolean() }), { ids, reconciled });
-    await setReconciled(ctx, v.ids, v.reconciled);
-    refresh();
-  }, reconciled ? "Paiements rapprochés." : "Rapprochement annulé.");
+  return runAction(
+    async () => {
+      const ctx = await requireContext();
+      const v = parseInput(z.object({ ids: z.array(z.uuid()).min(1).max(500), reconciled: z.boolean() }), {
+        ids,
+        reconciled,
+      });
+      await setReconciled(ctx, v.ids, v.reconciled);
+      refresh();
+    },
+    reconciled ? "Paiements rapprochés." : "Rapprochement annulé.",
+  );
 }
 
 export async function reversePaymentAction(paymentId: string, reason: string) {
@@ -101,11 +107,14 @@ export async function reversePaymentAction(paymentId: string, reason: string) {
 export async function refundPaymentAction(paymentId: string, reason: string, fd: FormData) {
   return runAction(async () => {
     const ctx = await requireContext();
-    const v = parseInput(id.extend({ reason: z.string().trim().min(5).max(500), amount: z.coerce.number().positive() }), {
-      id: paymentId,
-      reason,
-      amount: fd.get("amount"),
-    });
+    const v = parseInput(
+      id.extend({ reason: z.string().trim().min(5).max(500), amount: z.coerce.number().positive() }),
+      {
+        id: paymentId,
+        reason,
+        amount: fd.get("amount"),
+      },
+    );
     await refundPayment(ctx, v.id, v.amount, v.reason);
     refresh();
   }, "Remboursement enregistré.");
@@ -131,7 +140,10 @@ export async function setExpenseStatusAction(expenseId: string, status: string) 
 export async function saveBudgetAction(_prev: unknown, fd: FormData) {
   return runAction(async () => {
     const ctx = await requireContext();
-    const v = parseInput(z.object({ year_id: z.uuid(), category_id: z.uuid(), amount: z.coerce.number().min(0).max(1e11) }), fd);
+    const v = parseInput(
+      z.object({ year_id: z.uuid(), category_id: z.uuid(), amount: z.coerce.number().min(0).max(1e11) }),
+      fd,
+    );
     await saveBudget(ctx, v.year_id, v.category_id, v.amount);
     refresh();
   }, "Budget enregistré.");
@@ -160,26 +172,48 @@ export async function saveFeeScheduleAction(_prev: unknown, fd: FormData) {
 const simpleSchemas = {
   fee_types: z.object({
     name: z.string().trim().min(2).max(80),
-    category: z.enum(["tuition", "registration", "exam", "transport", "canteen", "uniform", "supplies", "activity", "other"]),
+    category: z.enum([
+      "tuition",
+      "registration",
+      "exam",
+      "transport",
+      "canteen",
+      "uniform",
+      "supplies",
+      "activity",
+      "other",
+    ]),
   }),
   discounts: z.object({
     name: z.string().trim().min(2).max(80),
     kind: z.enum(["percent", "fixed"]),
     value: z.coerce.number().positive(),
-    is_scholarship: z.literal("on").optional().transform((v) => v === "on"),
-    applies_to_category: z.string().optional().transform((v) => v || null),
+    is_scholarship: z
+      .literal("on")
+      .optional()
+      .transform((v) => v === "on"),
+    applies_to_category: z
+      .string()
+      .optional()
+      .transform((v) => v || null),
   }),
   payment_methods: z.object({
     name: z.string().trim().min(2).max(60),
     kind: z.enum(["cash", "mobile_money", "bank_transfer", "card", "cheque", "other"]),
-    requires_reference: z.literal("on").optional().transform((v) => v === "on"),
+    requires_reference: z
+      .literal("on")
+      .optional()
+      .transform((v) => v === "on"),
   }),
   expense_categories: z.object({ name: z.string().trim().min(2).max(80) }),
   suppliers: z.object({
     name: z.string().trim().min(2).max(120),
     contact_name: z.string().trim().max(120).optional(),
     phone: z.string().trim().max(40).optional(),
-    email: z.email().optional().or(z.literal("").transform(() => undefined)),
+    email: z
+      .email()
+      .optional()
+      .or(z.literal("").transform(() => undefined)),
   }),
 } as const;
 

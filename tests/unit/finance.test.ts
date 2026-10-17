@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { isOverdue, lineDiscount, planAllocation, recoveryRate, splitInstallments, validateAllocations } from "@/features/finance/domain";
+import {
+  isOverdue,
+  lineDiscount,
+  planAllocation,
+  recoveryRate,
+  splitInstallments,
+  validateAllocations,
+} from "@/features/finance/domain";
 
 const invoices = [
   { id: "b", number: "FAC-2", due_date: "2026-11-15", issue_date: "2026-09-10", balance: 100000 },
@@ -23,14 +30,25 @@ describe("planAllocation", () => {
   });
 
   it("handles cents without floating point drift", () => {
-    const res = planAllocation(0.3, [{ id: "x", number: "X", due_date: "2026-01-01", issue_date: "2026-01-01", balance: 0.1 + 0.2 }]);
+    const res = planAllocation(0.3, [
+      { id: "x", number: "X", due_date: "2026-01-01", issue_date: "2026-01-01", balance: 0.1 + 0.2 },
+    ]);
     expect(res).toEqual({ allocations: [{ invoice_id: "x", amount: 0.3 }], rest: 0 });
   });
 });
 
 describe("validateAllocations", () => {
   it("accepts an exact split", () => {
-    expect(validateAllocations(30000, [{ invoice_id: "a", amount: 25000 }, { invoice_id: "b", amount: 5000 }], invoices)).toBeNull();
+    expect(
+      validateAllocations(
+        30000,
+        [
+          { invoice_id: "a", amount: 25000 },
+          { invoice_id: "b", amount: 5000 },
+        ],
+        invoices,
+      ),
+    ).toBeNull();
   });
   it("rejects over-allocation, unknown invoices and mismatched totals", () => {
     expect(validateAllocations(30000, [{ invoice_id: "a", amount: 30000 }], invoices)).toMatch(/dépasse/);

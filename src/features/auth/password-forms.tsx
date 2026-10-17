@@ -28,7 +28,12 @@ export function SetPasswordForm() {
     <form action={action} className="space-y-4">
       <ActionMessage state={state} />
       <input type="hidden" name="next" value={params.get("next") ?? ""} />
-      <Field label="Nouveau mot de passe" htmlFor="password" error={fieldError(state, "password")} hint="10 caractères minimum, avec des lettres et des chiffres.">
+      <Field
+        label="Nouveau mot de passe"
+        htmlFor="password"
+        error={fieldError(state, "password")}
+        hint="10 caractères minimum, avec des lettres et des chiffres."
+      >
         <Input id="password" name="password" type="password" autoComplete="new-password" required minLength={10} />
       </Field>
       <Field label="Confirmation" htmlFor="confirm" error={fieldError(state, "confirm")}>
@@ -55,7 +60,12 @@ export function SetupForm() {
       <Field label="Adresse e-mail" htmlFor="email" error={fieldError(state, "email")}>
         <Input id="email" name="email" type="email" autoComplete="email" required />
       </Field>
-      <Field label="Mot de passe" htmlFor="password" error={fieldError(state, "password")} hint="10 caractères minimum, avec des lettres et des chiffres.">
+      <Field
+        label="Mot de passe"
+        htmlFor="password"
+        error={fieldError(state, "password")}
+        hint="10 caractères minimum, avec des lettres et des chiffres."
+      >
         <Input id="password" name="password" type="password" autoComplete="new-password" required />
       </Field>
       <SubmitButton className="w-full" size="lg" pendingLabel="Initialisation…">

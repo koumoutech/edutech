@@ -69,7 +69,8 @@ async function sendSms(m: OutboundMessage): Promise<DeliveryResult> {
     console.info("[sms:log] to=<redacted>");
     return { ok: true, providerId: "log" };
   }
-  if (!env.TWILIO_ACCOUNT_SID || !env.TWILIO_AUTH_TOKEN || !env.TWILIO_FROM) return { ok: false, error: "twilio not configured", permanent: true };
+  if (!env.TWILIO_ACCOUNT_SID || !env.TWILIO_AUTH_TOKEN || !env.TWILIO_FROM)
+    return { ok: false, error: "twilio not configured", permanent: true };
   const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${env.TWILIO_ACCOUNT_SID}/Messages.json`, {
     method: "POST",
     headers: {

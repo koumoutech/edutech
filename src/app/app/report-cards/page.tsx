@@ -25,7 +25,11 @@ const query = z.object({
   student: z.uuid().optional().catch(undefined),
 });
 
-export default async function ReportCardsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function ReportCardsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const ctx = await requirePermission("report_cards.read");
   const q = query.parse(await searchParams);
   const frame = await assessmentFrame(ctx);
@@ -37,23 +41,29 @@ export default async function ReportCardsPage({ searchParams }: { searchParams: 
       <div className="space-y-5">
         <PageHeader title="Bulletins" description="Bulletins publiés par l'établissement, téléchargeables en PDF." />
         {cards.length === 0 ? (
-          <EmptyState icon={FileBadgeIcon} title="Aucun bulletin disponible" description="Les bulletins apparaissent ici dès leur publication." />
+          <EmptyState
+            icon={FileBadgeIcon}
+            title="Aucun bulletin disponible"
+            description="Les bulletins apparaissent ici dès leur publication."
+          />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {cards.map((c) => (
               <Card key={c.id} className="flex items-center gap-4 p-4">
-                <div className="flex size-12 items-center justify-center rounded-xl bg-brand-soft text-primary dark:bg-secondary">
+                <div className="bg-brand-soft text-primary dark:bg-secondary flex size-12 items-center justify-center rounded-xl">
                   <FileBadgeIcon aria-hidden />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">
                     {c.term?.name} · {fullName(c.student)}
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     Moyenne {formatScore(c.average === null ? null : Number(c.average))}/20
                     {c.rank ? ` · rang ${c.rank}/${c.class_size}` : ""} · {c.class?.name}
                   </p>
-                  {!isFamilyOnly(ctx.school.roles) && <Badge variant={REPORT_CARD_STATUS[c.status]?.variant}>{REPORT_CARD_STATUS[c.status]?.label}</Badge>}
+                  {!isFamilyOnly(ctx.school.roles) && (
+                    <Badge variant={REPORT_CARD_STATUS[c.status]?.variant}>{REPORT_CARD_STATUS[c.status]?.label}</Badge>
+                  )}
                 </div>
                 <Button asChild size="sm" variant="outline">
                   <a href={`/api/report-cards/${c.id}`} target="_blank" rel="noopener">
@@ -83,9 +93,15 @@ export default async function ReportCardsPage({ searchParams }: { searchParams: 
           canGenerate &&
           classId &&
           termId && (
-            <FormDialog title="Générer les bulletins" action={generateReportCardsAction} triggerLabel="Générer / recalculer" submitLabel="Générer">
-              <p className="text-sm text-muted-foreground">
-                Les moyennes sont calculées à partir des évaluations <strong>validées ou publiées</strong>. Les bulletins déjà validés ne sont pas recalculés.
+            <FormDialog
+              title="Générer les bulletins"
+              action={generateReportCardsAction}
+              triggerLabel="Générer / recalculer"
+              submitLabel="Générer"
+            >
+              <p className="text-muted-foreground text-sm">
+                Les moyennes sont calculées à partir des évaluations <strong>validées ou publiées</strong>. Les
+                bulletins déjà validés ne sont pas recalculés.
               </p>
               <Field label="Classe" htmlFor="g-class">
                 <Select id="g-class" name="class_id" defaultValue={classId}>
@@ -141,10 +157,16 @@ export default async function ReportCardsPage({ searchParams }: { searchParams: 
           <Card>
             <CardContent className="flex flex-wrap gap-6 pt-5 text-sm">
               <p>
-                Moyenne de classe : <strong>{formatScore(cards[0].class_average === null ? null : Number(cards[0].class_average))}/20</strong>
+                Moyenne de classe :{" "}
+                <strong>
+                  {formatScore(cards[0].class_average === null ? null : Number(cards[0].class_average))}/20
+                </strong>
               </p>
               <p>
-                Réussite : <strong>{cards.filter((c) => c.average !== null && Number(c.average) >= 10).length}/{cards.length}</strong>
+                Réussite :{" "}
+                <strong>
+                  {cards.filter((c) => c.average !== null && Number(c.average) >= 10).length}/{cards.length}
+                </strong>
               </p>
               <p>
                 Publiés : <strong>{cards.filter((c) => c.status === "published").length}</strong>
@@ -168,8 +190,11 @@ export default async function ReportCardsPage({ searchParams }: { searchParams: 
         </>
       )}
       {!can(ctx, "report_cards.create") && (
-        <p className="text-xs text-muted-foreground">
-          Consultez la fiche d&apos;un élève pour ses bulletins. <Link href="/app/students" className="underline">Liste des élèves</Link>
+        <p className="text-muted-foreground text-xs">
+          Consultez la fiche d&apos;un élève pour ses bulletins.{" "}
+          <Link href="/app/students" className="underline">
+            Liste des élèves
+          </Link>
         </p>
       )}
     </div>

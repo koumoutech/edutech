@@ -30,12 +30,24 @@ export function Pagination({
         Page {page} sur {pages} · {total} résultat{total > 1 ? "s" : ""}
       </p>
       <div className="flex gap-2">
-        <Button asChild variant="outline" size="sm" aria-disabled={page <= 1} className={page <= 1 ? "pointer-events-none opacity-50" : ""}>
+        <Button
+          asChild
+          variant="outline"
+          size="sm"
+          aria-disabled={page <= 1}
+          className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+        >
           <Link href={href(page - 1)} aria-label="Page précédente">
             <ChevronLeftIcon /> Précédent
           </Link>
         </Button>
-        <Button asChild variant="outline" size="sm" aria-disabled={page >= pages} className={page >= pages ? "pointer-events-none opacity-50" : ""}>
+        <Button
+          asChild
+          variant="outline"
+          size="sm"
+          aria-disabled={page >= pages}
+          className={page >= pages ? "pointer-events-none opacity-50" : ""}
+        >
           <Link href={href(page + 1)} aria-label="Page suivante">
             Suivant <ChevronRightIcon />
           </Link>

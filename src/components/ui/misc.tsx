@@ -24,7 +24,7 @@ export function Avatar({ name, className }: { name: string; className?: string }
     <span
       aria-hidden
       className={cn(
-        "inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-xs font-bold text-brand-deep dark:bg-secondary dark:text-secondary-foreground",
+        "bg-brand-soft text-brand-deep dark:bg-secondary dark:text-secondary-foreground inline-flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold",
         className,
       )}
     >
@@ -33,10 +33,24 @@ export function Avatar({ name, className }: { name: string; className?: string }
   );
 }
 
-export function Progress({ value, className, tone = "brand" }: { value: number; className?: string; tone?: "brand" | "warning" | "danger" }) {
+export function Progress({
+  value,
+  className,
+  tone = "brand",
+}: {
+  value: number;
+  className?: string;
+  tone?: "brand" | "warning" | "danger";
+}) {
   const pct = Math.max(0, Math.min(100, value));
   return (
-    <div className={cn("h-2 w-full overflow-hidden rounded-full bg-muted", className)} role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
+    <div
+      className={cn("bg-muted h-2 w-full overflow-hidden rounded-full", className)}
+      role="progressbar"
+      aria-valuenow={Math.round(pct)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
       <div
         className={cn(
           "h-full rounded-full transition-[width] duration-700 ease-out",
@@ -64,16 +78,21 @@ export function EmptyState({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-12 text-center", className)}>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-12 text-center",
+        className,
+      )}
+    >
       <div className="relative">
-        <div className="absolute inset-0 scale-150 rounded-full bg-brand-soft blur-xl dark:bg-secondary" aria-hidden />
-        <div className="relative flex size-14 items-center justify-center rounded-2xl bg-card shadow-[var(--shadow-soft)]">
-          <Icon className="size-7 text-primary" aria-hidden />
+        <div className="bg-brand-soft dark:bg-secondary absolute inset-0 scale-150 rounded-full blur-xl" aria-hidden />
+        <div className="bg-card relative flex size-14 items-center justify-center rounded-2xl shadow-[var(--shadow-soft)]">
+          <Icon className="text-primary size-7" aria-hidden />
         </div>
       </div>
       <div className="max-w-sm space-y-1">
         <p className="font-semibold">{title}</p>
-        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        {description && <p className="text-muted-foreground text-sm">{description}</p>}
       </div>
       {action}
     </div>
@@ -97,7 +116,8 @@ export function Alert({
       className={cn(
         "rounded-xl border px-4 py-3 text-sm",
         tone === "info" && "border-border bg-muted/60",
-        tone === "success" && "border-primary/25 bg-brand-soft text-brand-deep dark:bg-secondary dark:text-secondary-foreground",
+        tone === "success" &&
+          "border-primary/25 bg-brand-soft text-brand-deep dark:bg-secondary dark:text-secondary-foreground",
         tone === "warning" && "border-highlight/50 bg-highlight/15",
         tone === "danger" && "border-destructive/30 bg-destructive/8 text-destructive",
         className,
@@ -123,9 +143,9 @@ export function PageHeader({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0 space-y-1">
-        {eyebrow && <p className="text-xs font-semibold tracking-wider text-primary uppercase">{eyebrow}</p>}
+        {eyebrow && <p className="text-primary text-xs font-semibold tracking-wider uppercase">{eyebrow}</p>}
         <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-[1.7rem]">{title}</h1>
-        {description && <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>}
+        {description && <p className="text-muted-foreground max-w-2xl text-sm">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>

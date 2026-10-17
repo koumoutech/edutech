@@ -44,7 +44,11 @@ export async function listStudents(ctx: AppContext, query: z.infer<typeof studen
   const { data, error, count } = await q;
   if (error) throw fromDbError(error);
   const rows = (data ?? []).map((s) => {
-    const enrollments = (s.enrollments ?? []) as { status: string; academic_year_id: string; class: { id: string; name: string } | null }[];
+    const enrollments = (s.enrollments ?? []) as {
+      status: string;
+      academic_year_id: string;
+      class: { id: string; name: string } | null;
+    }[];
     const current = enrollments.find((e) => e.status === "active" && e.academic_year_id === year?.id);
     return { ...s, className: current?.class?.name ?? null, classId: current?.class?.id ?? null };
   });
@@ -67,17 +71,36 @@ export async function getStudent(ctx: AppContext, id: string) {
   const [health, documents, attendance, invoices, docTypes] = await Promise.all([
     can(ctx, "health.read") ? db.from("student_health").select("*").eq("student_id", id).maybeSingle() : null,
     can(ctx, "documents.read")
-      ? db.from("documents").select("id, title, category, mime_type, size_bytes, created_at, storage_path, document_type_id, visible_to_family").eq("student_id", id).is("deleted_at", null).order("created_at", { ascending: false })
+      ? db
+          .from("documents")
+          .select(
+            "id, title, category, mime_type, size_bytes, created_at, storage_path, document_type_id, visible_to_family",
+          )
+          .eq("student_id", id)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false })
       : null,
     db.from("attendance_records").select("status").eq("student_id", id),
-    can(ctx, "finance.read") ? db.from("invoices").select("id, number, total, amount_paid, balance, due_date, status").eq("student_id", id).order("issue_date", { ascending: false }) : null,
-    db.from("required_document_types").select("id, name, is_mandatory").eq("school_id", ctx.school.id).eq("applies_to", "student"),
+    can(ctx, "finance.read")
+      ? db
+          .from("invoices")
+          .select("id, number, total, amount_paid, balance, due_date, status")
+          .eq("student_id", id)
+          .order("issue_date", { ascending: false })
+      : null,
+    db
+      .from("required_document_types")
+      .select("id, name, is_mandatory")
+      .eq("school_id", ctx.school.id)
+      .eq("applies_to", "student"),
   ]);
 
   const att = attendance.data ?? [];
   return {
     student,
-    enrollments: [...(student.enrollments ?? [])].sort((a, b) => (b.enrolled_on ?? "").localeCompare(a.enrolled_on ?? "")),
+    enrollments: [...(student.enrollments ?? [])].sort((a, b) =>
+      (b.enrolled_on ?? "").localeCompare(a.enrolled_on ?? ""),
+    ),
     guardians: student.student_guardians ?? [],
     health: health?.data ?? null,
     documents: documents?.data ?? [],
@@ -129,7 +152,12 @@ export async function updateStudent(ctx: AppContext, input: z.infer<typeof updat
 
 export async function enrollStudent(ctx: AppContext, studentId: string, classId: string) {
   assertCan(ctx, "enrollments.manage");
-  const { data: cls } = await ctx.db.from("classes").select("academic_year_id").eq("id", classId).eq("school_id", ctx.school.id).maybeSingle();
+  const { data: cls } = await ctx.db
+    .from("classes")
+    .select("academic_year_id")
+    .eq("id", classId)
+    .eq("school_id", ctx.school.id)
+    .maybeSingle();
   if (!cls) throw new AppError("NOT_FOUND");
   const { data: existing } = await ctx.db
     .from("enrollments")
@@ -140,7 +168,11 @@ export async function enrollStudent(ctx: AppContext, studentId: string, classId:
     .maybeSingle();
   if (existing) {
     if (existing.class_id === classId) return;
-    const { error } = await ctx.db.rpc("change_class", { p_enrollment: existing.id, p_new_class: classId, p_reason: "Changement de classe" });
+    const { error } = await ctx.db.rpc("change_class", {
+      p_enrollment: existing.id,
+      p_new_class: classId,
+      p_reason: "Changement de classe",
+    });
     if (error) throw fromDbError(error);
     return;
   }
@@ -154,7 +186,12 @@ export async function enrollStudent(ctx: AppContext, studentId: string, classId:
   if (error) throw fromDbError(error);
 }
 
-export async function withdrawStudent(ctx: AppContext, studentId: string, status: "transferred" | "withdrawn" | "graduated", reason: string) {
+export async function withdrawStudent(
+  ctx: AppContext,
+  studentId: string,
+  status: "transferred" | "withdrawn" | "graduated",
+  reason: string,
+) {
   assertCan(ctx, "enrollments.manage");
   const { error } = await ctx.db.rpc("withdraw_student", { p_student: studentId, p_status: status, p_reason: reason });
   if (error) throw fromDbError(error);
@@ -208,7 +245,9 @@ export async function exportStudents(ctx: AppContext) {
     return unwrapList(
       await ctx.db
         .from("students")
-        .select("matricule, first_name, last_name, gender, birth_date, birth_place, status, enrollments(status, academic_year_id, class:classes!enrollments_school_id_class_id_fkey(name))")
+        .select(
+          "matricule, first_name, last_name, gender, birth_date, birth_place, status, enrollments(status, academic_year_id, class:classes!enrollments_school_id_class_id_fkey(name))",
+        )
         .eq("school_id", ctx.school.id)
         .order("last_name")
         .range(from, from + 999),
@@ -228,13 +267,29 @@ export async function exportStudents(ctx: AppContext) {
 export async function addGuardian(
   ctx: AppContext,
   studentId: string,
-  g: { first_name: string; last_name: string; phone?: string; email?: string; profession?: string; relationship: string; is_emergency_contact: boolean; is_billing_contact: boolean },
+  g: {
+    first_name: string;
+    last_name: string;
+    phone?: string;
+    email?: string;
+    profession?: string;
+    relationship: string;
+    is_emergency_contact: boolean;
+    is_billing_contact: boolean;
+  },
 ) {
   assertCan(ctx, "guardians.manage");
   const guardian = unwrap(
     await ctx.db
       .from("guardians")
-      .insert({ school_id: ctx.school.id, first_name: g.first_name, last_name: g.last_name, phone: g.phone ?? null, email: g.email ?? null, profession: g.profession ?? null })
+      .insert({
+        school_id: ctx.school.id,
+        first_name: g.first_name,
+        last_name: g.last_name,
+        phone: g.phone ?? null,
+        email: g.email ?? null,
+        profession: g.profession ?? null,
+      })
       .select("id")
       .single(),
   );
@@ -257,6 +312,10 @@ export async function addGuardian(
 
 export async function unlinkGuardian(ctx: AppContext, studentId: string, guardianId: string) {
   assertCan(ctx, "guardians.manage");
-  const { error } = await ctx.db.from("student_guardians").delete().eq("student_id", studentId).eq("guardian_id", guardianId);
+  const { error } = await ctx.db
+    .from("student_guardians")
+    .delete()
+    .eq("student_id", studentId)
+    .eq("guardian_id", guardianId);
   if (error) throw fromDbError(error);
 }

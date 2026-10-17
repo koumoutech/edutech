@@ -36,7 +36,11 @@ export function Section({
 
 export function AlertsList({ alerts }: { alerts: Alert[] }) {
   if (!alerts.length) {
-    return <p className="rounded-lg bg-muted/60 px-3 py-4 text-center text-sm text-muted-foreground">Rien à traiter pour le moment. 🎉</p>;
+    return (
+      <p className="bg-muted/60 text-muted-foreground rounded-lg px-3 py-4 text-center text-sm">
+        Rien à traiter pour le moment. 🎉
+      </p>
+    );
   }
   return (
     <ul className="space-y-2">
@@ -44,18 +48,20 @@ export function AlertsList({ alerts }: { alerts: Alert[] }) {
         <li key={a.label}>
           <Link
             href={a.href}
-            className="flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-muted/60"
+            className="hover:bg-muted/60 flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors"
           >
             {a.tone === "danger" ? (
-              <AlertTriangleIcon className="size-4 shrink-0 text-destructive" aria-hidden />
+              <AlertTriangleIcon className="text-destructive size-4 shrink-0" aria-hidden />
             ) : a.tone === "warning" ? (
-              <AlertTriangleIcon className="size-4 shrink-0 text-[#a37800] dark:text-highlight" aria-hidden />
+              <AlertTriangleIcon className="dark:text-highlight size-4 shrink-0 text-[#a37800]" aria-hidden />
             ) : (
-              <InfoIcon className="size-4 shrink-0 text-primary" aria-hidden />
+              <InfoIcon className="text-primary size-4 shrink-0" aria-hidden />
             )}
             <span className="flex-1">{a.label}</span>
-            <Badge variant={a.tone === "danger" ? "danger" : a.tone === "warning" ? "warning" : "default"}>{a.count}</Badge>
-            <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
+            <Badge variant={a.tone === "danger" ? "danger" : a.tone === "warning" ? "warning" : "default"}>
+              {a.count}
+            </Badge>
+            <ChevronRightIcon className="text-muted-foreground size-4" aria-hidden />
           </Link>
         </li>
       ))}
@@ -66,7 +72,14 @@ export function AlertsList({ alerts }: { alerts: Alert[] }) {
 export function AnnouncementsList({
   items,
 }: {
-  items: { id: string; title: string; body: string; priority: string; is_pinned: boolean; published_at: string | null }[];
+  items: {
+    id: string;
+    title: string;
+    body: string;
+    priority: string;
+    is_pinned: boolean;
+    published_at: string | null;
+  }[];
 }) {
   if (!items.length) return <EmptyState icon={MegaphoneIcon} title="Aucune annonce" className="py-8" />;
   return (
@@ -75,10 +88,14 @@ export function AnnouncementsList({
         <li key={a.id} className="rounded-lg border p-3">
           <div className="flex items-center gap-2">
             <p className="flex-1 truncate text-sm font-semibold">{a.title}</p>
-            {a.priority !== "normal" && <Badge variant={a.priority === "urgent" ? "danger" : "warning"}>{a.priority === "urgent" ? "Urgent" : "Important"}</Badge>}
+            {a.priority !== "normal" && (
+              <Badge variant={a.priority === "urgent" ? "danger" : "warning"}>
+                {a.priority === "urgent" ? "Urgent" : "Important"}
+              </Badge>
+            )}
           </div>
-          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{a.body}</p>
-          <p className="mt-1.5 text-xs text-muted-foreground">{formatDateTime(a.published_at)}</p>
+          <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">{a.body}</p>
+          <p className="text-muted-foreground mt-1.5 text-xs">{formatDateTime(a.published_at)}</p>
         </li>
       ))}
     </ul>
@@ -88,7 +105,14 @@ export function AnnouncementsList({
 export function NotificationsList({
   items,
 }: {
-  items: { id: string; title: string; body: string | null; link: string | null; read_at: string | null; created_at: string }[];
+  items: {
+    id: string;
+    title: string;
+    body: string | null;
+    link: string | null;
+    read_at: string | null;
+    created_at: string;
+  }[];
 }) {
   if (!items.length) return <EmptyState icon={BellIcon} title="Aucune notification" className="py-8" />;
   return (
@@ -96,15 +120,28 @@ export function NotificationsList({
       {items.map((n) => {
         const content = (
           <div className="flex gap-3 py-2.5">
-            <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.read_at ? "bg-transparent" : "bg-primary")} aria-hidden />
+            <span
+              className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.read_at ? "bg-transparent" : "bg-primary")}
+              aria-hidden
+            />
             <div className="min-w-0">
               <p className={cn("text-sm", !n.read_at && "font-semibold")}>{n.title}</p>
-              {n.body && <p className="line-clamp-1 text-xs text-muted-foreground">{n.body}</p>}
-              <p className="text-xs text-muted-foreground">{formatDateTime(n.created_at)}</p>
+              {n.body && <p className="text-muted-foreground line-clamp-1 text-xs">{n.body}</p>}
+              <p className="text-muted-foreground text-xs">{formatDateTime(n.created_at)}</p>
             </div>
           </div>
         );
-        return <li key={n.id}>{n.link ? <Link href={n.link} className="block hover:bg-muted/40">{content}</Link> : content}</li>;
+        return (
+          <li key={n.id}>
+            {n.link ? (
+              <Link href={n.link} className="hover:bg-muted/40 block">
+                {content}
+              </Link>
+            ) : (
+              content
+            )}
+          </li>
+        );
       })}
     </ul>
   );
@@ -118,7 +155,7 @@ export function Greeting({ name, subtitle }: { name: string; subtitle: string })
       <h1 className="text-2xl font-bold tracking-tight sm:text-[1.7rem]">
         {hello}, {name.split(" ")[0]} 👋
       </h1>
-      <p className="text-sm text-muted-foreground">{subtitle}</p>
+      <p className="text-muted-foreground text-sm">{subtitle}</p>
     </div>
   );
 }

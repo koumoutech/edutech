@@ -40,7 +40,12 @@ interface Props {
   allowPersonalData: boolean;
 }
 
-export function AssistantChat({ conversationId: initialId, initialMessages, initialStudents, allowPersonalData }: Props) {
+export function AssistantChat({
+  conversationId: initialId,
+  initialMessages,
+  initialStudents,
+  allowPersonalData,
+}: Props) {
   const router = useRouter();
   const [conversationId, setConversationId] = useState(initialId);
   const [messages, setMessages] = useState(initialMessages);
@@ -61,7 +66,13 @@ export function AssistantChat({ conversationId: initialId, initialMessages, init
     setDraft("");
     setProposals([]);
     seq.current += 1;
-    const optimistic: ChatMessageView = { id: `tmp-${seq.current}`, role: "user", content: message, toolsUsed: [], createdAt: "" };
+    const optimistic: ChatMessageView = {
+      id: `tmp-${seq.current}`,
+      role: "user",
+      content: message,
+      toolsUsed: [],
+      createdAt: "",
+    };
     setMessages((m) => [...m, optimistic]);
     start(async () => {
       const res = await askAssistantAction(conversationId, message);
@@ -82,15 +93,23 @@ export function AssistantChat({ conversationId: initialId, initialMessages, init
   }
 
   return (
-    <div className="flex min-h-[60vh] flex-col rounded-2xl border bg-card">
+    <div className="bg-card flex min-h-[60vh] flex-col rounded-2xl border">
       <div className="flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
         {messages.length === 0 && (
           <div className="space-y-4 py-6 text-center">
-            <SparklesIcon className="mx-auto size-8 text-primary" aria-hidden />
-            <p className="text-sm text-muted-foreground">Posez une question sur votre établissement. L&apos;assistant ne consulte que les données auxquelles vous avez accès.</p>
+            <SparklesIcon className="text-primary mx-auto size-8" aria-hidden />
+            <p className="text-muted-foreground text-sm">
+              Posez une question sur votre établissement. L&apos;assistant ne consulte que les données auxquelles vous
+              avez accès.
+            </p>
             <div className="mx-auto grid max-w-xl gap-2 sm:grid-cols-2">
               {SUGGESTIONS.map((s) => (
-                <button key={s} type="button" onClick={() => send(s)} className="rounded-xl border bg-background px-3 py-2 text-left text-sm transition-colors hover:bg-accent">
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => send(s)}
+                  className="bg-background hover:bg-accent rounded-xl border px-3 py-2 text-left text-sm transition-colors"
+                >
                   {s}
                 </button>
               ))}
@@ -100,16 +119,30 @@ export function AssistantChat({ conversationId: initialId, initialMessages, init
         {messages.map((m) => (
           <div key={m.id} className={cn("flex gap-3", m.role === "user" && "flex-row-reverse")}>
             <div
-              className={cn("flex size-8 shrink-0 items-center justify-center rounded-full", m.role === "user" ? "bg-muted" : "bg-brand-soft text-brand-deep dark:bg-secondary dark:text-secondary-foreground")}
+              className={cn(
+                "flex size-8 shrink-0 items-center justify-center rounded-full",
+                m.role === "user"
+                  ? "bg-muted"
+                  : "bg-brand-soft text-brand-deep dark:bg-secondary dark:text-secondary-foreground",
+              )}
               aria-hidden
             >
               {m.role === "user" ? <UserIcon className="size-4" /> : <SparklesIcon className="size-4" />}
             </div>
-            <div className={cn("max-w-[85%] space-y-2 rounded-2xl px-4 py-3", m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted/60")}>
+            <div
+              className={cn(
+                "max-w-[85%] space-y-2 rounded-2xl px-4 py-3",
+                m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted/60",
+              )}
+            >
               <span className="sr-only">{m.role === "user" ? "Vous :" : "Assistant :"}</span>
-              {m.role === "user" ? <p className="text-sm whitespace-pre-wrap">{m.content}</p> : <RichText text={m.content} students={students} />}
+              {m.role === "user" ? (
+                <p className="text-sm whitespace-pre-wrap">{m.content}</p>
+              ) : (
+                <RichText text={m.content} students={students} />
+              )}
               {m.toolsUsed.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1 pt-1 text-xs text-muted-foreground">
+                <div className="text-muted-foreground flex flex-wrap items-center gap-1 pt-1 text-xs">
                   <WrenchIcon className="size-3" aria-hidden /> Sources :
                   {m.toolsUsed.map((t) => (
                     <Badge key={t} variant="muted">
@@ -122,12 +155,17 @@ export function AssistantChat({ conversationId: initialId, initialMessages, init
           </div>
         ))}
         {pending && (
-          <div className="flex items-center gap-3 text-sm text-muted-foreground" role="status">
-            <SparklesIcon className="size-4 animate-pulse text-primary motion-reduce:animate-none" aria-hidden /> L&apos;assistant consulte les données…
+          <div className="text-muted-foreground flex items-center gap-3 text-sm" role="status">
+            <SparklesIcon className="text-primary size-4 animate-pulse motion-reduce:animate-none" aria-hidden />{" "}
+            L&apos;assistant consulte les données…
           </div>
         )}
         {proposals.map((p, i) => (
-          <DraftProposal key={`${p.title}-${i}`} proposal={p} onDone={() => setProposals((all) => all.filter((x) => x !== p))} />
+          <DraftProposal
+            key={`${p.title}-${i}`}
+            proposal={p}
+            onDone={() => setProposals((all) => all.filter((x) => x !== p))}
+          />
         ))}
         <div ref={endRef} />
       </div>
@@ -162,9 +200,11 @@ export function AssistantChat({ conversationId: initialId, initialMessages, init
             <SendIcon />
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Les réponses s&apos;appuient uniquement sur vos données autorisées et peuvent comporter des erreurs : vérifiez avant toute décision.
-          {!allowPersonalData && " Les noms des élèves ne sont pas transmis au fournisseur d'IA ; évitez de les saisir."}
+        <p className="text-muted-foreground text-xs">
+          Les réponses s&apos;appuient uniquement sur vos données autorisées et peuvent comporter des erreurs : vérifiez
+          avant toute décision.
+          {!allowPersonalData &&
+            " Les noms des élèves ne sont pas transmis au fournisseur d'IA ; évitez de les saisir."}
         </p>
       </form>
     </div>
@@ -176,7 +216,7 @@ function DraftProposal({ proposal, onDone }: { proposal: AssistantProposal; onDo
   const [body, setBody] = useState(proposal.body);
   const [pending, start] = useTransition();
   return (
-    <div className="space-y-3 rounded-2xl border border-highlight/50 bg-highlight/10 p-4">
+    <div className="border-highlight/50 bg-highlight/10 space-y-3 rounded-2xl border p-4">
       <p className="flex items-center gap-2 text-sm font-semibold">
         <MegaphoneIcon className="size-4" aria-hidden /> Brouillon d&apos;annonce proposé — non enregistré
       </p>
@@ -185,9 +225,15 @@ function DraftProposal({ proposal, onDone }: { proposal: AssistantProposal; onDo
         onChange={(e) => setTitle(e.target.value)}
         aria-label="Titre de l'annonce"
         maxLength={160}
-        className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-medium"
+        className="bg-background w-full rounded-lg border px-3 py-2 text-sm font-medium"
       />
-      <Textarea value={body} onChange={(e) => setBody(e.target.value)} aria-label="Texte de l'annonce" rows={6} maxLength={5000} />
+      <Textarea
+        value={body}
+        onChange={(e) => setBody(e.target.value)}
+        aria-label="Texte de l'annonce"
+        rows={6}
+        maxLength={5000}
+      />
       <div className="flex flex-wrap gap-2">
         <Button
           size="sm"

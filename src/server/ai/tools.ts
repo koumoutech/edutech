@@ -69,7 +69,12 @@ function defineTool<S extends z.ZodType>(tool: AssistantTool<S>): AssistantTool<
   return tool;
 }
 
-const noInput = { type: "object", properties: {}, required: [], additionalProperties: false } as const satisfies JsonSchemaObject;
+const noInput = {
+  type: "object",
+  properties: {},
+  required: [],
+  additionalProperties: false,
+} as const satisfies JsonSchemaObject;
 
 export function studentRef(id: string): string {
   return `[[eleve:${id}]]`;
@@ -86,7 +91,10 @@ function daysAgo(n: number): string {
   return isoDate(d);
 }
 
-const anyOf = (...perms: Permission[]) => (ctx: AppContext) => perms.some((p) => can(ctx, p));
+const anyOf =
+  (...perms: Permission[]) =>
+  (ctx: AppContext) =>
+    perms.some((p) => can(ctx, p));
 
 export const TOOLS = [
   defineTool({
@@ -98,24 +106,36 @@ export const TOOLS = [
     allowed: () => true,
     async run(rt) {
       const alerts = await managementAlerts(rt.ctx);
-      return { data: { items: alerts.map((a) => ({ label: a.label, count: a.count, page: a.href })) }, count: alerts.length };
+      return {
+        data: { items: alerts.map((a) => ({ label: a.label, count: a.count, page: a.href })) },
+        count: alerts.length,
+      };
     },
   }),
 
   defineTool({
     name: "get_enrollment_summary",
-    description: "Effectifs de l'année scolaire en cours par niveau (élèves actifs, filles, garçons, capacité). Données agrégées.",
+    description:
+      "Effectifs de l'année scolaire en cours par niveau (élèves actifs, filles, garçons, capacité). Données agrégées.",
     inputSchema: noInput,
     input: z.object({}).strict(),
     allowed: (ctx) => canSchoolWide(ctx, "students.read"),
     async run(rt) {
       const { year } = await loadAcademicFrame(rt.ctx);
       if (!year) return { data: { available: false, reason: "Aucune année scolaire n'est configurée." }, count: 0 };
-      const rows = unwrapList(await rt.ctx.db.rpc("stats_enrollment_by_level", { p_school: rt.ctx.school.id, p_year: year.id }));
+      const rows = unwrapList(
+        await rt.ctx.db.rpc("stats_enrollment_by_level", { p_school: rt.ctx.school.id, p_year: year.id }),
+      );
       return {
         data: {
           year: year.name,
-          levels: rows.map((r) => ({ level: r.level_name, students: Number(r.students), girls: Number(r.girls), boys: Number(r.boys), capacity: Number(r.capacity) })),
+          levels: rows.map((r) => ({
+            level: r.level_name,
+            students: Number(r.students),
+            girls: Number(r.girls),
+            boys: Number(r.boys),
+            capacity: Number(r.capacity),
+          })),
           total: rows.reduce((s, r) => s + Number(r.students), 0),
         },
         count: rows.length,
@@ -130,7 +150,10 @@ export const TOOLS = [
     inputSchema: {
       type: "object",
       properties: {
-        include_unvalidated: { type: "boolean", description: "Inclure aussi les évaluations non encore validées (brouillons, soumises)." },
+        include_unvalidated: {
+          type: "boolean",
+          description: "Inclure aussi les évaluations non encore validées (brouillons, soumises).",
+        },
       },
       required: ["include_unvalidated"],
       additionalProperties: false,
@@ -141,13 +164,22 @@ export const TOOLS = [
       const { term } = await loadAcademicFrame(rt.ctx);
       if (!term) return { data: { available: false, reason: "Aucun trimestre n'est configuré." }, count: 0 };
       const rows = unwrapList(
-        await rt.ctx.db.rpc("stats_class_performance", { p_school: rt.ctx.school.id, p_term: term.id, p_finalized_only: !input.include_unvalidated }),
+        await rt.ctx.db.rpc("stats_class_performance", {
+          p_school: rt.ctx.school.id,
+          p_term: term.id,
+          p_finalized_only: !input.include_unvalidated,
+        }),
       );
       return {
         data: {
           term: term.name,
           scope: input.include_unvalidated ? "toutes les notes saisies" : "évaluations validées ou publiées",
-          classes: rows.map((r) => ({ class: r.class_name, average: r.average === null ? null : Number(r.average), students_graded: Number(r.students), below_passing: Number(r.below_passing) })),
+          classes: rows.map((r) => ({
+            class: r.class_name,
+            average: r.average === null ? null : Number(r.average),
+            students_graded: Number(r.students),
+            below_passing: Number(r.below_passing),
+          })),
           ...(rows.length === 0 ? { note: "Aucune note disponible pour ce périmètre." } : {}),
         },
         count: rows.length,
@@ -170,11 +202,21 @@ export const TOOLS = [
     async run(rt, input) {
       const { term } = await loadAcademicFrame(rt.ctx);
       if (!term) return { data: { available: false, reason: "Aucun trimestre n'est configuré." }, count: 0 };
-      const rows = unwrapList(await rt.ctx.db.rpc("stats_students_at_risk", { p_school: rt.ctx.school.id, p_term: term.id, p_limit: input.limit }));
+      const rows = unwrapList(
+        await rt.ctx.db.rpc("stats_students_at_risk", {
+          p_school: rt.ctx.school.id,
+          p_term: term.id,
+          p_limit: input.limit,
+        }),
+      );
       return {
         data: {
           term: term.name,
-          students: rows.map((r) => ({ ...student(rt, r), class: r.class_name, provisional_average: r.average === null ? null : Number(r.average) })),
+          students: rows.map((r) => ({
+            ...student(rt, r),
+            class: r.class_name,
+            provisional_average: r.average === null ? null : Number(r.average),
+          })),
           ...(rows.length === 0 ? { note: "Aucun élève sous le seuil, ou aucune note saisie." } : {}),
         },
         count: rows.length,
@@ -203,7 +245,12 @@ export const TOOLS = [
       ]);
       const days = unwrapList(daily);
       const totals = days.reduce(
-        (t, d) => ({ present: t.present + Number(d.present), absent: t.absent + Number(d.absent), late: t.late + Number(d.late), excused: t.excused + Number(d.excused) }),
+        (t, d) => ({
+          present: t.present + Number(d.present),
+          absent: t.absent + Number(d.absent),
+          late: t.late + Number(d.late),
+          excused: t.excused + Number(d.excused),
+        }),
         { present: 0, absent: 0, late: 0, excused: 0 },
       );
       const marks = totals.present + totals.absent + totals.late + totals.excused;
@@ -214,7 +261,13 @@ export const TOOLS = [
           records: marks,
           totals,
           absence_rate_percent: marks ? Math.round(((totals.absent + totals.excused) / marks) * 1000) / 10 : null,
-          top_absentees: absentees.map((r) => ({ ...student(rt, r), class: r.class_name, absences: Number(r.absences), unjustified: Number(r.unjustified), lates: Number(r.lates) })),
+          top_absentees: absentees.map((r) => ({
+            ...student(rt, r),
+            class: r.class_name,
+            absences: Number(r.absences),
+            unjustified: Number(r.unjustified),
+            lates: Number(r.lates),
+          })),
           ...(marks === 0 ? { note: "Aucun appel enregistré sur la période." } : {}),
         },
         count: days.length + absentees.length,
@@ -231,9 +284,19 @@ export const TOOLS = [
     allowed: (ctx) => canSchoolWide(ctx, "finance.read"),
     async run(rt) {
       const { year } = await loadAcademicFrame(rt.ctx);
-      const rows = unwrapList(await rt.ctx.db.rpc("stats_finance_summary", { p_school: rt.ctx.school.id, p_year: year?.id }));
+      const rows = unwrapList(
+        await rt.ctx.db.rpc("stats_finance_summary", { p_school: rt.ctx.school.id, p_year: year?.id }),
+      );
       const r = rows[0];
-      if (!r || Number(r.invoices) === 0) return { data: { currency: rt.ctx.school.currency, available: false, reason: "Aucune facture émise pour cette période." }, count: 0 };
+      if (!r || Number(r.invoices) === 0)
+        return {
+          data: {
+            currency: rt.ctx.school.currency,
+            available: false,
+            reason: "Aucune facture émise pour cette période.",
+          },
+          count: 0,
+        };
       return {
         data: {
           currency: rt.ctx.school.currency,
@@ -244,7 +307,9 @@ export const TOOLS = [
           overdue: Number(r.overdue),
           invoices: Number(r.invoices),
           overdue_invoices: Number(r.overdue_invoices),
-          collection_rate_percent: Number(r.billed) ? Math.round((Number(r.collected) / Number(r.billed)) * 1000) / 10 : null,
+          collection_rate_percent: Number(r.billed)
+            ? Math.round((Number(r.collected) / Number(r.billed)) * 1000) / 10
+            : null,
         },
         count: 1,
       };
@@ -253,7 +318,8 @@ export const TOOLS = [
 
   defineTool({
     name: "get_incomplete_student_files",
-    description: "Élèves actifs dont le dossier administratif est incomplet (pièces obligatoires manquantes). Élèves désignés par référence opaque.",
+    description:
+      "Élèves actifs dont le dossier administratif est incomplet (pièces obligatoires manquantes). Élèves désignés par référence opaque.",
     inputSchema: {
       type: "object",
       properties: { limit: { type: "integer", description: "Nombre maximum d'élèves (1 à 30)." } },
@@ -263,7 +329,9 @@ export const TOOLS = [
     input: z.object({ limit: z.number().int().min(1).max(30) }).strict(),
     allowed: (ctx) => canSchoolWide(ctx, "students.read"),
     async run(rt, input) {
-      const rows = unwrapList(await rt.ctx.db.rpc("incomplete_student_files", { p_school: rt.ctx.school.id, p_limit: input.limit }));
+      const rows = unwrapList(
+        await rt.ctx.db.rpc("incomplete_student_files", { p_school: rt.ctx.school.id, p_limit: input.limit }),
+      );
       return {
         data: {
           students: rows.map((r) => ({ ...student(rt, r), missing_documents: r.missing })),
@@ -289,11 +357,16 @@ export const TOOLS = [
       additionalProperties: false,
     },
     input: z
-      .object({ title: z.string().trim().min(3).max(160), body: z.string().trim().min(1).max(5000), priority: z.enum(["normal", "important", "urgent"]) })
+      .object({
+        title: z.string().trim().min(3).max(160),
+        body: z.string().trim().min(1).max(5000),
+        priority: z.enum(["normal", "important", "urgent"]),
+      })
       .strict(),
     allowed: (ctx) => can(ctx, "announcements.create", ["school"]),
     async run(rt, input) {
-      if (rt.proposals.length >= 3) return { data: { status: "refused", reason: "Trop de brouillons proposés dans ce tour." }, count: 0 };
+      if (rt.proposals.length >= 3)
+        return { data: { status: "refused", reason: "Trop de brouillons proposés dans ce tour." }, count: 0 };
       rt.proposals.push({ kind: "announcement_draft", title: input.title, body: input.body, priority: input.priority });
       return { data: { status: "shown_to_user_for_confirmation", saved: false }, count: 1 };
     },
@@ -301,7 +374,8 @@ export const TOOLS = [
 
   defineTool({
     name: "list_accessible_pages",
-    description: "Liste les pages de l'application auxquelles l'utilisateur a accès, pour l'aider à trouver où effectuer une action.",
+    description:
+      "Liste les pages de l'application auxquelles l'utilisateur a accès, pour l'aider à trouver où effectuer une action.",
     inputSchema: noInput,
     input: z.object({}).strict(),
     allowed: () => true,
@@ -336,7 +410,14 @@ export async function executeTool(rt: ToolRuntime, name: string, rawInput: unkno
   const tool = (TOOLS as readonly AssistantTool[]).find((t) => t.name === name);
   if (!tool) return { outcome: "invalid", content: JSON.stringify({ error: "UNKNOWN_TOOL" }), count: null };
   if (!tool.allowed(rt.ctx)) {
-    return { outcome: "denied", content: JSON.stringify({ error: "FORBIDDEN", message: "L'utilisateur n'a pas l'autorisation d'accéder à ces données." }), count: null };
+    return {
+      outcome: "denied",
+      content: JSON.stringify({
+        error: "FORBIDDEN",
+        message: "L'utilisateur n'a pas l'autorisation d'accéder à ces données.",
+      }),
+      count: null,
+    };
   }
   const parsed = tool.input.safeParse(rawInput ?? {});
   if (!parsed.success) return { outcome: "invalid", content: JSON.stringify({ error: "INVALID_INPUT" }), count: null };
@@ -347,7 +428,10 @@ export async function executeTool(rt: ToolRuntime, name: string, rawInput: unkno
     const code = e instanceof Error && "code" in e ? String((e as { code: unknown }).code) : "UNKNOWN";
     return {
       outcome: code === "FORBIDDEN" ? "denied" : "error",
-      content: JSON.stringify({ error: code === "FORBIDDEN" ? "FORBIDDEN" : "TOOL_ERROR", message: "Les données n'ont pas pu être récupérées." }),
+      content: JSON.stringify({
+        error: code === "FORBIDDEN" ? "FORBIDDEN" : "TOOL_ERROR",
+        message: "Les données n'ont pas pu être récupérées.",
+      }),
       count: null,
     };
   }

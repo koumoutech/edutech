@@ -19,7 +19,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       amount: Number(p.amount),
       allocations: (p.payment_allocations ?? [])
         .filter((a) => a.is_active || p.status === "reversed")
-        .map((a) => ({ amount: Number(a.amount), invoice: a.invoice ? { number: a.invoice.number, total: Number(a.invoice.total), balance: Number(a.invoice.balance) } : null })),
+        .map((a) => ({
+          amount: Number(a.amount),
+          invoice: a.invoice
+            ? { number: a.invoice.number, total: Number(a.invoice.total), balance: Number(a.invoice.balance) }
+            : null,
+        })),
     });
     return pdfResponse(bytes, `recu-${p.receipt_number}.pdf`);
   } catch (e) {

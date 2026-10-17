@@ -50,13 +50,33 @@ export async function listConversations(ctx: AppContext) {
 
 export async function loadConversation(ctx: AppContext, id: string) {
   assertCan(ctx, "ai.use");
-  const { data: conv } = await ctx.db.from("ai_conversations").select("id, title").eq("id", id).eq("school_id", ctx.school.id).maybeSingle();
+  const { data: conv } = await ctx.db
+    .from("ai_conversations")
+    .select("id, title")
+    .eq("id", id)
+    .eq("school_id", ctx.school.id)
+    .maybeSingle();
   if (!conv) return null;
   const rows = unwrapList(
-    await ctx.db.from("ai_messages").select("id, role, content, tools_used, created_at").eq("conversation_id", id).order("created_at").limit(200),
+    await ctx.db
+      .from("ai_messages")
+      .select("id, role, content, tools_used, created_at")
+      .eq("conversation_id", id)
+      .order("created_at")
+      .limit(200),
   );
-  const messages: ChatMessageView[] = rows.map((r) => ({ id: r.id, role: r.role as ChatMessageView["role"], content: r.content, toolsUsed: r.tools_used, createdAt: r.created_at }));
-  const students = await resolveStudentRefs(ctx.db, ctx.school.id, messages.map((m) => m.content));
+  const messages: ChatMessageView[] = rows.map((r) => ({
+    id: r.id,
+    role: r.role as ChatMessageView["role"],
+    content: r.content,
+    toolsUsed: r.tools_used,
+    createdAt: r.created_at,
+  }));
+  const students = await resolveStudentRefs(
+    ctx.db,
+    ctx.school.id,
+    messages.map((m) => m.content),
+  );
   return { id: conv.id, title: conv.title, messages, students };
 }
 
@@ -78,20 +98,33 @@ export async function ask(ctx: AppContext, input: z.infer<typeof askSchema>): Pr
   // Abuse/cost protection: per user and per school.
   const okUser = await consumeRateLimit(`ai:user:${ctx.user.id}`, 20, 600);
   const okSchool = okUser && (await consumeRateLimit(`ai:school:${ctx.school.id}`, 400, 3600));
-  if (!okUser || !okSchool) throw new AppError("RATE_LIMITED", "Vous avez atteint la limite de questions à l'assistant. Réessayez plus tard.");
+  if (!okUser || !okSchool)
+    throw new AppError("RATE_LIMITED", "Vous avez atteint la limite de questions à l'assistant. Réessayez plus tard.");
 
   let conversationId = input.conversationId;
   let history: ChatTurn[] = [];
   if (conversationId) {
-    const { data: conv } = await ctx.db.from("ai_conversations").select("id").eq("id", conversationId).eq("school_id", ctx.school.id).maybeSingle();
+    const { data: conv } = await ctx.db
+      .from("ai_conversations")
+      .select("id")
+      .eq("id", conversationId)
+      .eq("school_id", ctx.school.id)
+      .maybeSingle();
     if (!conv) throw new AppError("NOT_FOUND");
     const rows = unwrapList(
-      await ctx.db.from("ai_messages").select("role, content").eq("conversation_id", conversationId).order("created_at", { ascending: false }).limit(12),
+      await ctx.db
+        .from("ai_messages")
+        .select("role, content")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: false })
+        .limit(12),
     );
     history = rows.reverse().map((r) => ({ role: r.role as ChatTurn["role"], content: r.content }));
   } else {
     const title = input.message.length > 70 ? `${input.message.slice(0, 67)}…` : input.message;
-    conversationId = unwrap(await ctx.db.from("ai_conversations").insert({ school_id: ctx.school.id, title }).select("id").single()).id;
+    conversationId = unwrap(
+      await ctx.db.from("ai_conversations").insert({ school_id: ctx.school.id, title }).select("id").single(),
+    ).id;
   }
 
   const userRow = unwrap(
@@ -134,7 +167,13 @@ export async function ask(ctx: AppContext, input: z.infer<typeof askSchema>): Pr
   const assistantRow = unwrap(
     await ctx.db
       .from("ai_messages")
-      .insert({ conversation_id: conversationId, school_id: ctx.school.id, role: "assistant", content: reply.text.slice(0, 20000), tools_used: reply.toolsUsed })
+      .insert({
+        conversation_id: conversationId,
+        school_id: ctx.school.id,
+        role: "assistant",
+        content: reply.text.slice(0, 20000),
+        tools_used: reply.toolsUsed,
+      })
       .select("id, created_at")
       .single(),
   );
@@ -142,7 +181,18 @@ export async function ask(ctx: AppContext, input: z.infer<typeof askSchema>): Pr
 
   const messages: ChatMessageView[] = [
     { id: userRow.id, role: "user", content: input.message, toolsUsed: [], createdAt: userRow.created_at },
-    { id: assistantRow.id, role: "assistant", content: reply.text, toolsUsed: reply.toolsUsed, createdAt: assistantRow.created_at },
+    {
+      id: assistantRow.id,
+      role: "assistant",
+      content: reply.text,
+      toolsUsed: reply.toolsUsed,
+      createdAt: assistantRow.created_at,
+    },
   ];
-  return { conversationId, messages, students: await resolveStudentRefs(ctx.db, ctx.school.id, [reply.text]), proposals: reply.proposals };
+  return {
+    conversationId,
+    messages,
+    students: await resolveStudentRefs(ctx.db, ctx.school.id, [reply.text]),
+    proposals: reply.proposals,
+  };
 }

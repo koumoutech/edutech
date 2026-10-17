@@ -24,7 +24,15 @@ interface Card_ {
   status: string;
 }
 
-export function ReportCardTable({ cards, canValidate, canPublish }: { cards: Card_[]; canValidate: boolean; canPublish: boolean }) {
+export function ReportCardTable({
+  cards,
+  canValidate,
+  canPublish,
+}: {
+  cards: Card_[];
+  canValidate: boolean;
+  canPublish: boolean;
+}) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -45,26 +53,45 @@ export function ReportCardTable({ cards, canValidate, canPublish }: { cards: Car
         router.refresh();
       }
     });
-  const ids = (status: string) => cards.filter((c) => (selected.size ? selected.has(c.id) : true) && c.status === status).map((c) => c.id);
+  const ids = (status: string) =>
+    cards.filter((c) => (selected.size ? selected.has(c.id) : true) && c.status === status).map((c) => c.id);
   const selectable = canValidate || canPublish;
 
   return (
     <Card className="overflow-hidden">
       {selectable && (
         <div className="flex flex-wrap items-center gap-2 border-b p-3">
-          <p className="mr-auto text-sm text-muted-foreground">{selected.size ? `${selected.size} sélectionné(s)` : "Actions sur toute la classe"}</p>
+          <p className="text-muted-foreground mr-auto text-sm">
+            {selected.size ? `${selected.size} sélectionné(s)` : "Actions sur toute la classe"}
+          </p>
           {canValidate && (
-            <Button size="sm" variant="outline" disabled={pending || !ids("draft").length} onClick={() => run("validated", ids("draft"))}>
-              {pending ? <Loader2Icon className="animate-spin" /> : <CheckCircle2Icon />} Valider ({ids("draft").length})
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={pending || !ids("draft").length}
+              onClick={() => run("validated", ids("draft"))}
+            >
+              {pending ? <Loader2Icon className="animate-spin" /> : <CheckCircle2Icon />} Valider ({ids("draft").length}
+              )
             </Button>
           )}
           {canPublish && (
-            <Button size="sm" variant="highlight" disabled={pending || !ids("validated").length} onClick={() => run("published", ids("validated"))}>
+            <Button
+              size="sm"
+              variant="highlight"
+              disabled={pending || !ids("validated").length}
+              onClick={() => run("published", ids("validated"))}
+            >
               <EyeIcon /> Publier ({ids("validated").length})
             </Button>
           )}
           {canValidate && (
-            <Button size="sm" variant="ghost" disabled={pending || !selected.size} onClick={() => run("draft", [...selected])}>
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={pending || !selected.size}
+              onClick={() => run("draft", [...selected])}
+            >
               <Undo2Icon /> Repasser en brouillon
             </Button>
           )}
@@ -97,12 +124,18 @@ export function ReportCardTable({ cards, canValidate, canPublish }: { cards: Car
             <TR key={c.id}>
               {selectable && (
                 <TD>
-                  <input type="checkbox" aria-label={`Sélectionner ${c.name}`} className="size-4 accent-[var(--primary)]" checked={selected.has(c.id)} onChange={() => toggle(c.id)} />
+                  <input
+                    type="checkbox"
+                    aria-label={`Sélectionner ${c.name}`}
+                    className="size-4 accent-[var(--primary)]"
+                    checked={selected.has(c.id)}
+                    onChange={() => toggle(c.id)}
+                  />
                 </TD>
               )}
               <TD className="tabular-nums">{c.rank ? `${c.rank}/${c.classSize}` : "—"}</TD>
               <TD>
-                <Link href={`/app/report-cards/${c.id}`} className="font-medium hover:text-primary">
+                <Link href={`/app/report-cards/${c.id}`} className="hover:text-primary font-medium">
                   {c.name}
                 </Link>
               </TD>

@@ -34,10 +34,14 @@ export async function getBranding(): Promise<PlatformBranding> {
     const { data } = await anon.from("platform_settings").select("key, value").eq("is_public", true);
     const map = new Map((data ?? []).map((r) => [r.key, r.value]));
     return {
-      productName: typeof map.get("product.name") === "string" ? (map.get("product.name") as string) : fallback.productName,
-      tagline: typeof map.get("product.tagline") === "string" ? (map.get("product.tagline") as string) : fallback.tagline,
+      productName:
+        typeof map.get("product.name") === "string" ? (map.get("product.name") as string) : fallback.productName,
+      tagline:
+        typeof map.get("product.tagline") === "string" ? (map.get("product.tagline") as string) : fallback.tagline,
       supportEmail:
-        typeof map.get("product.support_email") === "string" ? (map.get("product.support_email") as string) : fallback.supportEmail,
+        typeof map.get("product.support_email") === "string"
+          ? (map.get("product.support_email") as string)
+          : fallback.supportEmail,
     };
   } catch {
     return fallback;

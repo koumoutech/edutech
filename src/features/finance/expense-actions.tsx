@@ -9,8 +9,25 @@ export function ExpenseActions({ id, status }: { id: string; status: string }) {
   if (status === "pending") {
     return (
       <div className="flex justify-end gap-1">
-        <ConfirmDialog trigger={<Button size="icon-sm" variant="ghost" aria-label="Approuver"><CheckIcon /></Button>} title="Approuver la dépense ?" action={() => setExpenseStatusAction(id, "approved")} />
-        <ConfirmDialog trigger={<Button size="icon-sm" variant="ghost" aria-label="Rejeter"><XIcon /></Button>} title="Rejeter la dépense ?" tone="destructive" action={() => setExpenseStatusAction(id, "rejected")} />
+        <ConfirmDialog
+          trigger={
+            <Button size="icon-sm" variant="ghost" aria-label="Approuver">
+              <CheckIcon />
+            </Button>
+          }
+          title="Approuver la dépense ?"
+          action={() => setExpenseStatusAction(id, "approved")}
+        />
+        <ConfirmDialog
+          trigger={
+            <Button size="icon-sm" variant="ghost" aria-label="Rejeter">
+              <XIcon />
+            </Button>
+          }
+          title="Rejeter la dépense ?"
+          tone="destructive"
+          action={() => setExpenseStatusAction(id, "rejected")}
+        />
       </div>
     );
   }

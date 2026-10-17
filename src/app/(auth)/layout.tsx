@@ -15,9 +15,9 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           <ThemeToggle />
         </div>
         <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">{children}</main>
-        <p className="text-center text-xs text-muted-foreground">Connexion sécurisée · Données protégées</p>
+        <p className="text-muted-foreground text-center text-xs">Connexion sécurisée · Données protégées</p>
       </div>
-      <aside className="relative hidden overflow-hidden bg-brand-deep lg:block" aria-hidden>
+      <aside className="bg-brand-deep relative hidden overflow-hidden lg:block" aria-hidden>
         <div className="absolute inset-0 bg-[radial-gradient(40rem_30rem_at_20%_20%,#16834A,transparent),radial-gradient(30rem_20rem_at_80%_80%,#F5C54240,transparent)]" />
         <div className="relative flex h-full flex-col justify-end p-12 text-white">
           <p className="max-w-md text-3xl leading-tight font-bold text-balance">

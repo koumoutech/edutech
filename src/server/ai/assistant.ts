@@ -65,7 +65,12 @@ export function systemPrompt(ctx: AppContext, allowPersonalData: boolean): strin
  * Only the user's text and the final assistant text are kept in history; tool
  * results are never persisted.
  */
-export async function runAssistant(ctx: AppContext, history: ChatTurn[], userMessage: string, opts: AssistantOptions): Promise<AssistantReply> {
+export async function runAssistant(
+  ctx: AppContext,
+  history: ChatTurn[],
+  userMessage: string,
+  opts: AssistantOptions,
+): Promise<AssistantReply> {
   const tools = toolsFor(ctx);
   const rt: ToolRuntime = { ctx, allowPersonalData: opts.allowPersonalData, proposals: [] };
   const toolsUsed = new Set<string>();
@@ -108,7 +113,11 @@ export async function runAssistant(ctx: AppContext, history: ChatTurn[], userMes
 
     // A refusal can cut a tool call mid-input: never run that turn's tools.
     if (response.stop_reason === "refusal") return done("refused", "Je ne peux pas répondre à cette demande.");
-    if (response.stop_reason === "max_tokens") return done("truncated", "La réponse a été interrompue car elle était trop longue. Reformulez une question plus précise.");
+    if (response.stop_reason === "max_tokens")
+      return done(
+        "truncated",
+        "La réponse a été interrompue car elle était trop longue. Reformulez une question plus précise.",
+      );
     if (response.stop_reason === "pause_turn") {
       messages.push({ role: "assistant", content: response.content });
       continue;
@@ -124,8 +133,18 @@ export async function runAssistant(ctx: AppContext, history: ChatTurn[], userMes
       const started = Date.now();
       const exec = await executeTool(rt, block.name, block.input);
       toolsUsed.add(block.name);
-      await opts.onToolCall?.({ tool: block.name, outcome: exec.outcome, count: exec.count, durationMs: Date.now() - started });
-      results.push({ type: "tool_result", tool_use_id: block.id, content: exec.content, ...(exec.outcome === "ok" ? {} : { is_error: true }) });
+      await opts.onToolCall?.({
+        tool: block.name,
+        outcome: exec.outcome,
+        count: exec.count,
+        durationMs: Date.now() - started,
+      });
+      results.push({
+        type: "tool_result",
+        tool_use_id: block.id,
+        content: exec.content,
+        ...(exec.outcome === "ok" ? {} : { is_error: true }),
+      });
     }
     messages.push({ role: "user", content: results });
   }

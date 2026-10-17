@@ -15,7 +15,9 @@ function isActive(pathname: string, href: string, all: NavItem[]): boolean {
   if (href === "/app") return pathname === "/app";
   if (!(pathname === href || pathname.startsWith(`${href}/`))) return false;
   // Prefer the most specific matching entry (e.g. /app/staff/leaves over /app/staff).
-  return !all.some((o) => o.href !== href && o.href.startsWith(href) && (pathname === o.href || pathname.startsWith(`${o.href}/`)));
+  return !all.some(
+    (o) => o.href !== href && o.href.startsWith(href) && (pathname === o.href || pathname.startsWith(`${o.href}/`)),
+  );
 }
 
 function NavLinks({ items, onNavigate }: { items: NavItem[]; onNavigate?: () => void }) {
@@ -28,7 +30,9 @@ function NavLinks({ items, onNavigate }: { items: NavItem[]; onNavigate?: () => 
         if (!entries.length) return null;
         return (
           <div key={g}>
-            <p className="mb-1.5 px-3 text-[11px] font-semibold tracking-wider text-muted-foreground/80 uppercase">{NAV_GROUP_LABELS[g]}</p>
+            <p className="text-muted-foreground/80 mb-1.5 px-3 text-[11px] font-semibold tracking-wider uppercase">
+              {NAV_GROUP_LABELS[g]}
+            </p>
             <ul className="space-y-0.5">
               {entries.map((item) => {
                 const Icon = NAV_ICONS[item.icon];
@@ -47,13 +51,15 @@ function NavLinks({ items, onNavigate }: { items: NavItem[]; onNavigate?: () => 
                       {active && (
                         <motion.span
                           layoutId="nav-active"
-                          className="absolute inset-0 rounded-lg bg-brand-soft dark:bg-secondary"
+                          className="bg-brand-soft dark:bg-secondary absolute inset-0 rounded-lg"
                           transition={{ type: "spring", stiffness: 500, damping: 40 }}
                         />
                       )}
                       <Icon className="relative size-[18px] shrink-0" aria-hidden />
                       <span className="relative truncate">{item.label}</span>
-                      {item.icon === "assistant" && <SparklesIcon className="relative ml-auto size-3.5 text-highlight" aria-hidden />}
+                      {item.icon === "assistant" && (
+                        <SparklesIcon className="text-highlight relative ml-auto size-3.5" aria-hidden />
+                      )}
                     </Link>
                   </li>
                 );
@@ -66,9 +72,17 @@ function NavLinks({ items, onNavigate }: { items: NavItem[]; onNavigate?: () => 
   );
 }
 
-export function Sidebar({ items, productName, schoolName }: { items: NavItem[]; productName: string; schoolName: string }) {
+export function Sidebar({
+  items,
+  productName,
+  schoolName,
+}: {
+  items: NavItem[];
+  productName: string;
+  schoolName: string;
+}) {
   return (
-    <aside className="no-print fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r bg-sidebar lg:flex">
+    <aside className="no-print bg-sidebar fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r lg:flex">
       <div className="flex h-16 items-center border-b px-5">
         <Link href="/app" aria-label="Tableau de bord">
           <Logo name={productName} />
@@ -77,8 +91,8 @@ export function Sidebar({ items, productName, schoolName }: { items: NavItem[]; 
       <div className="flex-1 overflow-y-auto px-3 py-4">
         <NavLinks items={items} />
       </div>
-      <div className="border-t px-5 py-3 text-xs text-muted-foreground">
-        <p className="truncate font-medium text-foreground">{schoolName}</p>
+      <div className="text-muted-foreground border-t px-5 py-3 text-xs">
+        <p className="text-foreground truncate font-medium">{schoolName}</p>
         <p>Espace établissement</p>
       </div>
     </aside>
@@ -94,7 +108,7 @@ export function MobileNav({ items, productName }: { items: NavItem[]; productNam
     <>
       <nav
         aria-label="Navigation rapide"
-        className="no-print fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden"
+        className="no-print bg-card/95 fixed inset-x-0 bottom-0 z-40 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden"
       >
         <ul className="mx-auto grid max-w-lg grid-cols-5">
           {primary.map((item) => {
@@ -110,7 +124,12 @@ export function MobileNav({ items, productName }: { items: NavItem[]; productNam
                     active ? "text-primary" : "text-muted-foreground",
                   )}
                 >
-                  <span className={cn("rounded-full px-4 py-1 transition-colors", active && "bg-brand-soft dark:bg-secondary")}>
+                  <span
+                    className={cn(
+                      "rounded-full px-4 py-1 transition-colors",
+                      active && "bg-brand-soft dark:bg-secondary",
+                    )}
+                  >
                     <Icon className="size-5" aria-hidden />
                   </span>
                   <span className="max-w-full truncate px-1">{item.label.split(" ")[0]}</span>
@@ -122,7 +141,7 @@ export function MobileNav({ items, productName }: { items: NavItem[]; productNam
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="flex h-16 w-full flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground"
+              className="text-muted-foreground flex h-16 w-full flex-col items-center justify-center gap-1 text-[11px] font-medium"
               aria-haspopup="dialog"
             >
               <span className="px-4 py-1">

@@ -19,9 +19,27 @@ interface Student {
 }
 
 const OPTIONS: { value: Status; label: string; short: string; icon: typeof UserCheckIcon; active: string }[] = [
-  { value: "present", label: "Présent", short: "P", icon: UserCheckIcon, active: "bg-primary text-primary-foreground border-primary" },
-  { value: "absent", label: "Absent", short: "A", icon: UserXIcon, active: "bg-destructive text-white border-destructive" },
-  { value: "late", label: "Retard", short: "R", icon: ClockIcon, active: "bg-highlight text-highlight-foreground border-highlight" },
+  {
+    value: "present",
+    label: "Présent",
+    short: "P",
+    icon: UserCheckIcon,
+    active: "bg-primary text-primary-foreground border-primary",
+  },
+  {
+    value: "absent",
+    label: "Absent",
+    short: "A",
+    icon: UserXIcon,
+    active: "bg-destructive text-white border-destructive",
+  },
+  {
+    value: "late",
+    label: "Retard",
+    short: "R",
+    icon: ClockIcon,
+    active: "bg-highlight text-highlight-foreground border-highlight",
+  },
 ];
 
 /**
@@ -49,7 +67,9 @@ export function RollCall({
     const init: Record<string, { status: Status; minutes?: number }> = {};
     for (const s of students) {
       const prev = existing.find((e) => e.student_id === s.id);
-      init[s.id] = prev ? { status: prev.status as Status, minutes: prev.minutes_late ?? undefined } : { status: justified.includes(s.id) ? "excused" : "present" };
+      init[s.id] = prev
+        ? { status: prev.status as Status, minutes: prev.minutes_late ?? undefined }
+        : { status: justified.includes(s.id) ? "excused" : "present" };
     }
     return init;
   });
@@ -84,15 +104,15 @@ export function RollCall({
   return (
     <div className="space-y-3 pb-24">
       <div className="grid grid-cols-3 gap-2 text-center text-sm">
-        <div className="rounded-xl bg-brand-soft p-2 dark:bg-secondary">
+        <div className="bg-brand-soft dark:bg-secondary rounded-xl p-2">
           <p className="text-xl font-bold tabular-nums">{counts.present + counts.excused}</p>
           <p className="text-xs">Présents</p>
         </div>
-        <div className="rounded-xl bg-destructive/10 p-2 text-destructive">
+        <div className="bg-destructive/10 text-destructive rounded-xl p-2">
           <p className="text-xl font-bold tabular-nums">{counts.absent}</p>
           <p className="text-xs">Absents</p>
         </div>
-        <div className="rounded-xl bg-highlight/20 p-2">
+        <div className="bg-highlight/20 rounded-xl p-2">
           <p className="text-xl font-bold tabular-nums">{counts.late}</p>
           <p className="text-xs">Retards</p>
         </div>
@@ -101,7 +121,13 @@ export function RollCall({
       <Button
         variant="outline"
         className="w-full"
-        onClick={() => setState(Object.fromEntries(students.map((s) => [s.id, { status: justified.includes(s.id) ? "excused" : "present" }])) as typeof state)}
+        onClick={() =>
+          setState(
+            Object.fromEntries(
+              students.map((s) => [s.id, { status: justified.includes(s.id) ? "excused" : "present" }]),
+            ) as typeof state,
+          )
+        }
       >
         <CheckCheckIcon /> Tout le monde présent
       </Button>
@@ -110,14 +136,27 @@ export function RollCall({
         {students.map((s, i) => {
           const cur = state[s.id];
           return (
-            <div key={s.id} className={cn("p-3 transition-colors", cur.status === "absent" && "bg-destructive/5", cur.status === "late" && "bg-highlight/10")}>
+            <div
+              key={s.id}
+              className={cn(
+                "p-3 transition-colors",
+                cur.status === "absent" && "bg-destructive/5",
+                cur.status === "late" && "bg-highlight/10",
+              )}
+            >
               <div className="flex items-center gap-3">
-                <span className="w-6 text-right text-xs text-muted-foreground tabular-nums">{i + 1}</span>
+                <span className="text-muted-foreground w-6 text-right text-xs tabular-nums">{i + 1}</span>
                 <p className="min-w-0 flex-1 truncate font-medium">
                   {s.last_name.toUpperCase()} {s.first_name}
-                  {cur.status === "excused" && <span className="ml-2 text-xs font-normal text-primary">absence justifiée</span>}
+                  {cur.status === "excused" && (
+                    <span className="text-primary ml-2 text-xs font-normal">absence justifiée</span>
+                  )}
                 </p>
-                <div role="radiogroup" aria-label={`Présence de ${s.first_name} ${s.last_name}`} className="flex gap-1.5">
+                <div
+                  role="radiogroup"
+                  aria-label={`Présence de ${s.first_name} ${s.last_name}`}
+                  className="flex gap-1.5"
+                >
                   {OPTIONS.map((o) => {
                     const on = cur.status === o.value;
                     return (
@@ -149,7 +188,9 @@ export function RollCall({
                     min={1}
                     max={600}
                     value={cur.minutes ?? 5}
-                    onChange={(e) => setState((st) => ({ ...st, [s.id]: { ...st[s.id], minutes: Number(e.target.value) } }))}
+                    onChange={(e) =>
+                      setState((st) => ({ ...st, [s.id]: { ...st[s.id], minutes: Number(e.target.value) } }))
+                    }
                     className="h-9 w-20"
                   />
                 </label>
@@ -159,9 +200,9 @@ export function RollCall({
         })}
       </Card>
 
-      <div className="fixed inset-x-0 bottom-16 z-30 border-t bg-card/95 p-3 backdrop-blur lg:bottom-0 lg:left-64">
+      <div className="bg-card/95 fixed inset-x-0 bottom-16 z-30 border-t p-3 backdrop-blur lg:bottom-0 lg:left-64">
         <div className="mx-auto flex max-w-3xl items-center gap-3">
-          <p className="flex-1 text-sm text-muted-foreground">
+          <p className="text-muted-foreground flex-1 text-sm">
             {students.length} élèves · {counts.absent} absent(s) · {counts.late} retard(s)
           </p>
           <Button size="lg" onClick={save} disabled={pending || students.length === 0}>

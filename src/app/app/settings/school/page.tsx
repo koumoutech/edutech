@@ -18,7 +18,10 @@ export default async function SchoolSettingsPage() {
   const manageGrading = can(ctx, "academics.manage", ["school"]);
   if (!manageSchool && !manageGrading) redirect("/app/forbidden");
   const [s, policy] = await Promise.all([getSchool(ctx), getGradingPolicy(ctx)]);
-  const logoUrl = s.logo_path && publicEnv.NEXT_PUBLIC_SUPABASE_URL ? `${publicEnv.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/school-assets/${s.logo_path}` : null;
+  const logoUrl =
+    s.logo_path && publicEnv.NEXT_PUBLIC_SUPABASE_URL
+      ? `${publicEnv.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/school-assets/${s.logo_path}`
+      : null;
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
@@ -77,7 +80,13 @@ export default async function SchoolSettingsPage() {
                 <Input id="s-tz" name="timezone" defaultValue={s.timezone} required />
               </Field>
               <Field label="Couleur principale" htmlFor="s-color">
-                <Input id="s-color" name="brand_color" type="color" defaultValue={s.brand_color ?? "#16834A"} className="h-10 w-20 p-1" />
+                <Input
+                  id="s-color"
+                  name="brand_color"
+                  type="color"
+                  defaultValue={s.brand_color ?? "#16834A"}
+                  className="h-10 w-20 p-1"
+                />
               </Field>
               <Field label="Logo (PNG, JPEG, WEBP — 2 Mo)" htmlFor="s-logo">
                 <div className="flex items-center gap-3">
@@ -85,7 +94,13 @@ export default async function SchoolSettingsPage() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={logoUrl} alt="Logo actuel" className="size-10 rounded-lg border object-contain" />
                   )}
-                  <Input id="s-logo" name="logo" type="file" accept="image/png,image/jpeg,image/webp" className="pt-1.5" />
+                  <Input
+                    id="s-logo"
+                    name="logo"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="pt-1.5"
+                  />
                 </div>
               </Field>
             </ActionForm>
@@ -96,7 +111,10 @@ export default async function SchoolSettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Barème de notation par défaut</CardTitle>
-            <CardDescription>Utilisé pour le calcul des moyennes, rangs et mentions des bulletins (un barème par niveau peut être défini).</CardDescription>
+            <CardDescription>
+              Utilisé pour le calcul des moyennes, rangs et mentions des bulletins (un barème par niveau peut être
+              défini).
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ActionForm action={updateGradingPolicyAction} className="grid gap-3 sm:grid-cols-3">
@@ -107,7 +125,13 @@ export default async function SchoolSettingsPage() {
                 <Input id="g-max" name="scale_max" type="number" step="any" defaultValue={Number(policy.scale_max)} />
               </Field>
               <Field label="Seuil de réussite" htmlFor="g-pass">
-                <Input id="g-pass" name="passing_mark" type="number" step="any" defaultValue={Number(policy.passing_mark)} />
+                <Input
+                  id="g-pass"
+                  name="passing_mark"
+                  type="number"
+                  step="any"
+                  defaultValue={Number(policy.passing_mark)}
+                />
               </Field>
               <Field label="Décimales" htmlFor="g-dec">
                 <Input id="g-dec" name="decimals" type="number" min={0} max={4} defaultValue={policy.decimals} />
@@ -132,7 +156,13 @@ export default async function SchoolSettingsPage() {
                 </Select>
               </Field>
               <label className="flex items-center gap-2 self-end pb-2 text-sm">
-                <input type="checkbox" name="ranking_enabled" defaultChecked={policy.ranking_enabled} className="size-4 accent-[var(--primary)]" /> Classements
+                <input
+                  type="checkbox"
+                  name="ranking_enabled"
+                  defaultChecked={policy.ranking_enabled}
+                  className="size-4 accent-[var(--primary)]"
+                />{" "}
+                Classements
               </label>
             </ActionForm>
           </CardContent>

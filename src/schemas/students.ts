@@ -29,7 +29,11 @@ export const studentFieldsSchema = z.object({
   nationality: optionalText(80),
   address: optionalText(300),
   phone: optionalText(40),
-  email: z.email("E-mail invalide").max(254).optional().or(z.literal("").transform(() => undefined)),
+  email: z
+    .email("E-mail invalide")
+    .max(254)
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
   previous_school: optionalText(160),
   notes: optionalText(2000),
 });
@@ -39,7 +43,11 @@ export const guardianFieldsSchema = z.object({
   first_name: z.string().trim().min(1, "Prénom du responsable requis").max(80),
   last_name: z.string().trim().min(1, "Nom du responsable requis").max(80),
   phone: optionalText(40),
-  email: z.email("E-mail invalide").max(254).optional().or(z.literal("").transform(() => undefined)),
+  email: z
+    .email("E-mail invalide")
+    .max(254)
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
   profession: optionalText(120),
   relationship: relationshipSchema.default("other"),
   is_emergency_contact: z.coerce.boolean().default(true),
@@ -50,7 +58,10 @@ export const createStudentSchema = z.object({
   student: studentFieldsSchema,
   guardians: z.array(guardianFieldsSchema).max(4).default([]),
   academic_year_id: z.uuid().optional(),
-  class_id: z.uuid().optional().or(z.literal("").transform(() => undefined)),
+  class_id: z
+    .uuid()
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
 });
 
 export const updateStudentSchema = studentFieldsSchema.extend({ id: z.uuid() });
@@ -58,7 +69,10 @@ export const updateStudentSchema = studentFieldsSchema.extend({ id: z.uuid() });
 export const studentListQuerySchema = z.object({
   q: z.string().trim().max(80).optional(),
   class: z.uuid().optional().catch(undefined),
-  status: z.enum(["active", "applicant", "transferred", "graduated", "withdrawn", "archived", "all"]).catch("active").default("active"),
+  status: z
+    .enum(["active", "applicant", "transferred", "graduated", "withdrawn", "archived", "all"])
+    .catch("active")
+    .default("active"),
   page: z.coerce.number().int().min(1).max(10000).catch(1).default(1),
   filter: z.enum(["incomplete"]).optional().catch(undefined),
 });

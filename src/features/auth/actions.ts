@@ -103,7 +103,9 @@ export async function setPassword(_prev: ActionResult | null, formData: FormData
     if (error) {
       throw new AppError(
         "VALIDATION",
-        error.code === "same_password" ? "Choisissez un mot de passe différent de l'ancien." : "Mot de passe refusé. Choisissez-en un plus robuste.",
+        error.code === "same_password"
+          ? "Choisissez un mot de passe différent de l'ancien."
+          : "Mot de passe refusé. Choisissez-en un plus robuste.",
       );
     }
     await recordLoginEvent("password_changed", { userId: user.id });
@@ -122,7 +124,8 @@ export async function bootstrapPlatform(_prev: ActionResult | null, formData: Fo
     const expected = serverEnv().SETUP_TOKEN;
     const ip = await clientIp();
     if (!(await consumeRateLimit(`setup:ip:${fingerprint(ip)}`, 5, 3600, 3600))) throw new AppError("RATE_LIMITED");
-    if (!expected || !safeEqual(input.token, expected)) throw new AppError("FORBIDDEN", "Jeton d'initialisation invalide.");
+    if (!expected || !safeEqual(input.token, expected))
+      throw new AppError("FORBIDDEN", "Jeton d'initialisation invalide.");
 
     const admin = createAdminClient();
     const { count } = await admin.from("platform_admins").select("user_id", { count: "exact", head: true });
@@ -134,7 +137,8 @@ export async function bootstrapPlatform(_prev: ActionResult | null, formData: Fo
       email_confirm: true,
       user_metadata: { full_name: input.fullName },
     });
-    if (error || !data.user) throw new AppError("VALIDATION", "Impossible de créer le compte (adresse déjà utilisée ?).");
+    if (error || !data.user)
+      throw new AppError("VALIDATION", "Impossible de créer le compte (adresse déjà utilisée ?).");
     const { error: rpcError } = await admin.rpc("bootstrap_platform_admin", { p_user: data.user.id });
     if (rpcError) {
       await admin.auth.admin.deleteUser(data.user.id);

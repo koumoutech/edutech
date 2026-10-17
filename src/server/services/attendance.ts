@@ -43,7 +43,9 @@ export async function rollCallContext(ctx: AppContext, classId: string, date: st
     entryId
       ? db
           .from("timetable_entries")
-          .select("starts_at, ends_at, cs:class_subjects!timetable_entries_school_id_class_subject_id_fkey(subject:subjects!class_subjects_school_id_subject_id_fkey(name))")
+          .select(
+            "starts_at, ends_at, cs:class_subjects!timetable_entries_school_id_class_subject_id_fkey(subject:subjects!class_subjects_school_id_subject_id_fkey(name))",
+          )
           .eq("id", entryId)
           .maybeSingle()
       : null,
@@ -55,7 +57,10 @@ export async function rollCallContext(ctx: AppContext, classId: string, date: st
   const { data: justified } = await db
     .from("absence_justifications")
     .select("student_id")
-    .in("student_id", students.map((s) => s.id))
+    .in(
+      "student_id",
+      students.map((s) => s.id),
+    )
     .eq("status", "accepted")
     .lte("from_date", date)
     .gte("to_date", date);
@@ -87,7 +92,9 @@ export async function saveAttendance(ctx: AppContext, input: z.infer<typeof save
 export async function attendanceOverview(ctx: AppContext) {
   const year = await getCurrentYear(ctx.db, ctx.school.id);
   if (!year) return { year, classes: [], pendingJustifications: 0 };
-  let classes = unwrapList(await ctx.db.from("classes").select("id, name").eq("academic_year_id", year.id).order("name"));
+  let classes = unwrapList(
+    await ctx.db.from("classes").select("id, name").eq("academic_year_id", year.id).order("name"),
+  );
   if (!canSchoolWide(ctx, "attendance.create") && ctx.school.staff_id) {
     const mine = new Set((await listTeacherAssignments(ctx.db, ctx.school.staff_id, year.id)).map((a) => a.class?.id));
     const { data: homeroom } = await ctx.db.from("classes").select("id").eq("homeroom_staff_id", ctx.school.staff_id);
@@ -96,9 +103,19 @@ export async function attendanceOverview(ctx: AppContext) {
   }
   const ids = classes.map((c) => c.id);
   const [sessions, pending] = await Promise.all([
-    ids.length ? ctx.db.from("attendance_sessions").select("class_id, attendance_records(status)").in("class_id", ids).eq("date", isoDate()) : null,
+    ids.length
+      ? ctx.db
+          .from("attendance_sessions")
+          .select("class_id, attendance_records(status)")
+          .in("class_id", ids)
+          .eq("date", isoDate())
+      : null,
     can(ctx, "justifications.validate")
-      ? ctx.db.from("absence_justifications").select("id", { count: "exact", head: true }).eq("school_id", ctx.school.id).eq("status", "pending")
+      ? ctx.db
+          .from("absence_justifications")
+          .select("id", { count: "exact", head: true })
+          .eq("school_id", ctx.school.id)
+          .eq("status", "pending")
       : null,
   ]);
   const today = new Map<string, { absent: number; late: number; total: number }>();
@@ -111,7 +128,11 @@ export async function attendanceOverview(ctx: AppContext) {
     }
     today.set(s.class_id, cur);
   }
-  return { year, classes: classes.map((c) => ({ ...c, today: today.get(c.id) ?? null })), pendingJustifications: pending?.count ?? 0 };
+  return {
+    year,
+    classes: classes.map((c) => ({ ...c, today: today.get(c.id) ?? null })),
+    pendingJustifications: pending?.count ?? 0,
+  };
 }
 
 /** History of one student (parents / students / staff), RLS-filtered. */
@@ -120,7 +141,9 @@ export async function studentAttendanceHistory(ctx: AppContext, studentId: strin
   const [records, justifications] = await Promise.all([
     ctx.db
       .from("attendance_records")
-      .select("id, status, minutes_late, note, session:attendance_sessions!attendance_records_school_id_session_id_fkey(date, kind, cs:class_subjects!attendance_sessions_school_id_class_subject_id_fkey(subject:subjects!class_subjects_school_id_subject_id_fkey(name)))")
+      .select(
+        "id, status, minutes_late, note, session:attendance_sessions!attendance_records_school_id_session_id_fkey(date, kind, cs:class_subjects!attendance_sessions_school_id_class_subject_id_fkey(subject:subjects!class_subjects_school_id_subject_id_fkey(name)))",
+      )
       .eq("student_id", studentId)
       .neq("status", "present")
       .order("created_at", { ascending: false })
@@ -144,7 +167,11 @@ export const justificationSchema = z
   })
   .refine((v) => v.to_date >= v.from_date, { path: ["to_date"], message: "La date de fin précède le début" });
 
-export async function submitJustification(ctx: AppContext, input: z.infer<typeof justificationSchema>, documentId?: string) {
+export async function submitJustification(
+  ctx: AppContext,
+  input: z.infer<typeof justificationSchema>,
+  documentId?: string,
+) {
   assertCan(ctx, "justifications.create");
   const { error } = await ctx.db.from("absence_justifications").insert({
     school_id: ctx.school.id,
@@ -163,7 +190,9 @@ export async function pendingJustifications(ctx: AppContext) {
   return unwrapList(
     await ctx.db
       .from("absence_justifications")
-      .select("id, from_date, to_date, reason, status, submitted_at, document_id, student:students!absence_justifications_school_id_student_id_fkey(id, first_name, last_name)")
+      .select(
+        "id, from_date, to_date, reason, status, submitted_at, document_id, student:students!absence_justifications_school_id_student_id_fkey(id, first_name, last_name)",
+      )
       .eq("school_id", ctx.school.id)
       .order("status")
       .order("submitted_at", { ascending: false })
@@ -171,9 +200,18 @@ export async function pendingJustifications(ctx: AppContext) {
   );
 }
 
-export async function reviewJustification(ctx: AppContext, id: string, status: "accepted" | "rejected", comment?: string) {
+export async function reviewJustification(
+  ctx: AppContext,
+  id: string,
+  status: "accepted" | "rejected",
+  comment?: string,
+) {
   assertCan(ctx, "justifications.validate");
-  const { error } = await ctx.db.rpc("review_absence_justification", { p_id: id, p_status: status, p_comment: comment });
+  const { error } = await ctx.db.rpc("review_absence_justification", {
+    p_id: id,
+    p_status: status,
+    p_comment: comment,
+  });
   if (error) throw fromDbError(error);
 }
 

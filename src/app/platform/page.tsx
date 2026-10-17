@@ -43,7 +43,10 @@ async function Content() {
   const { data: admin } = await db.from("platform_admins").select("user_id").eq("user_id", user.id).maybeSingle();
   if (!admin) redirect("/no-access");
   const [{ data: schools }, branding] = await Promise.all([
-    db.from("schools").select("id, name, slug, country, currency, status, is_demo, created_at").order("created_at", { ascending: false }),
+    db
+      .from("schools")
+      .select("id, name, slug, country, currency, status, is_demo, created_at")
+      .order("created_at", { ascending: false }),
     getBranding(),
   ]);
   return (
@@ -72,7 +75,8 @@ async function Content() {
               </Field>
             </div>
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" name="is_demo" className="size-4 accent-[var(--primary)]" /> Établissement de démonstration (isolé)
+              <input type="checkbox" name="is_demo" className="size-4 accent-[var(--primary)]" /> Établissement de
+              démonstration (isolé)
             </label>
           </FormDialog>
         }

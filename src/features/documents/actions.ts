@@ -10,10 +10,28 @@ import { softDeleteDocument, storeDocument } from "@/server/services/documents";
 
 const uploadSchema = z.object({
   title: z.string().trim().min(2).max(160),
-  category: z.enum(["student_file", "justification", "certificate", "report_card", "receipt", "hr", "administrative", "other"]),
-  student_id: z.uuid().optional().or(z.literal("").transform(() => undefined)),
-  staff_id: z.uuid().optional().or(z.literal("").transform(() => undefined)),
-  document_type_id: z.uuid().optional().or(z.literal("").transform(() => undefined)),
+  category: z.enum([
+    "student_file",
+    "justification",
+    "certificate",
+    "report_card",
+    "receipt",
+    "hr",
+    "administrative",
+    "other",
+  ]),
+  student_id: z
+    .uuid()
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  staff_id: z
+    .uuid()
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  document_type_id: z
+    .uuid()
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
   visible_to_family: z.literal("on").optional(),
 });
 

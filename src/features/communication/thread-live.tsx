@@ -16,7 +16,11 @@ export function ThreadLive({ threadId }: { threadId: string }) {
     const supabase = getBrowserClient();
     const channel = supabase
       .channel(`thread:${threadId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `thread_id=eq.${threadId}` }, () => router.refresh())
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages", filter: `thread_id=eq.${threadId}` },
+        () => router.refresh(),
+      )
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);

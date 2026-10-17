@@ -44,12 +44,19 @@ export function teacherOverloads(
 }
 
 /** Splits a school year into N consecutive terms of (roughly) equal length. */
-export function splitIntoTerms(startsOn: string, endsOn: string, count: number): { name: string; position: number; starts_on: string; ends_on: string }[] {
+export function splitIntoTerms(
+  startsOn: string,
+  endsOn: string,
+  count: number,
+): { name: string; position: number; starts_on: string; ends_on: string }[] {
   const start = new Date(`${startsOn}T12:00:00Z`).getTime();
   const end = new Date(`${endsOn}T12:00:00Z`).getTime();
   const day = 86_400_000;
   const totalDays = Math.round((end - start) / day) + 1;
-  const names = count === 2 ? ["1er semestre", "2e semestre"] : Array.from({ length: count }, (_, i) => (i === 0 ? "1er trimestre" : `${i + 1}e trimestre`));
+  const names =
+    count === 2
+      ? ["1er semestre", "2e semestre"]
+      : Array.from({ length: count }, (_, i) => (i === 0 ? "1er trimestre" : `${i + 1}e trimestre`));
   const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
   return names.map((name, i) => {
     const s = start + Math.floor((totalDays * i) / count) * day;

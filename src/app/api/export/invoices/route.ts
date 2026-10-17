@@ -9,11 +9,14 @@ import { csvResponse, errorResponse } from "@/server/http";
 export async function GET() {
   const ctx = await getAppContext();
   if (!ctx) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
-  if (!canSchoolWide(ctx, "finance.export") || !canSchoolWide(ctx, "finance.read")) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  if (!canSchoolWide(ctx, "finance.export") || !canSchoolWide(ctx, "finance.read"))
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
   try {
     const { data, error } = await ctx.db
       .from("invoices")
-      .select("number, issue_date, due_date, total, amount_paid, balance, status, currency, student:students!invoices_school_id_student_id_fkey(matricule, first_name, last_name)")
+      .select(
+        "number, issue_date, due_date, total, amount_paid, balance, status, currency, student:students!invoices_school_id_student_id_fkey(matricule, first_name, last_name)",
+      )
       .eq("school_id", ctx.school.id)
       .order("issue_date")
       .limit(20000);

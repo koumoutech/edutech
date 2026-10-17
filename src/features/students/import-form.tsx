@@ -32,7 +32,10 @@ export function ImportForm() {
         <CardContent className="space-y-3">
           <div className="flex flex-wrap gap-1.5">
             {IMPORT_COLUMNS.map((c) => (
-              <code key={c.key} className={`rounded-md px-2 py-0.5 text-xs ${c.required ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+              <code
+                key={c.key}
+                className={`rounded-md px-2 py-0.5 text-xs ${c.required ? "bg-primary text-primary-foreground" : "bg-muted"}`}
+              >
                 {c.label}
               </code>
             ))}
@@ -57,7 +60,11 @@ export function ImportForm() {
               <UploadIcon /> Analyser
             </SubmitButton>
           </form>
-          {state && !state.ok && <Alert tone="danger" className="mt-3">{state.error}</Alert>}
+          {state && !state.ok && (
+            <Alert tone="danger" className="mt-3">
+              {state.error}
+            </Alert>
+          )}
         </CardContent>
       </Card>
 

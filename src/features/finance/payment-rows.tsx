@@ -24,7 +24,15 @@ interface PaymentRow {
   reconciled: boolean;
 }
 
-export function PaymentRows({ rows, currency, canValidate }: { rows: PaymentRow[]; currency: string; canValidate: boolean }) {
+export function PaymentRows({
+  rows,
+  currency,
+  canValidate,
+}: {
+  rows: PaymentRow[];
+  currency: string;
+  canValidate: boolean;
+}) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -42,7 +50,7 @@ export function PaymentRows({ rows, currency, canValidate }: { rows: PaymentRow[
     <>
       {canValidate && (
         <div className="flex flex-wrap items-center gap-2 border-b p-3">
-          <p className="mr-auto text-sm text-muted-foreground">{selected.size} sélectionné(s)</p>
+          <p className="text-muted-foreground mr-auto text-sm">{selected.size} sélectionné(s)</p>
           <Button size="sm" variant="outline" disabled={!selected.size || pending} onClick={() => reconcile(true)}>
             <CheckIcon /> Marquer rapprochés
           </Button>
@@ -92,11 +100,17 @@ export function PaymentRows({ rows, currency, canValidate }: { rows: PaymentRow[
               <TD className="hidden md:table-cell">{formatDateTime(p.paidAt)}</TD>
               <TD className="hidden sm:table-cell">
                 {p.method}
-                {p.reference && <span className="block font-mono text-xs text-muted-foreground">{p.reference}</span>}
+                {p.reference && <span className="text-muted-foreground block font-mono text-xs">{p.reference}</span>}
               </TD>
               <TD className="text-right font-semibold tabular-nums">{formatMoney(p.amount, currency)}</TD>
               <TD>
-                {p.status === "reversed" ? <Badge variant="muted">Annulé</Badge> : p.reconciled ? <Badge>Rapproché</Badge> : <Badge variant="warning">À rapprocher</Badge>}
+                {p.status === "reversed" ? (
+                  <Badge variant="muted">Annulé</Badge>
+                ) : p.reconciled ? (
+                  <Badge>Rapproché</Badge>
+                ) : (
+                  <Badge variant="warning">À rapprocher</Badge>
+                )}
               </TD>
               <TD className="text-right whitespace-nowrap">
                 <Button asChild variant="ghost" size="icon-sm">
@@ -119,7 +133,16 @@ export function PaymentRows({ rows, currency, canValidate }: { rows: PaymentRow[
                       action={(reason, fd) => refundPaymentAction(p.id, reason, fd)}
                     >
                       <Field label={`Montant (max. ${formatMoney(p.amount, currency)})`} htmlFor={`rf-${p.id}`}>
-                        <Input id={`rf-${p.id}`} name="amount" type="number" min={1} max={p.amount} step="any" defaultValue={p.amount} required />
+                        <Input
+                          id={`rf-${p.id}`}
+                          name="amount"
+                          type="number"
+                          min={1}
+                          max={p.amount}
+                          step="any"
+                          defaultValue={p.amount}
+                          required
+                        />
                       </Field>
                     </ConfirmDialog>
                     <ConfirmDialog

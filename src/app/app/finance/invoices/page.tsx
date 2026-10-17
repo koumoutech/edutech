@@ -28,13 +28,20 @@ const FILTERS: [string, string][] = [
   ["cancelled", "Annulées"],
 ];
 
-export default async function InvoicesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function InvoicesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const ctx = await requirePermission("finance.read", ["school"]);
   const query = invoiceListSchema.parse(await searchParams);
   const { rows, total } = await listInvoices(ctx, query);
   const canCreate = canSchoolWide(ctx, "invoices.create");
   const year = await getCurrentYear(ctx.db, ctx.school.id);
-  const [classes, settings] = canCreate && year ? await Promise.all([listClasses(ctx.db, ctx.school.id, year.id), financeSettings(ctx)]) : [[], null];
+  const [classes, settings] =
+    canCreate && year
+      ? await Promise.all([listClasses(ctx.db, ctx.school.id, year.id), financeSettings(ctx)])
+      : [[], null];
   const schedules = (settings?.schedules ?? []).filter((s) => s.academic_year_id === year?.id);
   const cur = ctx.school.currency;
   const in30 = new Date();
@@ -55,9 +62,16 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
               </Button>
             )}
             {canCreate && schedules.length > 0 && (
-              <FormDialog title="Facturer une classe" action={generateClassInvoicesAction} triggerLabel="Facturer une classe" triggerVariant="outline" submitLabel="Générer les factures">
-                <p className="text-sm text-muted-foreground">
-                  Une facture par élève actif, à partir des frais de son niveau. Les réductions et bourses sont appliquées ; les frais déjà facturés sont ignorés.
+              <FormDialog
+                title="Facturer une classe"
+                action={generateClassInvoicesAction}
+                triggerLabel="Facturer une classe"
+                triggerVariant="outline"
+                submitLabel="Générer les factures"
+              >
+                <p className="text-muted-foreground text-sm">
+                  Une facture par élève actif, à partir des frais de son niveau. Les réductions et bourses sont
+                  appliquées ; les frais déjà facturés sont ignorés.
                 </p>
                 <Field label="Classe" htmlFor="gi-class">
                   <Select id="gi-class" name="class_id" required>
@@ -72,17 +86,32 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
                   <legend className="mb-1 text-sm font-medium">Frais à facturer</legend>
                   {schedules.map((s) => (
                     <label key={s.id} className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" name="schedules[]" value={s.id} className="size-4 accent-[var(--primary)]" />
+                      <input
+                        type="checkbox"
+                        name="schedules[]"
+                        value={s.id}
+                        className="size-4 accent-[var(--primary)]"
+                      />
                       {s.fee_type?.name} — {s.level?.name ?? "tous niveaux"} — {formatMoney(Number(s.amount), cur)}
-                      <span className="text-xs text-muted-foreground">({FEE_CATEGORIES[s.fee_type?.category ?? "other"]})</span>
+                      <span className="text-muted-foreground text-xs">
+                        ({FEE_CATEGORIES[s.fee_type?.category ?? "other"]})
+                      </span>
                     </label>
                   ))}
                 </fieldset>
                 <Field label="Échéance" htmlFor="gi-due">
-                  <Input id="gi-due" name="due_date" type="date" min={isoDate()} defaultValue={isoDate(in30)} required />
+                  <Input
+                    id="gi-due"
+                    name="due_date"
+                    type="date"
+                    min={isoDate()}
+                    defaultValue={isoDate(in30)}
+                    required
+                  />
                 </Field>
                 <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" name="issue" defaultChecked className="size-4 accent-[var(--primary)]" /> Émettre immédiatement (notifie les familles)
+                  <input type="checkbox" name="issue" defaultChecked className="size-4 accent-[var(--primary)]" />{" "}
+                  Émettre immédiatement (notifie les familles)
                 </label>
               </FormDialog>
             )}
@@ -113,7 +142,10 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
           <input type="hidden" name="filter" value={query.filter} />
           <label className="relative flex-1">
             <span className="sr-only">Rechercher un élève</span>
-            <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <SearchIcon
+              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+              aria-hidden
+            />
             <Input name="q" defaultValue={query.q} placeholder="Nom ou matricule de l'élève…" className="pl-9" />
           </label>
           <Button type="submit" variant="secondary">
@@ -141,18 +173,20 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
               {rows.map((i) => (
                 <TR key={i.id}>
                   <TD>
-                    <Link href={`/app/finance/invoices/${i.id}`} className="font-medium hover:text-primary">
+                    <Link href={`/app/finance/invoices/${i.id}`} className="hover:text-primary font-medium">
                       {i.number}
                     </Link>
                   </TD>
                   <TD>{fullName(i.student)}</TD>
                   <TD className="hidden md:table-cell">
                     {formatDate(i.due_date)}
-                    {Number(i.balance) > 0 && ["issued", "partially_paid"].includes(i.status) && i.due_date < isoDate() && (
-                      <Badge variant="danger" className="ml-2">
-                        En retard
-                      </Badge>
-                    )}
+                    {Number(i.balance) > 0 &&
+                      ["issued", "partially_paid"].includes(i.status) &&
+                      i.due_date < isoDate() && (
+                        <Badge variant="danger" className="ml-2">
+                          En retard
+                        </Badge>
+                      )}
                   </TD>
                   <TD className="hidden text-right tabular-nums sm:table-cell">{formatMoney(i.total, cur)}</TD>
                   <TD className="text-right font-semibold tabular-nums">{formatMoney(i.balance, cur)}</TD>
@@ -164,7 +198,13 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
             </TBody>
           </Table>
           <div className="border-t px-4 pb-4">
-            <Pagination page={query.page} pageSize={INVOICES_PAGE_SIZE} total={total} basePath="/app/finance/invoices" params={{ filter: query.filter, q: query.q }} />
+            <Pagination
+              page={query.page}
+              pageSize={INVOICES_PAGE_SIZE}
+              total={total}
+              basePath="/app/finance/invoices"
+              params={{ filter: query.filter, q: query.q }}
+            />
           </div>
         </Card>
       )}

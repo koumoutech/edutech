@@ -40,7 +40,12 @@ function formatter(kind: ValueFormat = "number", currency = "XOF"): (v: number) 
       return (v) => new Intl.NumberFormat("fr-FR", { style: "percent", maximumFractionDigits: 0 }).format(v);
     case "money":
       return (v) =>
-        new Intl.NumberFormat("fr-FR", { style: "currency", currency, notation: Math.abs(v) >= 1e6 ? "compact" : "standard", maximumFractionDigits: 0 }).format(v);
+        new Intl.NumberFormat("fr-FR", {
+          style: "currency",
+          currency,
+          notation: Math.abs(v) >= 1e6 ? "compact" : "standard",
+          maximumFractionDigits: 0,
+        }).format(v);
     default:
       return (v) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(v);
   }
@@ -48,16 +53,21 @@ function formatter(kind: ValueFormat = "number", currency = "XOF"): (v: number) 
 
 const SLOT_VAR = { 1: "var(--chart-1)", 2: "var(--chart-2)", 3: "var(--chart-3)" } as const;
 
-function ChartTooltip({ active, payload, label, format }: TooltipContentProps<number, string> & { format: (v: number) => string }) {
+function ChartTooltip({
+  active,
+  payload,
+  label,
+  format,
+}: TooltipContentProps<number, string> & { format: (v: number) => string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border bg-popover px-3 py-2 text-xs shadow-[var(--shadow-lift)]">
-      <p className="mb-1 font-semibold text-foreground">{label}</p>
+    <div className="bg-popover rounded-lg border px-3 py-2 text-xs shadow-[var(--shadow-lift)]">
+      <p className="text-foreground mb-1 font-semibold">{label}</p>
       {payload.map((p) => (
-        <p key={String(p.dataKey)} className="flex items-center gap-2 text-muted-foreground">
+        <p key={String(p.dataKey)} className="text-muted-foreground flex items-center gap-2">
           <span className="size-2 rounded-full" style={{ background: p.color }} aria-hidden />
           <span>{p.name}</span>
-          <span className="ml-auto font-semibold text-foreground tabular-nums">{format(Number(p.value))}</span>
+          <span className="text-foreground ml-auto font-semibold tabular-nums">{format(Number(p.value))}</span>
         </p>
       ))}
     </div>
@@ -84,7 +94,13 @@ function WithTable({
   return (
     <div className="relative">
       <div className="absolute -top-11 right-0">
-        <Button variant="ghost" size="icon-sm" onClick={() => setTable((t) => !t)} aria-pressed={table} aria-label={table ? "Afficher le graphique" : "Afficher le tableau"}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => setTable((t) => !t)}
+          aria-pressed={table}
+          aria-label={table ? "Afficher le graphique" : "Afficher le tableau"}
+        >
           {table ? <BarChart3Icon /> : <TableIcon />}
         </Button>
       </div>
@@ -158,8 +174,13 @@ export function BarChartView({
           <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
           <XAxis dataKey={xKey} {...axisProps} interval="preserveStartEnd" />
           <YAxis {...axisProps} tickFormatter={(v: number) => format(v)} domain={yDomain} width={48} />
-          <Tooltip cursor={{ fill: "var(--muted)", opacity: 0.5 }} content={(p) => <ChartTooltip {...(p as TooltipContentProps<number, string>)} format={format} />} />
-          {series.length > 1 && <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, color: "var(--muted-foreground)" }} />}
+          <Tooltip
+            cursor={{ fill: "var(--muted)", opacity: 0.5 }}
+            content={(p) => <ChartTooltip {...(p as TooltipContentProps<number, string>)} format={format} />}
+          />
+          {series.length > 1 && (
+            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, color: "var(--muted-foreground)" }} />
+          )}
           {series.map((s, i) => (
             <Bar
               key={s.key}

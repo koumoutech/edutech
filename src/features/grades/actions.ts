@@ -50,13 +50,21 @@ const STATUS_MESSAGES: Record<string, string> = {
 };
 
 export async function setAssessmentStatusAction(id: string, status: string) {
-  const p = z.object({ id: z.uuid(), status: z.enum(["draft", "submitted", "validated", "published"]) }).safeParse({ id, status });
-  return runAction(async () => {
-    const ctx = await requireContext();
-    const v = parseInput(z.object({ id: z.uuid(), status: z.enum(["draft", "submitted", "validated", "published"]) }), { id, status });
-    await setAssessmentStatus(ctx, v.id, v.status);
-    refresh();
-  }, p.success ? STATUS_MESSAGES[p.data.status] : undefined);
+  const p = z
+    .object({ id: z.uuid(), status: z.enum(["draft", "submitted", "validated", "published"]) })
+    .safeParse({ id, status });
+  return runAction(
+    async () => {
+      const ctx = await requireContext();
+      const v = parseInput(
+        z.object({ id: z.uuid(), status: z.enum(["draft", "submitted", "validated", "published"]) }),
+        { id, status },
+      );
+      await setAssessmentStatus(ctx, v.id, v.status);
+      refresh();
+    },
+    p.success ? STATUS_MESSAGES[p.data.status] : undefined,
+  );
 }
 
 export async function correctGradeAction(gradeId: string, reason: string, fd: FormData) {
@@ -87,20 +95,30 @@ export async function generateReportCardsAction(_prev: unknown, fd: FormData) {
 }
 
 export async function setReportCardsStatusAction(ids: string[], status: string) {
-  return runAction(async () => {
-    const ctx = await requireContext();
-    const v = parseInput(z.object({ ids: z.array(z.uuid()).min(1).max(500), status: z.enum(["draft", "validated", "published"]) }), { ids, status });
-    const n = await setReportCardsStatus(ctx, v.ids, v.status);
-    refresh();
-    return { updated: n };
-  }, status === "published" ? "Bulletins publiés : familles notifiées." : "Statut des bulletins mis à jour.");
+  return runAction(
+    async () => {
+      const ctx = await requireContext();
+      const v = parseInput(
+        z.object({ ids: z.array(z.uuid()).min(1).max(500), status: z.enum(["draft", "validated", "published"]) }),
+        { ids, status },
+      );
+      const n = await setReportCardsStatus(ctx, v.ids, v.status);
+      refresh();
+      return { updated: n };
+    },
+    status === "published" ? "Bulletins publiés : familles notifiées." : "Statut des bulletins mis à jour.",
+  );
 }
 
 export async function saveAppreciationAction(id: string, _reason: string, fd: FormData) {
   return runAction(async () => {
     const ctx = await requireContext();
     const v = parseInput(
-      z.object({ id: z.uuid(), appreciation: z.string().trim().max(1000), decision: z.string().trim().max(200).optional() }),
+      z.object({
+        id: z.uuid(),
+        appreciation: z.string().trim().max(1000),
+        decision: z.string().trim().max(200).optional(),
+      }),
       { id, appreciation: fd.get("appreciation") ?? "", decision: fd.get("decision") ?? undefined },
     );
     await saveAppreciation(ctx, v.id, v.appreciation, v.decision);

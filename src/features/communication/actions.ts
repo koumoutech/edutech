@@ -59,7 +59,10 @@ export async function archiveAnnouncementAction(id: string) {
 export async function setPreferenceAction(type: string, channel: string, enabled: boolean) {
   return runAction(async () => {
     const ctx = await requireContext();
-    const v = parseInput(z.object({ type: z.string().max(60), channel: z.enum(["in_app", "email", "sms"]), enabled: z.boolean() }), { type, channel, enabled });
+    const v = parseInput(
+      z.object({ type: z.string().max(60), channel: z.enum(["in_app", "email", "sms"]), enabled: z.boolean() }),
+      { type, channel, enabled },
+    );
     await setPreference(ctx, v.type, v.channel, v.enabled);
   });
 }
@@ -69,7 +72,11 @@ export async function startThreadAction(_prev: unknown, fd: FormData) {
   const res = await runAction(async () => {
     const ctx = await requireContext();
     const v = parseInput(
-      z.object({ subject: z.string().trim().min(1).max(160), recipients: z.array(z.uuid()).min(1, "Choisissez au moins un destinataire").max(50), body: z.string().trim().min(1).max(5000) }),
+      z.object({
+        subject: z.string().trim().min(1).max(160),
+        recipients: z.array(z.uuid()).min(1, "Choisissez au moins un destinataire").max(50),
+        body: z.string().trim().min(1).max(5000),
+      }),
       { subject: fd.get("subject"), recipients: fd.getAll("recipients"), body: fd.get("body") },
     );
     id = await startThread(ctx, v.subject, v.recipients, v.body);
@@ -81,7 +88,10 @@ export async function startThreadAction(_prev: unknown, fd: FormData) {
 export async function replyAction(threadId: string, _prev: unknown, fd: FormData) {
   return runAction(async () => {
     const ctx = await requireContext();
-    const v = parseInput(z.object({ threadId: z.uuid(), body: z.string().trim().min(1).max(5000) }), { threadId, body: fd.get("body") });
+    const v = parseInput(z.object({ threadId: z.uuid(), body: z.string().trim().min(1).max(5000) }), {
+      threadId,
+      body: fd.get("body"),
+    });
     await reply(ctx, v.threadId, v.body);
     refresh();
   });
@@ -99,7 +109,11 @@ export async function updateRequestAction(id: string, status: string, resolution
   return runAction(async () => {
     const ctx = await requireContext();
     const v = parseInput(
-      z.object({ id: z.uuid(), status: z.enum(["in_progress", "done", "rejected", "cancelled"]), resolution: z.string().max(2000).optional() }),
+      z.object({
+        id: z.uuid(),
+        status: z.enum(["in_progress", "done", "rejected", "cancelled"]),
+        resolution: z.string().max(2000).optional(),
+      }),
       { id, status, resolution: resolution || undefined },
     );
     await updateRequest(ctx, v.id, v.status, v.resolution);

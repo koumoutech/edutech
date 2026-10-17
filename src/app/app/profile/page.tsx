@@ -26,7 +26,12 @@ export default async function ProfilePage() {
   const ctx = await requireContext();
   const [{ data: profile }, { data: events }] = await Promise.all([
     ctx.db.from("profiles").select("full_name, phone, email").eq("id", ctx.user.id).maybeSingle(),
-    ctx.db.from("login_events").select("id, event, user_agent, created_at").eq("user_id", ctx.user.id).order("created_at", { ascending: false }).limit(15),
+    ctx.db
+      .from("login_events")
+      .select("id, event, user_agent, created_at")
+      .eq("user_id", ctx.user.id)
+      .order("created_at", { ascending: false })
+      .limit(15),
   ]);
   return (
     <div className="mx-auto max-w-4xl space-y-5">
@@ -43,7 +48,7 @@ export default async function ProfilePage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <ShieldCheckIcon className="size-5 text-primary" aria-hidden /> Sécurité
+            <ShieldCheckIcon className="text-primary size-5" aria-hidden /> Sécurité
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
@@ -58,7 +63,9 @@ export default async function ProfilePage() {
       <Card>
         <CardHeader>
           <CardTitle>Historique des connexions importantes</CardTitle>
-          <CardDescription>Si une activité vous semble suspecte, changez votre mot de passe et fermez toutes vos sessions.</CardDescription>
+          <CardDescription>
+            Si une activité vous semble suspecte, changez votre mot de passe et fermez toutes vos sessions.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -74,9 +81,13 @@ export default async function ProfilePage() {
                 <TR key={e.id}>
                   <TD className="whitespace-nowrap">{formatDateTime(e.created_at)}</TD>
                   <TD>
-                    <Badge variant={e.event === "login_failure" || e.event === "locked_out" ? "danger" : "muted"}>{EVENTS[e.event] ?? e.event}</Badge>
+                    <Badge variant={e.event === "login_failure" || e.event === "locked_out" ? "danger" : "muted"}>
+                      {EVENTS[e.event] ?? e.event}
+                    </Badge>
                   </TD>
-                  <TD className="hidden max-w-xs truncate text-xs text-muted-foreground sm:table-cell">{e.user_agent}</TD>
+                  <TD className="text-muted-foreground hidden max-w-xs truncate text-xs sm:table-cell">
+                    {e.user_agent}
+                  </TD>
                 </TR>
               ))}
               {(events ?? []).length === 0 && (

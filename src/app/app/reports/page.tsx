@@ -15,7 +15,11 @@ export const metadata: Metadata = { title: "Rapports & analyses" };
 
 const MONTH = new Intl.DateTimeFormat("fr-FR", { month: "short", year: "2-digit" });
 
-export default async function ReportsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function ReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const ctx = await requirePermission("reports.read");
   const sp = await searchParams;
   const frame = await assessmentFrame(ctx);
@@ -29,22 +33,53 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const sixMonths = new Date();
   sixMonths.setMonth(sixMonths.getMonth() - 5, 1);
 
-  const [byLevel, performance, termAverages, attendance, absentees, financeSummary, cashflow, expenses, staffCount, leaves] = await Promise.all([
+  const [
+    byLevel,
+    performance,
+    termAverages,
+    attendance,
+    absentees,
+    financeSummary,
+    cashflow,
+    expenses,
+    staffCount,
+    leaves,
+  ] = await Promise.all([
     frame.year ? db.rpc("stats_enrollment_by_level", { p_school: s, p_year: frame.year.id }) : null,
     term && can(ctx, "grades.read") ? db.rpc("stats_class_performance", { p_school: s, p_term: term.id }) : null,
-    frame.year && can(ctx, "grades.read") ? db.rpc("stats_term_averages", { p_school: s, p_year: frame.year.id }) : null,
-    can(ctx, "attendance.read") ? db.rpc("stats_attendance_daily", { p_school: s, p_from: isoDate(from), p_to: isoDate() }) : null,
-    can(ctx, "attendance.read") ? db.rpc("stats_top_absentees", { p_school: s, p_from: isoDate(from), p_to: isoDate(), p_limit: 10 }) : null,
+    frame.year && can(ctx, "grades.read")
+      ? db.rpc("stats_term_averages", { p_school: s, p_year: frame.year.id })
+      : null,
+    can(ctx, "attendance.read")
+      ? db.rpc("stats_attendance_daily", { p_school: s, p_from: isoDate(from), p_to: isoDate() })
+      : null,
+    can(ctx, "attendance.read")
+      ? db.rpc("stats_top_absentees", { p_school: s, p_from: isoDate(from), p_to: isoDate(), p_limit: 10 })
+      : null,
     finance ? db.rpc("stats_finance_summary", { p_school: s, p_year: frame.year?.id }) : null,
     finance ? db.rpc("stats_monthly_cashflow", { p_school: s, p_from: isoDate(sixMonths), p_to: isoDate() }) : null,
     finance && frame.year ? db.rpc("stats_expenses_by_category", { p_school: s, p_year: frame.year.id }) : null,
-    canSchoolWide(ctx, "staff.read") ? db.from("staff_members").select("is_teacher, status").eq("school_id", s).neq("status", "archived") : null,
-    canSchoolWide(ctx, "leaves.read") ? db.from("leave_requests").select("kind, status, starts_on, ends_on").eq("school_id", s).gte("starts_on", isoDate(from)) : null,
+    canSchoolWide(ctx, "staff.read")
+      ? db.from("staff_members").select("is_teacher, status").eq("school_id", s).neq("status", "archived")
+      : null,
+    canSchoolWide(ctx, "leaves.read")
+      ? db
+          .from("leave_requests")
+          .select("kind, status, starts_on, ends_on")
+          .eq("school_id", s)
+          .gte("starts_on", isoDate(from))
+      : null,
   ]);
   const cur = ctx.school.currency;
   const perf = performance?.data ?? [];
   const att = attendance?.data ?? [];
-  const totals = att.reduce((a, r) => ({ p: a.p + Number(r.present) + Number(r.late), all: a.all + Number(r.present) + Number(r.late) + Number(r.absent) + Number(r.excused) }), { p: 0, all: 0 });
+  const totals = att.reduce(
+    (a, r) => ({
+      p: a.p + Number(r.present) + Number(r.late),
+      all: a.all + Number(r.present) + Number(r.late) + Number(r.absent) + Number(r.excused),
+    }),
+    { p: 0, all: 0 },
+  );
   const fin = financeSummary?.data?.[0];
 
   return (
@@ -94,7 +129,12 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
               </option>
             ))}
           </Select>
-          <Select name="days" defaultValue={String(days)} aria-label="Fenêtre d'analyse des absences" className="w-auto">
+          <Select
+            name="days"
+            defaultValue={String(days)}
+            aria-label="Fenêtre d'analyse des absences"
+            className="w-auto"
+          >
             <option value="30">30 derniers jours</option>
             <option value="90">90 derniers jours</option>
             <option value="180">180 derniers jours</option>
@@ -110,13 +150,18 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           <CardHeader>
             <CardTitle>Effectifs par niveau</CardTitle>
             <CardDescription>
-              {(byLevel?.data ?? []).reduce((a, l) => a + Number(l.students), 0)} élèves · capacité {(byLevel?.data ?? []).reduce((a, l) => a + Number(l.capacity), 0)}
+              {(byLevel?.data ?? []).reduce((a, l) => a + Number(l.students), 0)} élèves · capacité{" "}
+              {(byLevel?.data ?? []).reduce((a, l) => a + Number(l.capacity), 0)}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <BarChartView
               label="Effectifs par niveau"
-              data={(byLevel?.data ?? []).map((l) => ({ niveau: l.level_name, filles: Number(l.girls), garcons: Number(l.boys) }))}
+              data={(byLevel?.data ?? []).map((l) => ({
+                niveau: l.level_name,
+                filles: Number(l.girls),
+                garcons: Number(l.boys),
+              }))}
               xKey="niveau"
               stacked
               series={[
@@ -151,13 +196,15 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                         <TD className="font-medium">{c.class_name}</TD>
                         <TD className="text-right tabular-nums">{formatScore(Number(c.average))}</TD>
                         <TD className="text-right tabular-nums">{c.students}</TD>
-                        <TD className="text-right tabular-nums">{formatPercent(Number(c.students) ? 1 - Number(c.below_passing) / Number(c.students) : null)}</TD>
+                        <TD className="text-right tabular-nums">
+                          {formatPercent(Number(c.students) ? 1 - Number(c.below_passing) / Number(c.students) : null)}
+                        </TD>
                       </TR>
                     ))}
                   </TBody>
                 </Table>
               ) : (
-                <p className="text-sm text-muted-foreground">Aucun résultat validé pour cette période.</p>
+                <p className="text-muted-foreground text-sm">Aucun résultat validé pour cette période.</p>
               )}
             </CardContent>
           </Card>
@@ -185,12 +232,19 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
             <Card>
               <CardHeader>
                 <CardTitle>Absences ({days} jours)</CardTitle>
-                <CardDescription>Taux de présence : {totals.all ? formatPercent(totals.p / totals.all, 1) : "—"}</CardDescription>
+                <CardDescription>
+                  Taux de présence : {totals.all ? formatPercent(totals.p / totals.all, 1) : "—"}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <BarChartView
                   label="Absences par jour"
-                  data={att.map((r) => ({ jour: formatDate(r.day, { day: "2-digit", month: "2-digit", year: undefined }), absences: Number(r.absent), retards: Number(r.late), justifiees: Number(r.excused) }))}
+                  data={att.map((r) => ({
+                    jour: formatDate(r.day, { day: "2-digit", month: "2-digit", year: undefined }),
+                    absences: Number(r.absent),
+                    retards: Number(r.late),
+                    justifiees: Number(r.excused),
+                  }))}
                   xKey="jour"
                   stacked
                   series={[
@@ -241,17 +295,19 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-3 gap-3 text-center">
-                <div className="rounded-lg bg-muted/60 p-3">
-                  <dt className="text-xs text-muted-foreground">Effectif</dt>
+                <div className="bg-muted/60 rounded-lg p-3">
+                  <dt className="text-muted-foreground text-xs">Effectif</dt>
                   <dd className="text-xl font-bold">{staffCount.data.length}</dd>
                 </div>
-                <div className="rounded-lg bg-muted/60 p-3">
-                  <dt className="text-xs text-muted-foreground">Enseignants</dt>
+                <div className="bg-muted/60 rounded-lg p-3">
+                  <dt className="text-muted-foreground text-xs">Enseignants</dt>
                   <dd className="text-xl font-bold">{staffCount.data.filter((x) => x.is_teacher).length}</dd>
                 </div>
-                <div className="rounded-lg bg-muted/60 p-3">
-                  <dt className="text-xs text-muted-foreground">Congés ({days} j)</dt>
-                  <dd className="text-xl font-bold">{(leaves?.data ?? []).filter((l) => l.status === "approved").length}</dd>
+                <div className="bg-muted/60 rounded-lg p-3">
+                  <dt className="text-muted-foreground text-xs">Congés ({days} j)</dt>
+                  <dd className="text-xl font-bold">
+                    {(leaves?.data ?? []).filter((l) => l.status === "approved").length}
+                  </dd>
                 </div>
               </dl>
             </CardContent>
@@ -263,7 +319,10 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
             <Card>
               <CardHeader>
                 <CardTitle>Recettes et recouvrement</CardTitle>
-                <CardDescription>Taux de recouvrement : {formatPercent(Number(fin.billed) ? Number(fin.collected) / Number(fin.billed) : null, 1)}</CardDescription>
+                <CardDescription>
+                  Taux de recouvrement :{" "}
+                  {formatPercent(Number(fin.billed) ? Number(fin.collected) / Number(fin.billed) : null, 1)}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <dl className="grid grid-cols-2 gap-3">
@@ -273,8 +332,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                     ["Impayés", fin.outstanding],
                     ["Dont échus", fin.overdue],
                   ].map(([k, v]) => (
-                    <div key={k as string} className="rounded-lg bg-muted/60 p-3">
-                      <dt className="text-xs text-muted-foreground">{k}</dt>
+                    <div key={k as string} className="bg-muted/60 rounded-lg p-3">
+                      <dt className="text-muted-foreground text-xs">{k}</dt>
                       <dd className="font-bold tabular-nums">{formatMoney(Number(v), cur)}</dd>
                     </div>
                   ))}
@@ -288,7 +347,11 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
               <CardContent>
                 <BarChartView
                   label="Recettes et dépenses"
-                  data={(cashflow?.data ?? []).map((m) => ({ mois: MONTH.format(new Date(`${m.month}T12:00:00`)), recettes: Number(m.collected), depenses: Number(m.spent) }))}
+                  data={(cashflow?.data ?? []).map((m) => ({
+                    mois: MONTH.format(new Date(`${m.month}T12:00:00`)),
+                    recettes: Number(m.collected),
+                    depenses: Number(m.spent),
+                  }))}
                   xKey="mois"
                   series={[
                     { key: "recettes", label: "Recettes", slot: 1 },
@@ -318,8 +381,12 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                       <TR key={e.category_id}>
                         <TD>{e.category_name}</TD>
                         <TD className="text-right tabular-nums">{formatMoney(Number(e.spent), cur)}</TD>
-                        <TD className="text-right tabular-nums">{e.budget === null ? "—" : formatMoney(Number(e.budget), cur)}</TD>
-                        <TD className="text-right tabular-nums">{e.budget ? formatPercent(Number(e.spent) / Number(e.budget)) : "—"}</TD>
+                        <TD className="text-right tabular-nums">
+                          {e.budget === null ? "—" : formatMoney(Number(e.budget), cur)}
+                        </TD>
+                        <TD className="text-right tabular-nums">
+                          {e.budget ? formatPercent(Number(e.spent) / Number(e.budget)) : "—"}
+                        </TD>
                       </TR>
                     ))}
                   </TBody>

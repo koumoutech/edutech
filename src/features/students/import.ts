@@ -93,7 +93,11 @@ export function validateStudentImport(
   const seen = new Set<string>();
 
   if (rows.length > MAX_IMPORT_ROWS) {
-    return { rows: [], errors: [{ line: 0, message: `Le fichier dépasse ${MAX_IMPORT_ROWS} lignes.` }], totalLines: rows.length };
+    return {
+      rows: [],
+      errors: [{ line: 0, message: `Le fichier dépasse ${MAX_IMPORT_ROWS} lignes.` }],
+      totalLines: rows.length,
+    };
   }
 
   rows.forEach((r, index) => {
@@ -139,7 +143,8 @@ export function validateStudentImport(
         last_name: gLast,
         phone: (r.responsable_telephone ?? "").trim() || undefined,
         email: gEmail || undefined,
-        relationship: RELATIONSHIPS[(r.lien ?? "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")] ?? "other",
+        relationship:
+          RELATIONSHIPS[(r.lien ?? "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")] ?? "other",
       };
     }
 

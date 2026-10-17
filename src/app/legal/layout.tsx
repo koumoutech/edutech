@@ -7,7 +7,9 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
       <Link href="/" aria-label="Accueil">
         <Logo name="EduDigi" />
       </Link>
-      <article className="mt-8 space-y-4 text-sm leading-relaxed [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:mt-6 [&_h2]:text-lg [&_h2]:font-semibold">{children}</article>
+      <article className="mt-8 space-y-4 text-sm leading-relaxed [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:mt-6 [&_h2]:text-lg [&_h2]:font-semibold">
+        {children}
+      </article>
     </div>
   );
 }

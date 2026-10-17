@@ -30,7 +30,17 @@ const SCOPES: [string, string][] = [
   ["self", "Soi-même"],
 ];
 
-export function RolesMatrix({ roles, permissions, grants, editable }: { roles: Role[]; permissions: Perm[]; grants: Record<string, string>; editable: boolean }) {
+export function RolesMatrix({
+  roles,
+  permissions,
+  grants,
+  editable,
+}: {
+  roles: Role[];
+  permissions: Perm[];
+  grants: Record<string, string>;
+  editable: boolean;
+}) {
   const [roleId, setRoleId] = useState(roles[0]?.id ?? "");
   const [, start] = useTransition();
   const [state, apply] = useOptimistic(grants, (s, p: { key: string; scope: string }) => ({ ...s, [p.key]: p.scope }));
@@ -40,7 +50,12 @@ export function RolesMatrix({ roles, permissions, grants, editable }: { roles: R
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <Select value={roleId} onChange={(e) => setRoleId(e.target.value)} aria-label="Rôle" className="w-auto min-w-64">
+        <Select
+          value={roleId}
+          onChange={(e) => setRoleId(e.target.value)}
+          aria-label="Rôle"
+          className="w-auto min-w-64"
+        >
           {roles.map((r) => (
             <option key={r.id} value={r.id}>
               {r.name}
@@ -53,7 +68,7 @@ export function RolesMatrix({ roles, permissions, grants, editable }: { roles: R
       <div className="grid gap-3 md:grid-cols-2">
         {groups.map((g) => (
           <fieldset key={g} className="rounded-xl border p-3">
-            <legend className="px-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase">{g}</legend>
+            <legend className="text-muted-foreground px-1 text-xs font-semibold tracking-wider uppercase">{g}</legend>
             <ul className="space-y-1.5">
               {permissions
                 .filter((p) => p.resource === g)
@@ -64,7 +79,9 @@ export function RolesMatrix({ roles, permissions, grants, editable }: { roles: R
                     <li key={p.key} className="flex items-center gap-2 text-sm">
                       <span className={cn("flex-1", value === "none" && "text-muted-foreground")}>
                         {p.label}
-                        {p.sensitive && <span className="ml-1 text-xs text-[#a37800] dark:text-highlight">• sensible</span>}
+                        {p.sensitive && (
+                          <span className="dark:text-highlight ml-1 text-xs text-[#a37800]">• sensible</span>
+                        )}
                       </span>
                       <Select
                         aria-label={`Portée pour ${p.label}`}

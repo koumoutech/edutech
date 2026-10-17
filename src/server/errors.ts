@@ -34,7 +34,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
   INVITATION_EMAIL_MISMATCH: "Cette invitation a été envoyée à une autre adresse e-mail.",
   LAST_ADMIN: "L'établissement doit conserver au moins un administrateur.",
   INVALID_RECIPIENTS: "Destinataires invalides.",
-  TIMETABLE_CONFLICT: "Conflit d'emploi du temps : la classe, l'enseignant ou la salle est déjà occupé(e) sur ce créneau.",
+  TIMETABLE_CONFLICT:
+    "Conflit d'emploi du temps : la classe, l'enseignant ou la salle est déjà occupé(e) sur ce créneau.",
   ALREADY_INITIALIZED: "La plateforme est déjà initialisée.",
   AI_DISABLED: "L'assistant IA n'est pas configuré sur cette plateforme.",
   AI_UNAVAILABLE: "L'assistant IA est momentanément indisponible. Réessayez dans quelques instants.",
@@ -109,7 +110,9 @@ export function toActionError(e: unknown): Extract<ActionResult, { ok: false }> 
 }
 
 /** Like `unwrap` for list queries: never returns null. */
-export function unwrapList<R extends { data: unknown[] | null; error: PgLikeError | null }>(result: R): NonNullable<R["data"]> {
+export function unwrapList<R extends { data: unknown[] | null; error: PgLikeError | null }>(
+  result: R,
+): NonNullable<R["data"]> {
   if (result.error) throw fromDbError(result.error);
   return (result.data ?? []) as NonNullable<R["data"]>;
 }

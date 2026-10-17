@@ -19,7 +19,9 @@ export function formatMoney(amount: number | null | undefined, currency = "XOF")
 }
 
 export function formatNumber(value: number | null | undefined, digits = 0): string {
-  return new Intl.NumberFormat(LOCALE, { maximumFractionDigits: digits, minimumFractionDigits: 0 }).format(Number(value ?? 0));
+  return new Intl.NumberFormat(LOCALE, { maximumFractionDigits: digits, minimumFractionDigits: 0 }).format(
+    Number(value ?? 0),
+  );
 }
 
 export function formatScore(value: number | null | undefined, digits = 2): string {
@@ -35,7 +37,8 @@ export function formatPercent(value: number | null | undefined, digits = 0): str
 /** Dates are stored as ISO `YYYY-MM-DD` (date) or full timestamps. */
 export function formatDate(value: string | Date | null | undefined, opts: Intl.DateTimeFormatOptions = {}): string {
   if (!value) return "—";
-  const d = typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00`) : new Date(value);
+  const d =
+    typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00`) : new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
   return new Intl.DateTimeFormat(LOCALE, { day: "2-digit", month: "short", year: "numeric", ...opts }).format(d);
 }

@@ -20,7 +20,7 @@ export function Select({ className, children, ...props }: ComponentProps<"select
       data-slot="select"
       className={cn(
         fieldBase,
-        "h-10 appearance-none bg-[url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B756F' stroke-width='2'><path d='m6 9 6 6 6-6'/></svg>\")] bg-[length:16px] bg-[right_0.65rem_center] bg-no-repeat pr-9",
+        "bg-[url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B756F' stroke-width='2'><path d='m6 9 6 6 6-6'/></svg>\")] h-10 appearance-none bg-[length:16px] bg-[right_0.65rem_center] bg-no-repeat pr-9",
         className,
       )}
       {...props}
@@ -38,7 +38,10 @@ export function Checkbox({ className, ...props }: Omit<ComponentProps<"input">, 
   return (
     <input
       type="checkbox"
-      className={cn("size-4 rounded border-input accent-[var(--primary)] focus-visible:ring-2 focus-visible:ring-ring", className)}
+      className={cn(
+        "border-input focus-visible:ring-ring size-4 rounded accent-[var(--primary)] focus-visible:ring-2",
+        className,
+      )}
       {...props}
     />
   );
@@ -62,15 +65,15 @@ export function Field({ label, htmlFor, error, hint, required, className, childr
       <Label htmlFor={htmlFor}>
         {label}
         {required && (
-          <span className="ml-0.5 text-destructive" aria-hidden>
+          <span className="text-destructive ml-0.5" aria-hidden>
             *
           </span>
         )}
       </Label>
       {children}
-      {hint && !message && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {hint && !message && <p className="text-muted-foreground text-xs">{hint}</p>}
       {message && (
-        <p id={`${htmlFor}-error`} role="alert" className="text-xs font-medium text-destructive">
+        <p id={`${htmlFor}-error`} role="alert" className="text-destructive text-xs font-medium">
           {message}
         </p>
       )}

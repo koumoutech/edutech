@@ -19,13 +19,16 @@ export function TBody({ className, ...props }: ComponentProps<"tbody">) {
 }
 
 export function TR({ className, ...props }: ComponentProps<"tr">) {
-  return <tr className={cn("border-b transition-colors hover:bg-muted/50", className)} {...props} />;
+  return <tr className={cn("hover:bg-muted/50 border-b transition-colors", className)} {...props} />;
 }
 
 export function TH({ className, ...props }: ComponentProps<"th">) {
   return (
     <th
-      className={cn("h-10 px-3 text-left align-middle text-xs font-semibold whitespace-nowrap text-muted-foreground uppercase", className)}
+      className={cn(
+        "text-muted-foreground h-10 px-3 text-left align-middle text-xs font-semibold whitespace-nowrap uppercase",
+        className,
+      )}
       {...props}
     />
   );

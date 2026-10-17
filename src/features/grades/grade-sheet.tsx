@@ -57,7 +57,10 @@ export function GradeSheet({
     return n === null || Number.isNaN(n) || n < 0 || n > maxScore;
   };
   const stats = useMemo(() => {
-    const vals = rows.filter((r) => !r.is_absent && !invalid(r)).map((r) => parse(r.score)).filter((n): n is number => n !== null);
+    const vals = rows
+      .filter((r) => !r.is_absent && !invalid(r))
+      .map((r) => parse(r.score))
+      .filter((n): n is number => n !== null);
     return {
       entered: vals.length + rows.filter((r) => r.is_absent).length,
       avg: vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null,
@@ -103,18 +106,21 @@ export function GradeSheet({
           ["Max.", formatScore(stats.max)],
         ].map(([k, v]) => (
           <Card key={k} className="p-3">
-            <p className="text-xs text-muted-foreground">{k}</p>
+            <p className="text-muted-foreground text-xs">{k}</p>
             <p className="text-lg font-bold tabular-nums">{v}</p>
           </Card>
         ))}
       </div>
       <Card className="divide-y overflow-hidden">
         {rows.map((r, i) => (
-          <div key={r.student_id} className={cn("flex flex-wrap items-center gap-3 p-3", invalid(r) && "bg-destructive/5")}>
-            <span className="w-6 text-right text-xs text-muted-foreground tabular-nums">{i + 1}</span>
+          <div
+            key={r.student_id}
+            className={cn("flex flex-wrap items-center gap-3 p-3", invalid(r) && "bg-destructive/5")}
+          >
+            <span className="text-muted-foreground w-6 text-right text-xs tabular-nums">{i + 1}</span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{r.name}</p>
-              <p className="text-xs text-muted-foreground">{r.matricule}</p>
+              <p className="text-muted-foreground text-xs">{r.matricule}</p>
             </div>
             <div className="flex items-center gap-2">
               <Input
@@ -162,8 +168,14 @@ export function GradeSheet({
         ))}
       </Card>
       {!readOnly && (
-        <div className="sticky bottom-20 z-10 flex items-center justify-between gap-3 rounded-xl border bg-card/95 p-3 backdrop-blur lg:bottom-4">
-          <p className="text-sm text-muted-foreground">{hasErrors ? `Notes invalides (barème /${formatScore(maxScore)})` : dirty ? "Modifications non enregistrées" : "À jour"}</p>
+        <div className="bg-card/95 sticky bottom-20 z-10 flex items-center justify-between gap-3 rounded-xl border p-3 backdrop-blur lg:bottom-4">
+          <p className="text-muted-foreground text-sm">
+            {hasErrors
+              ? `Notes invalides (barème /${formatScore(maxScore)})`
+              : dirty
+                ? "Modifications non enregistrées"
+                : "À jour"}
+          </p>
           <Button onClick={save} disabled={pending || hasErrors || !dirty}>
             {pending ? <Loader2Icon className="animate-spin" /> : <SaveIcon />} Enregistrer
           </Button>

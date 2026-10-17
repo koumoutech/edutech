@@ -35,7 +35,13 @@ export const getCurrentYear = cache(async (db: Db, schoolId: string): Promise<Ac
 });
 
 export const listYears = cache(async (db: Db, schoolId: string): Promise<AcademicYear[]> =>
-  unwrapList(await db.from("academic_years").select("id, name, starts_on, ends_on, is_current").eq("school_id", schoolId).order("starts_on", { ascending: false })),
+  unwrapList(
+    await db
+      .from("academic_years")
+      .select("id, name, starts_on, ends_on, is_current")
+      .eq("school_id", schoolId)
+      .order("starts_on", { ascending: false }),
+  ),
 );
 
 export const listTerms = cache(async (db: Db, schoolId: string, yearId: string): Promise<Term[]> =>
