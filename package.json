@@ -1,12 +1,21 @@
 {
-  "name": "scaffold",
+  "name": "edudigi",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --project unit",
+    "test:db": "scripts/db-test-setup.sh --seed && vitest run --project db",
+    "test:e2e": "playwright test",
+    "db:types": "tsx scripts/gen-db-types.ts",
+    "demo:credentials": "tsx scripts/demo-credentials.ts",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
@@ -53,5 +62,8 @@
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^5.0.5"
   },
-  "packageManager": "pnpm@10.28.0"
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=20.9"
+  }
 }
