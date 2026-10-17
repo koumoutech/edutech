@@ -52,6 +52,9 @@ export async function signIn(_prev: ActionResult | null, formData: FormData): Pr
     }
     await resetRateLimit(emailKey);
     await recordLoginEvent("login_success", { userId: data.user.id, email: input.email });
+    // Second factor enrolled: the session stays aal1 (no data access) until the code is verified.
+    const { data: aal } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") next = `/auth/mfa?next=${encodeURIComponent(next)}`;
   });
   if (!result.ok) return result;
   redirect(next);
@@ -98,6 +101,9 @@ export async function setPassword(_prev: ActionResult | null, formData: FormData
     next = safeNextPath(input.next);
     const user = await getSessionUser();
     if (!user) throw new AppError("UNAUTHENTICATED", "Le lien a expiré. Recommencez la procédure.");
+    if (user.mfaPending) {
+      throw new AppError("FORBIDDEN", "Validez d'abord votre code de double authentification.");
+    }
     const db = await createClient();
     const { error } = await db.auth.updateUser({ password: input.password });
     if (error) {

@@ -1,6 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { can, canSchoolWide } from "@/lib/authz";
+import { isoDate } from "@/lib/utils";
 import type { AppContext } from "@/server/auth/session";
 import { assertCan } from "@/server/auth/session";
 import { AppError, fromDbError, unwrap, unwrapList } from "@/server/errors";
@@ -274,4 +275,125 @@ export async function reviewLeave(
 export async function cancelLeave(ctx: AppContext, id: string) {
   const { error } = await ctx.db.rpc("cancel_leave_request", { p_id: id });
   if (error) throw fromDbError(error);
+}
+
+// -----------------------------------------------------------------------------
+// Staff attendance (daily presence)
+// -----------------------------------------------------------------------------
+export const staffAttendanceSchema = z.object({
+  date: z.iso.date(),
+  records: z
+    .array(
+      z.object({
+        staff_id: z.uuid(),
+        status: z.enum(["present", "absent", "late", "on_leave"]),
+        minutes_late: z.number().int().min(1).max(600).nullable(),
+        note: z.string().trim().max(300).nullable(),
+      }),
+    )
+    .min(1)
+    .max(500),
+});
+
+/** Active staff with the day's record (if any) and approved leave covering the day. */
+export async function staffAttendanceDay(ctx: AppContext, date: string) {
+  assertCan(ctx, "staff.read", ["school"]);
+  const [staff, records, leaves] = await Promise.all([
+    ctx.db
+      .from("staff_members")
+      .select("id, first_name, last_name, job_title, department")
+      .eq("school_id", ctx.school.id)
+      .eq("status", "active")
+      .is("deleted_at", null)
+      .order("last_name")
+      .limit(500),
+    ctx.db
+      .from("staff_attendance")
+      .select("id, staff_id, status, minutes_late, note")
+      .eq("school_id", ctx.school.id)
+      .eq("date", date),
+    ctx.db
+      .from("leave_requests")
+      .select("staff_id, kind")
+      .eq("school_id", ctx.school.id)
+      .eq("status", "approved")
+      .lte("starts_on", date)
+      .gte("ends_on", date),
+  ]);
+  return {
+    staff: unwrapList(staff),
+    records: unwrapList(records),
+    onLeave: unwrapList(leaves).map((l) => l.staff_id),
+  };
+}
+
+export async function saveStaffAttendance(ctx: AppContext, input: z.infer<typeof staffAttendanceSchema>) {
+  assertCan(ctx, "staff.manage", ["school"]);
+  if (input.date > isoDate()) throw new AppError("FUTURE_DATE");
+  const { data: existing, error } = await ctx.db
+    .from("staff_attendance")
+    .select("id, staff_id")
+    .eq("school_id", ctx.school.id)
+    .eq("date", input.date);
+  if (error) throw fromDbError(error);
+  const byStaff = new Map((existing ?? []).map((r) => [r.staff_id, r.id]));
+  const toInsert = [];
+  for (const r of input.records) {
+    const values = {
+      status: r.status,
+      minutes_late: r.status === "late" ? r.minutes_late : null,
+      note: r.note || null,
+    };
+    const id = byStaff.get(r.staff_id);
+    if (id) {
+      const { error: e } = await ctx.db.from("staff_attendance").update(values).eq("id", id);
+      if (e) throw fromDbError(e);
+    } else {
+      toInsert.push({ ...values, school_id: ctx.school.id, staff_id: r.staff_id, date: input.date });
+    }
+  }
+  if (toInsert.length) {
+    const { error: e } = await ctx.db.from("staff_attendance").insert(toInsert);
+    if (e) throw fromDbError(e);
+  }
+  return input.records.length;
+}
+
+/** Absences and lates per staff member over a period (school-wide readers only). */
+export async function staffAttendanceSummary(ctx: AppContext, from: string, to: string) {
+  assertCan(ctx, "staff.read", ["school"]);
+  const rows = unwrapList(
+    await ctx.db
+      .from("staff_attendance")
+      .select(
+        "staff_id, status, minutes_late, staff:staff_members!staff_attendance_school_id_staff_id_fkey(first_name, last_name)",
+      )
+      .eq("school_id", ctx.school.id)
+      .gte("date", from)
+      .lte("date", to)
+      .neq("status", "present")
+      .limit(5000),
+  );
+  const map = new Map<
+    string,
+    { staff_id: string; name: string; absent: number; late: number; minutesLate: number; onLeave: number }
+  >();
+  for (const r of rows) {
+    const e = map.get(r.staff_id) ?? {
+      staff_id: r.staff_id,
+      name: r.staff ? `${r.staff.first_name} ${r.staff.last_name}` : "—",
+      absent: 0,
+      late: 0,
+      minutesLate: 0,
+      onLeave: 0,
+    };
+    if (r.status === "absent") e.absent++;
+    if (r.status === "late") {
+      e.late++;
+      e.minutesLate += r.minutes_late ?? 0;
+    }
+    if (r.status === "on_leave") e.onLeave++;
+    map.set(r.staff_id, e);
+  }
+  return [...map.values()].sort((a, b) => b.absent - a.absent || b.late - a.late);
 }

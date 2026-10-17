@@ -39,6 +39,9 @@ Les autres invariants sont garantis en base :
   - assistant IA : 20 questions par utilisateur sur 10 minutes et 400 par établissement et par heure.
 - Les journaux de connexion (`login_events`) ne contiennent que des **empreintes** (HMAC salé par `SECURITY_HASH_SALT`) de l'e-mail et de l'IP, jamais le mot de passe.
 - L'utilisateur peut se déconnecter de tous ses appareils depuis son profil.
+- **Double authentification (TOTP)** : elle s'active depuis le profil, avec un QR code et un code de confirmation, et sa désactivation exige un code valide. À la connexion, `/auth/mfa` demande le code (5 essais par 5 minutes, puis blocage de 15 minutes).
+  - **Application en base** : pour un utilisateur ayant un facteur vérifié, une session `aal1` n'obtient **aucune donnée**. Une politique RESTRICTIVE `mfa_required` est posée sur chaque table, et `perm_scopes`, `is_member`, `require_auth`, `my_context` et `thread_participants` exigent `aal2` (migration 017, tests RLS).
+  - **Recommandation** : un bandeau sur le tableau de bord invite les profils sensibles (utilisateurs, rôles, finances, RH, santé) à activer la double authentification.
 - Un compte suspendu (`memberships.status`, `profiles.is_active`) perd l'accès immédiatement, car la RLS vérifie l'appartenance active.
 
 ## 3. Protection des applications web
@@ -67,6 +70,27 @@ En-têtes envoyés sur toutes les réponses (`next.config.ts`) :
 - `Cache-Control: private, no-store` sur `/api/*`.
 
 Ces en-têtes sont vérifiés par les tests E2E.
+
+## 3 bis. Durcissements issus de l'audit du 18/10/2026 (migration 016)
+
+| Risque constaté                                                                                                                                                      | Correction                                                                                                                                                                                                         |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Escalade de privilèges par la matrice des rôles : un titulaire de `roles.manage` pouvait enrichir son propre rôle, puis s'attribuer un rôle enrichi                  | Il ne peut plus modifier un rôle qu'il détient ; le rôle `school_admin` est verrouillé ; seule l'administration accorde des permissions sensibles ; l'auto-attribution de rôle est interdite (sauf administrateur) |
+| Un administrateur d'établissement pouvait changer `slug`, `status` ou `is_demo`                                                                                      | Réservé aux superadministrateurs (trigger)                                                                                                                                                                         |
+| Moyennes et rangs des bulletins, numéros et montants de factures, horodatages de validation, chemins de fichiers et rattachements de documents modifiables via l'API | Privilèges `UPDATE` retirés sur ces colonnes : seules les fonctions métier les écrivent                                                                                                                            |
+| Colonnes « auteur » usurpables (`author_id`, `evaluator_id`, `granted_by`, `recorded_by`, `taken_by`, `updated_by`, `reconciled_by`)                                 | Valeur forcée à `auth.uid()` par trigger                                                                                                                                                                           |
+| Workflow des dépenses contrôlé uniquement côté application                                                                                                           | Transitions, interdiction de l'auto-approbation et horodatage d'approbation imposés en base                                                                                                                        |
+
+Les triggers de garde sont `SECURITY INVOKER` : ils s'appliquent aux écritures directes de l'API (`current_user = authenticated`), tandis que les fonctions métier `SECURITY DEFINER` conservent leurs propres contrôles explicites. Chaque scénario est couvert par un test dans `tests/db/rls.test.ts`.
+
+Autres vérifications de l'audit :
+
+- toutes les tables ont la RLS active ; les trois tables sans politique (`school_counters`, `rate_limits`, `outbound_messages`) sont volontairement fermées ;
+- toutes les fonctions `SECURITY DEFINER` fixent `search_path` et vérifient l'identité ou la permission ;
+- aucun droit anonyme, hormis la lecture des réglages publics de marque ;
+- `pnpm audit --prod` : aucune vulnérabilité connue ;
+- aucun secret dans le dépôt, aucun rendu HTML brut ;
+- les modules privilégiés sont marqués `server-only`.
 
 > **Compromis CSP** : `script-src` inclut `'unsafe-inline'`, car le pré-rendu partiel de Next.js insère des scripts d'amorçage en ligne. Un nonce forcerait le rendu dynamique de toutes les pages. Le risque est atténué par l'absence de rendu HTML non fiable.
 

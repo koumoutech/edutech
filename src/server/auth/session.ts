@@ -15,6 +15,10 @@ export interface SessionUser {
   fullName: string;
   avatarPath: string | null;
   theme: "system" | "light" | "dark";
+  /** The user has a verified second factor. */
+  mfaEnabled: boolean;
+  /** Signed in with the password only while a second factor is required (aal1 → aal2 pending). */
+  mfaPending: boolean;
 }
 
 export interface AppContext extends AuthzSubject {
@@ -37,7 +41,11 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     .eq("id", data.user.id)
     .maybeSingle();
   if (profile && !profile.is_active) return null;
+  const { data: aal } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+  const mfaEnabled = aal?.nextLevel === "aal2";
   return {
+    mfaEnabled,
+    mfaPending: mfaEnabled && aal?.currentLevel !== "aal2",
     id: data.user.id,
     email: data.user.email ?? "",
     fullName: profile?.full_name || data.user.email || "",
@@ -55,7 +63,8 @@ interface RawContext {
 /** Loads memberships, roles and permissions of the current user (one RPC). */
 export const getAppContext = cache(async (): Promise<AppContext | null> => {
   const user = await getSessionUser();
-  if (!user) return null;
+  // A pending second factor means "not authenticated yet" for every data access (also enforced by RLS).
+  if (!user || user.mfaPending) return null;
   const db = await createClient();
   const { data, error } = await db.rpc("my_context");
   if (error || !data) return null;
@@ -80,6 +89,7 @@ export const getAppContext = cache(async (): Promise<AppContext | null> => {
 export async function requireContext(): Promise<AppContext> {
   const user = await getSessionUser();
   if (!user) redirect("/login");
+  if (user.mfaPending) redirect("/auth/mfa");
   const ctx = await getAppContext();
   if (!ctx) redirect("/no-access");
   return ctx;

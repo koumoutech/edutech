@@ -1,12 +1,12 @@
 # Rapport de livraison
 
-État au 17 octobre 2026, branche `claude/nifty-curie-6zs6ib`.
+État au 18 octobre 2026, branche `claude/nifty-curie-6zs6ib`.
 
 ## 1. Réalisé
 
 | Domaine          | Contenu                                                                                                                                                                     | Où                                                 |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| Base de données  | 15 migrations versionnées : schéma normalisé multi-établissements, RLS sur toutes les tables, fonctions métier, triggers d'invariants, audit, Storage et Realtime           | `supabase/migrations/`                             |
+| Base de données  | 17 migrations versionnées : schéma normalisé multi-établissements, RLS sur toutes les tables, fonctions métier, triggers d'invariants, audit, Storage et Realtime           | `supabase/migrations/`                             |
 | Droits           | Catalogue de permissions avec portées, 13 rôles types, rôles personnalisés, matrice éditable                                                                                | migration 007, `/app/settings/roles`               |
 | Authentification | Connexion, mot de passe oublié, définition du mot de passe, invitations, initialisation sécurisée du premier administrateur, suspension, déconnexion globale, rate limiting | `src/features/auth`, `src/server/auth`             |
 | Interface        | Landing publique (chiffres marqués illustratifs), tableaux de bord par rôle, modes clair et sombre, mobile d'abord, animations désactivées si « mouvement réduit »          | `src/app`, `src/components`                        |
@@ -20,17 +20,17 @@
 
 ## 2. Tests réellement exécutés
 
-Toutes ces commandes ont été lancées dans l'environnement de développement le 17/10/2026 et sont revenues sans erreur.
+Toutes ces commandes ont été lancées dans l'environnement de développement le 18/10/2026 et sont revenues sans erreur.
 
 | Vérification    | Commande                                                     | Résultat                                                              |
 | --------------- | ------------------------------------------------------------ | --------------------------------------------------------------------- |
 | Formatage       | `pnpm format:check`                                          | conforme                                                              |
 | Lint            | `pnpm lint` (0 avertissement toléré)                         | 0 erreur                                                              |
 | Types           | `pnpm typecheck`                                             | 0 erreur                                                              |
-| Unitaires       | `pnpm test`                                                  | **67 tests réussis** (10 fichiers)                                    |
-| Base de données | `scripts/db-test-setup.sh --seed` puis `vitest --project db` | **43 tests réussis** : migrations et seed appliqués sur PostgreSQL 16 |
+| Unitaires       | `pnpm test`                                                  | **74 tests réussis** (11 fichiers)                                    |
+| Base de données | `scripts/db-test-setup.sh --seed` puis `vitest --project db` | **55 tests réussis** : migrations et seed appliqués sur PostgreSQL 16 |
 | Build           | `pnpm build`                                                 | réussi (toutes les routes)                                            |
-| E2E             | `pnpm test:e2e` (Chromium, profils bureau et mobile)         | **32 tests réussis**                                                  |
+| E2E             | `pnpm test:e2e` (Chromium, profils bureau et mobile)         | **36 tests réussis**                                                  |
 
 ### Ce que couvrent les tests
 
@@ -44,7 +44,8 @@ Toutes ces commandes ont été lancées dans l'environnement de développement l
   - conflits d'emploi du temps ;
   - livraison e-mail/SMS (échappement HTML, tentatives) ;
   - assistant IA : autorisations, refus sans accès base, pseudonymisation, refus du modèle, limite d'étapes, audit sans arguments ;
-  - helpers de sécurité : redirections, comparaison en temps constant.
+  - helpers de sécurité : redirections, comparaison en temps constant ;
+  - double authentification : code invalide, limitation des essais, redirection sûre, désactivation soumise à un code valide.
 - **Base de données (RLS)** :
   - isolation entre établissements ;
   - accès anonyme refusé ;
@@ -59,7 +60,13 @@ Toutes ces commandes ont été lancées dans l'environnement de développement l
   - rôles privilégiés et dernier administrateur ;
   - invitations ;
   - présences ;
-  - conversations IA privées et audit IA.
+  - conversations IA privées et audit IA ;
+  - absence d'escalade de privilèges par les rôles ;
+  - colonnes calculées et colonnes « auteur » non falsifiables ;
+  - workflow des dépenses ;
+  - réglages réservés à la plateforme ;
+  - pointage du personnel ;
+  - double authentification (aucune donnée en `aal1` lorsqu'un facteur existe).
 - **E2E** :
   - pages publiques et absence de débordement horizontal sur mobile ;
   - formulaire de connexion accessible ;
@@ -81,15 +88,14 @@ Toutes ces commandes ont été lancées dans l'environnement de développement l
 
 ## 4. Limites connues et écarts
 
-1. **Pointage du personnel** : la table `staff_attendance` existe, mais aucun écran ne l'exploite. Les absences du personnel passent par le circuit des congés.
+1. **Double authentification** : le parcours TOTP s'appuie sur l'API MFA de Supabase Auth. Il est testé avec un client simulé et l'application en base est testée sur PostgreSQL, mais il n'a pas été exécuté contre un vrai Supabase Auth. Il faut activer TOTP dans Supabase (Auth → MFA).
 2. **TanStack Table** : non utilisé. Les tableaux sont des composants maison avec pagination, filtres et tri **côté serveur**, plus adaptés aux volumes multi-établissements. La dépendance a été retirée.
 3. **Paiement en ligne** : non intégré. Les paiements, y compris mobile money, sont **enregistrés** par la comptabilité avec une référence de transaction obligatoire. Il n'y a pas de passerelle de paiement.
-4. **File d'envoi** : un message peut rester à l'état `sending` si le worker s'arrête en cours de lot. Il n'y a pas encore de reprise automatique ; une surveillance est à prévoir (`deploiement.md` §6).
+4. **File d'envoi** : livraison « au moins une fois ». Un message réservé par un worker interrompu est automatiquement remis en file après un bail de 10 minutes, en comptant une tentative.
 5. **CSP** : `script-src 'unsafe-inline'` est requis par le pré-rendu partiel de Next.js (voir `securite.md` §3).
 6. **PDF** : polices standard WinAnsi. Les caractères hors Latin-1 sont translittérés.
-7. **MFA** : pas de double authentification applicative. Elle est activable côté Supabase Auth, mais l'interface n'est pas développée.
-8. **Langue** : interface en français uniquement.
-9. **Rate limiting sans clé de service** : en développement uniquement, il bascule sur un compteur en mémoire par instance.
+7. **Langue** : interface en français uniquement.
+8. **Rate limiting sans clé de service** : en développement uniquement, il bascule sur un compteur en mémoire par instance.
 
 ## 5. Prochaines étapes recommandées
 
@@ -97,6 +103,6 @@ Toutes ces commandes ont été lancées dans l'environnement de développement l
 2. Initialiser l'administrateur, charger la démo et faire la recette manuelle par rôle.
 3. Lancer la CI sur GitHub et corriger d'éventuels écarts d'environnement.
 4. Ajouter des E2E connectés contre la préproduction (Playwright avec `E2E_BASE_URL`).
-5. Développer l'écran de pointage du personnel et la reprise des messages bloqués.
+5. Activer TOTP dans Supabase Auth et tester la double authentification avec un compte réel.
 6. Faire la recette de l'assistant IA avec une clé de préproduction, signer le DPA, puis l'activer.
 7. Réaliser un test d'intrusion avant l'ouverture en production.

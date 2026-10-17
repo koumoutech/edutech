@@ -6,6 +6,36 @@ import { getBranding } from "@/server/platform";
 import { createAdminClient } from "@/server/supabase/admin";
 
 const BATCH = 50;
+const LEASE_MS = 10 * 60 * 1000;
+
+/**
+ * Messages left in "sending" after their lease expired (worker crash or timeout)
+ * are put back in the queue, counting the interrupted run as an attempt so a
+ * message that always crashes the worker ends up "failed" instead of looping.
+ * Delivery is therefore at-least-once.
+ */
+async function reclaimStaleMessages(admin: ReturnType<typeof createAdminClient>): Promise<number> {
+  const { data: stale } = await admin
+    .from("outbound_messages")
+    .select("id, attempts, max_attempts")
+    .eq("status", "sending")
+    .lt("next_attempt_at", new Date().toISOString())
+    .limit(BATCH);
+  for (const m of stale ?? []) {
+    const attempts = m.attempts + 1;
+    await admin
+      .from("outbound_messages")
+      .update({
+        status: attempts >= m.max_attempts ? "failed" : "queued",
+        attempts,
+        last_error: "interrupted (lease expired)",
+        next_attempt_at: new Date().toISOString(),
+      })
+      .eq("id", m.id)
+      .eq("status", "sending");
+  }
+  return stale?.length ?? 0;
+}
 
 /**
  * Background worker for the e-mail/SMS queue. Triggered by the platform scheduler
@@ -19,6 +49,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const admin = createAdminClient();
+  const reclaimed = await reclaimStaleMessages(admin);
   const { productName } = await getBranding();
   const { data: queued, error } = await admin
     .from("outbound_messages")
@@ -35,7 +66,8 @@ export async function GET(req: NextRequest) {
     // Claim the message (prevents double sending when two workers overlap).
     const { data: claimed } = await admin
       .from("outbound_messages")
-      .update({ status: "sending" })
+      // The lease: if this worker dies, the message becomes reclaimable after LEASE_MS.
+      .update({ status: "sending", next_attempt_at: new Date(Date.now() + LEASE_MS).toISOString() })
       .eq("id", m.id)
       .eq("status", "queued")
       .select("id");
@@ -68,5 +100,5 @@ export async function GET(req: NextRequest) {
         .eq("id", m.id);
     }
   }
-  return NextResponse.json({ processed: (queued ?? []).length, sent, failed });
+  return NextResponse.json({ processed: (queued ?? []).length, sent, failed, reclaimed });
 }

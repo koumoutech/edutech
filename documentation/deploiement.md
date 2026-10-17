@@ -49,7 +49,7 @@ Avant chaque migration de production, notez l'heure exacte (UTC) : c'est votre p
 
 ## 5. Premier démarrage en production
 
-1. Désactivez les inscriptions publiques dans Supabase Auth et configurez le SMTP.
+1. Désactivez les inscriptions publiques dans Supabase Auth, activez **MFA → TOTP** et configurez le SMTP.
 2. Définissez `SETUP_TOKEN`, ouvrez `/setup` et créez le superadministrateur, puis **retirez `SETUP_TOKEN`** et redéployez.
 3. Dans `/platform`, créez l'établissement (sans cocher « démonstration »).
 4. Configurez l'établissement dans Paramètres (années, trimestres, niveaux, classes, matières, barèmes, frais), puis invitez l'équipe.
@@ -59,4 +59,4 @@ Avant chaque migration de production, notez l'heure exacte (UTC) : c'est votre p
 
 - Surveillez les journaux de l'hébergeur : erreurs 5xx, `[ai] provider error`, `[rate-limit] database error`.
 - Supabase : surveillez la taille de la base, les connexions et les journaux Auth.
-- Vérifiez régulièrement la file `outbound_messages` : il ne doit pas y avoir de messages bloqués en `sending` (voir les limites connues dans `rapport.md`).
+- Vérifiez régulièrement la file `outbound_messages`. Les messages en `failed` doivent être analysés ; les messages restés en `sending` sont repris automatiquement après 10 minutes.

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/misc";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
+import { MfaSettings } from "@/features/auth/mfa-forms";
 import { ProfileForm, SignOutEverywhereButton } from "@/features/settings/profile-forms";
 import { formatDateTime } from "@/lib/utils";
 import { requireContext } from "@/server/auth/session";
@@ -20,6 +21,10 @@ const EVENTS: Record<string, string> = {
   password_changed: "Mot de passe modifié",
   locked_out: "Blocage temporaire (trop de tentatives)",
   session_revoked: "Sessions fermées",
+  mfa_enabled: "Double authentification activée",
+  mfa_disabled: "Double authentification désactivée",
+  mfa_success: "Code de double authentification validé",
+  mfa_failure: "Code de double authentification refusé",
 };
 
 export default async function ProfilePage() {
@@ -51,13 +56,16 @@ export default async function ProfilePage() {
             <ShieldCheckIcon className="text-primary size-5" aria-hidden /> Sécurité
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
-          <Button asChild variant="outline">
-            <Link href="/auth/set-password?next=/app/profile">
-              <KeyRoundIcon /> Changer mon mot de passe
-            </Link>
-          </Button>
-          <SignOutEverywhereButton />
+        <CardContent className="space-y-4">
+          <MfaSettings enabled={ctx.user.mfaEnabled} />
+          <div className="flex flex-wrap gap-2 border-t pt-4">
+            <Button asChild variant="outline">
+              <Link href="/auth/set-password?next=/app/profile">
+                <KeyRoundIcon /> Changer mon mot de passe
+              </Link>
+            </Button>
+            <SignOutEverywhereButton />
+          </div>
         </CardContent>
       </Card>
       <Card>

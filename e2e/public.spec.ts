@@ -62,7 +62,15 @@ test.describe("security", () => {
     expect(h["x-powered-by"]).toBeUndefined();
   });
 
-  for (const path of ["/app", "/app/students", "/app/finance", "/app/assistant", "/app/settings/roles"]) {
+  for (const path of [
+    "/app",
+    "/app/students",
+    "/app/finance",
+    "/app/assistant",
+    "/app/settings/roles",
+    "/app/staff/attendance",
+    "/auth/mfa",
+  ]) {
     test(`protected page ${path} requires authentication`, async ({ page }) => {
       await page.goto(path);
       await expect(page).toHaveURL(/\/login/);

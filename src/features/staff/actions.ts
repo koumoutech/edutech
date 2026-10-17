@@ -14,6 +14,8 @@ import {
   requestLeave,
   reviewLeave,
   saveStaff,
+  saveStaffAttendance,
+  staffAttendanceSchema,
   staffSchema,
 } from "@/server/services/staff";
 
@@ -78,4 +80,13 @@ export async function cancelLeaveAction(id: string) {
     await cancelLeave(ctx, parseInput(z.object({ id: z.uuid() }), { id }).id);
     refresh();
   }, "Demande annulée.");
+}
+
+export async function saveStaffAttendanceAction(input: unknown) {
+  return runAction(async () => {
+    const ctx = await requireContext();
+    const count = await saveStaffAttendance(ctx, parseInput(staffAttendanceSchema, input as Record<string, unknown>));
+    refresh();
+    return { count };
+  }, "Pointage enregistré.");
 }

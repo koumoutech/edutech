@@ -39,6 +39,7 @@ export default function PlatformPage() {
 async function Content() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
+  if (user.mfaPending) redirect("/auth/mfa?next=/platform");
   const db = await createClient();
   const { data: admin } = await db.from("platform_admins").select("user_id").eq("user_id", user.id).maybeSingle();
   if (!admin) redirect("/no-access");

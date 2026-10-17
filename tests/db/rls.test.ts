@@ -467,7 +467,7 @@ describe.skipIf(!enabled)("finance", () => {
       const [inv] = await q<{ id: string }>(`select id from public.invoices where status <> 'draft' limit 1`);
       return expectError(q, `update public.invoices set status = 'paid' where id = $1`, [inv.id]);
     });
-    expect(err).toMatch(/INVOICE_CHANGE_REQUIRES_RPC/);
+    expect(err).toMatch(/INVOICE_CHANGE_REQUIRES_RPC|permission denied/);
   });
 
   it("payment allocations cannot be inserted directly", async () => {
@@ -567,7 +567,7 @@ describe.skipIf(!enabled)("accounts, roles and invitations", () => {
           q,
           `insert into public.role_permissions (role_id, permission_key) select id, 'finance.read' from public.roles where key = 'secretary'`,
         ),
-      ).toMatch(/row-level security/);
+      ).toMatch(/row-level security|FORBIDDEN/);
       expect(
         await expectError(
           q,
@@ -774,5 +774,238 @@ describe.skipIf(!databaseUrl())("AI assistant storage", () => {
     });
     expect(teacherRead).toHaveLength(0);
     expect(adminRead.length).toBeGreaterThan(0);
+  });
+});
+
+describe.skipIf(!databaseUrl())("privilege escalation and tamper protection", () => {
+  let client: Client;
+  beforeAll(async () => {
+    client = await connect();
+  });
+  afterAll(async () => {
+    await client.end();
+  });
+
+  const roleId = (q: Query, key: string) =>
+    q<{ id: string }>(`select id from public.roles where school_id = $1 and key = $2`, [DEMO_SCHOOL, key]).then(
+      (r) => r[0].id,
+    );
+  /** Gives the director role roles.manage for the scenario (rolled back afterwards). */
+  const directorManagesRoles = async (q: Query) => {
+    await q(
+      `insert into public.role_permissions (role_id, permission_key, scope)
+       select id, 'roles.manage', 'school' from public.roles where school_id = $1 and key = 'director'`,
+      [DEMO_SCHOOL],
+    );
+  };
+
+  it("a role manager cannot extend the permissions of a role they hold", async () => {
+    const err = await asUser(
+      client,
+      USERS.director,
+      async (q) =>
+        expectError(
+          q,
+          `insert into public.role_permissions (role_id, permission_key, scope) values ($1, 'health.read', 'school')`,
+          [await roleId(q, "director")],
+        ),
+      directorManagesRoles,
+    );
+    expect(err).toMatch(/FORBIDDEN/);
+  });
+
+  it("a non-admin role manager cannot grant sensitive permissions, but can grant ordinary ones", async () => {
+    const [sensitive, ordinary] = await asUser(
+      client,
+      USERS.director,
+      async (q) => {
+        const teacher = await roleId(q, "teacher");
+        const a = await expectError(
+          q,
+          `insert into public.role_permissions (role_id, permission_key, scope) values ($1, 'finance.manage', 'school')`,
+          [teacher],
+        );
+        const b = await expectError(
+          q,
+          `insert into public.role_permissions (role_id, permission_key, scope) values ($1, 'reports.read', 'school')
+           on conflict (role_id, permission_key) do update set scope = excluded.scope`,
+          [teacher],
+        );
+        return [a, b];
+      },
+      directorManagesRoles,
+    );
+    expect(sensitive).toMatch(/FORBIDDEN/);
+    expect(ordinary).toBeNull();
+  });
+
+  it("the school_admin role is locked, even for an administrator", async () => {
+    const err = await asUser(client, USERS.admin, async (q) =>
+      expectError(q, `delete from public.role_permissions where role_id = $1 and permission_key = 'audit.read'`, [
+        await roleId(q, "school_admin"),
+      ]),
+    );
+    expect(err).toMatch(/FORBIDDEN/);
+  });
+
+  it("a user manager cannot assign a role to themselves", async () => {
+    const err = await asUser(client, USERS.director, async (q) =>
+      expectError(q, `select public.assign_role($1, $2, $3)`, [
+        DEMO_SCHOOL,
+        USERS.director,
+        await roleId(q, "accountant"),
+      ]),
+    );
+    expect(err).toMatch(/FORBIDDEN/);
+  });
+
+  it("a school administrator cannot change platform-owned school settings", async () => {
+    const [demoFlag, rename] = await asUser(client, USERS.admin, async (q) => [
+      await expectError(q, `update public.schools set is_demo = false where id = $1`, [DEMO_SCHOOL]),
+      await expectError(q, `update public.schools set short_name = 'LDA' where id = $1`, [DEMO_SCHOOL]),
+    ]);
+    expect(demoFlag).toMatch(/FORBIDDEN/);
+    expect(rename).toBeNull();
+  });
+
+  it("computed results and numbering cannot be written through the API", async () => {
+    const errors = await asUser(client, USERS.admin, async (q) => [
+      await expectError(q, `update public.report_cards set average = 20, rank = 1 where school_id = $1`, [DEMO_SCHOOL]),
+      await expectError(q, `update public.invoices set number = 'FAKE-1' where school_id = $1`, [DEMO_SCHOOL]),
+      await expectError(q, `update public.documents set storage_path = storage_path where school_id = $1`, [
+        DEMO_SCHOOL,
+      ]),
+      await expectError(q, `update public.announcements set author_id = $2 where school_id = $1`, [
+        DEMO_SCHOOL,
+        USERS.parent,
+      ]),
+    ]);
+    for (const e of errors) expect(e).toMatch(/permission denied/);
+  });
+
+  it("author columns cannot be spoofed", async () => {
+    const [row] = await asUser(client, USERS.secretary, (q) =>
+      q<{ author_id: string }>(
+        `insert into public.announcements (school_id, title, body, author_id) values ($1, 'Test', 'Corps', $2) returning author_id`,
+        [DEMO_SCHOOL, USERS.admin],
+      ),
+    );
+    expect(row.author_id).toBe(USERS.secretary);
+  });
+
+  it("an expense cannot be approved by the person who entered it, and approval is stamped", async () => {
+    const [self, other] = await asUser(client, USERS.accountant, async (q) => {
+      const [cat] = await q<{ id: string }>(`select id from public.expense_categories where school_id = $1 limit 1`, [
+        DEMO_SCHOOL,
+      ]);
+      const [mine] = await q<{ id: string }>(
+        `insert into public.expenses (school_id, category_id, description, amount) values ($1, $2, 'Craies', 5000) returning id`,
+        [DEMO_SCHOOL, cat.id],
+      );
+      const selfErr = await expectError(q, `update public.expenses set status = 'approved' where id = $1`, [mine.id]);
+      // Switch to the director, who approves it (stamp forced to the real approver).
+      await q(`select set_config('request.jwt.claims', $1, true)`, [
+        JSON.stringify({ sub: USERS.director, role: "authenticated" }),
+      ]);
+      const [approved] = await q<{ approved_by: string }>(
+        `update public.expenses set status = 'approved', approved_by = $2 where id = $1 returning approved_by`,
+        [mine.id, USERS.parent],
+      );
+      return [selfErr, approved];
+    });
+    expect(self).toMatch(/FORBIDDEN/);
+    expect(other.approved_by).toBe(USERS.director);
+  });
+});
+
+describe.skipIf(!databaseUrl())("staff attendance", () => {
+  let client: Client;
+  beforeAll(async () => {
+    client = await connect();
+  });
+  afterAll(async () => {
+    await client.end();
+  });
+
+  it("HR records staff presence (stamped with the real recorder); teachers cannot", async () => {
+    const [stamp, teacherErr] = await asUser(client, USERS.hr, async (q) => {
+      const [s] = await q<{ id: string }>(`select id from public.staff_members where school_id = $1 limit 1`, [
+        DEMO_SCHOOL,
+      ]);
+      const [row] = await q<{ recorded_by: string }>(
+        `insert into public.staff_attendance (school_id, staff_id, date, status, recorded_by)
+         values ($1, $2, current_date, 'late', $3) returning recorded_by`,
+        [DEMO_SCHOOL, s.id, USERS.admin],
+      );
+      await q(`select set_config('request.jwt.claims', $1, true)`, [
+        JSON.stringify({ sub: USERS.mathTeacher, role: "authenticated" }),
+      ]);
+      const err = await expectError(
+        q,
+        `update public.staff_attendance set status = 'present' where staff_id = $1 returning id`,
+        [s.id],
+      );
+      const visible = await q(`select 1 from public.staff_attendance where staff_id = $1`, [s.id]);
+      return [row.recorded_by, err ?? (visible.length === 0 ? "hidden" : "visible")];
+    });
+    expect(stamp).toBe(USERS.hr);
+    expect(teacherErr).toMatch(/hidden|row-level security/);
+  });
+});
+
+describe.skipIf(!databaseUrl())("multi-factor authentication", () => {
+  let client: Client;
+  beforeAll(async () => {
+    client = await connect();
+  });
+  afterAll(async () => {
+    await client.end();
+  });
+
+  const withFactor = async (q: Query) => {
+    await q(`insert into auth.mfa_factors (user_id, status) values ($1, 'verified')`, [USERS.accountant]);
+  };
+  const asAal = (q: Query, aal: "aal1" | "aal2") =>
+    q(`select set_config('request.jwt.claims', $1, true)`, [
+      JSON.stringify({ sub: USERS.accountant, role: "authenticated", aal }),
+    ]);
+
+  it("an aal1 session of a user with a verified factor gets no data and cannot call business functions", async () => {
+    const [invoices, ctx, rpcErr] = await asUser(
+      client,
+      USERS.accountant,
+      async (q) => {
+        await asAal(q, "aal1");
+        return [
+          await q(`select id from public.invoices limit 5`),
+          await q<{ c: unknown }>(`select public.my_context() as c`),
+          await expectError(q, `select public.create_invoice($1, gen_random_uuid(), current_date, '[]'::jsonb)`, [
+            DEMO_SCHOOL,
+          ]),
+        ];
+      },
+      withFactor,
+    );
+    expect(invoices).toHaveLength(0);
+    expect(JSON.stringify(ctx)).not.toContain(DEMO_SCHOOL);
+    expect(rpcErr).toMatch(/FORBIDDEN|MFA_REQUIRED/);
+  });
+
+  it("the same user at aal2 regains access", async () => {
+    const invoices = await asUser(
+      client,
+      USERS.accountant,
+      async (q) => {
+        await asAal(q, "aal2");
+        return q(`select id from public.invoices limit 5`);
+      },
+      withFactor,
+    );
+    expect(invoices.length).toBeGreaterThan(0);
+  });
+
+  it("users without a factor are not affected", async () => {
+    const invoices = await asUser(client, USERS.accountant, (q) => q(`select id from public.invoices limit 5`));
+    expect(invoices.length).toBeGreaterThan(0);
   });
 });

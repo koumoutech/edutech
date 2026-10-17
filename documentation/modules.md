@@ -53,7 +53,7 @@ Le tableau de bord dépend du rôle principal : direction, études, enseignant, 
 ## G. Absences et congés du personnel (`/app/staff/leaves`)
 
 - Demande avec type, dates et motif, puis validation ou refus avec commentaire et annulation, chaque étape étant notifiée.
-- Limite : la table `staff_attendance` (pointage quotidien du personnel) existe en base mais **n'a pas encore d'écran** (voir `rapport.md`).
+- **Pointage quotidien** (`/app/staff/attendance`) : présent, absent, retard (en minutes) ou congé, avec une remarque. Les congés approuvés sont pré-renseignés, la saisie d'une date future est refusée, la synthèse est mensuelle par personne, la saisie est réservée à `staff.manage` et la lecture à `staff.read` (établissement).
 
 ## H. Finances (`/app/finance`)
 

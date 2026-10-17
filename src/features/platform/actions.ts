@@ -10,7 +10,7 @@ import { createClient } from "@/server/supabase/server";
 
 async function requirePlatformAdmin() {
   const user = await getSessionUser();
-  if (!user) throw new AppError("UNAUTHENTICATED");
+  if (!user || user.mfaPending) throw new AppError("UNAUTHENTICATED");
   const db = await createClient();
   const { data } = await db.from("platform_admins").select("user_id").eq("user_id", user.id).maybeSingle();
   if (!data) throw new AppError("FORBIDDEN");

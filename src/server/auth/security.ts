@@ -94,7 +94,11 @@ export type LoginEvent =
   | "password_reset_requested"
   | "password_changed"
   | "locked_out"
-  | "session_revoked";
+  | "session_revoked"
+  | "mfa_enabled"
+  | "mfa_disabled"
+  | "mfa_failure"
+  | "mfa_success";
 
 /** Records an important authentication event (hashed e-mail/IP, never the password). */
 export async function recordLoginEvent(
@@ -121,6 +125,6 @@ export async function recordLoginEvent(
 /** Only allow in-app relative redirects (prevents open redirects). */
 export function safeNextPath(next: string | null | undefined, fallback = "/app"): string {
   if (!next || !next.startsWith("/") || next.startsWith("//") || next.includes("\\")) return fallback;
-  if (!/^\/(app|invitation|auth\/set-password)(\/|\?|$)/.test(next)) return fallback;
+  if (!/^\/(app|platform|invitation|auth\/set-password)(\/|\?|$)/.test(next)) return fallback;
   return next;
 }
