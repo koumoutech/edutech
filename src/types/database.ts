@@ -3923,6 +3923,7 @@ export type Database = {
       issue_invoice: { Args: { p_invoice: string }; Returns: undefined };
       log_export: { Args: { p_school: string; p_kind: string; p_rows: number }; Returns: undefined };
       my_context: { Args: Record<PropertyKey, never>; Returns: Json };
+      notify_timetable_change: { Args: { p_entry: string; p_title: string; p_body?: string }; Returns: number };
       publish_announcement: { Args: { p_id: string }; Returns: number };
       record_payment: { Args: { p_school: string; p_student: string; p_amount: number; p_method: string; p_reference?: string; p_payer_name?: string; p_paid_at?: string; p_allocations?: Json; p_notes?: string }; Returns: string };
       refund_payment: { Args: { p_payment: string; p_amount: number; p_reason: string }; Returns: string };
