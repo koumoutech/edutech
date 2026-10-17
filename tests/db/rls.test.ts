@@ -71,9 +71,11 @@ describe.skipIf(!enabled)("tenant isolation", () => {
       client,
       USERS.admin,
       (q) =>
-        expectError(q, `insert into public.students (school_id, matricule, first_name, last_name) values ($1, 'X-1', 'A', 'B')`, [
-          OTHER_SCHOOL,
-        ]),
+        expectError(
+          q,
+          `insert into public.students (school_id, matricule, first_name, last_name) values ($1, 'X-1', 'A', 'B')`,
+          [OTHER_SCHOOL],
+        ),
       createOtherSchool,
     );
     expect(err).toMatch(/row-level security/);
@@ -119,13 +121,17 @@ describe.skipIf(!enabled)("tenant isolation", () => {
 
 describe.skipIf(!enabled)("students, parents and families", () => {
   it("a student only sees their own record", async () => {
-    const rows = await asUser(client, USERS.student, (q) => q<{ user_id: string }>(`select user_id from public.students`));
+    const rows = await asUser(client, USERS.student, (q) =>
+      q<{ user_id: string }>(`select user_id from public.students`),
+    );
     expect(rows).toHaveLength(1);
     expect(rows[0].user_id).toBe(USERS.student);
   });
 
   it("a parent only sees the children linked to them", async () => {
-    const rows = await asUser(client, USERS.parent, (q) => q<{ last_name: string }>(`select last_name from public.students`));
+    const rows = await asUser(client, USERS.parent, (q) =>
+      q<{ last_name: string }>(`select last_name from public.students`),
+    );
     expect(rows).toHaveLength(2);
     expect(rows.every((r) => r.last_name === "N'Guessan")).toBe(true);
   });
@@ -155,12 +161,16 @@ describe.skipIf(!enabled)("students, parents and families", () => {
   it("students and parents only see grades of published assessments", async () => {
     const [student, parent] = await Promise.all([
       asUser(client, USERS.student, (q) =>
-        q<{ status: string }>(`select a.status from public.grades g join public.assessments a on a.id = g.assessment_id`),
+        q<{ status: string }>(
+          `select a.status from public.grades g join public.assessments a on a.id = g.assessment_id`,
+        ),
       ),
     ]).then(async ([s]) => [
       s,
       await asUser(client, USERS.parent, (q) =>
-        q<{ status: string }>(`select a.status from public.grades g join public.assessments a on a.id = g.assessment_id`),
+        q<{ status: string }>(
+          `select a.status from public.grades g join public.assessments a on a.id = g.assessment_id`,
+        ),
       ),
     ]);
     expect(student.length).toBeGreaterThan(0);
@@ -213,24 +223,42 @@ describe.skipIf(!enabled)("students, parents and families", () => {
 
 describe.skipIf(!enabled)("teachers", () => {
   async function createUnassignedClass(q: Query) {
-    await q(`
+    await q(
+      `
       insert into public.classes (id, school_id, academic_year_id, level_id, name)
       select '00000000-0000-4000-d000-000000000001', $1, ay.id, (select id from public.levels where school_id = $1 order by position limit 1), '6e Z'
-      from public.academic_years ay where ay.school_id = $1 and ay.is_current`, [DEMO_SCHOOL]);
-    await q(`insert into public.students (id, school_id, matricule, first_name, last_name)
-             values ('00000000-0000-4000-c000-000000000001', $1, 'Z-0001', 'Hors', 'Classe')`, [DEMO_SCHOOL]);
-    await q(`insert into public.enrollments (school_id, student_id, academic_year_id, class_id)
+      from public.academic_years ay where ay.school_id = $1 and ay.is_current`,
+      [DEMO_SCHOOL],
+    );
+    await q(
+      `insert into public.students (id, school_id, matricule, first_name, last_name)
+             values ('00000000-0000-4000-c000-000000000001', $1, 'Z-0001', 'Hors', 'Classe')`,
+      [DEMO_SCHOOL],
+    );
+    await q(
+      `insert into public.enrollments (school_id, student_id, academic_year_id, class_id)
              select $1, '00000000-0000-4000-c000-000000000001', ay.id, '00000000-0000-4000-d000-000000000001'
-             from public.academic_years ay where ay.school_id = $1 and ay.is_current`, [DEMO_SCHOOL]);
-    await q(`insert into public.class_subjects (id, school_id, class_id, subject_id, teacher_id)
+             from public.academic_years ay where ay.school_id = $1 and ay.is_current`,
+      [DEMO_SCHOOL],
+    );
+    await q(
+      `insert into public.class_subjects (id, school_id, class_id, subject_id, teacher_id)
              select '00000000-0000-4000-e000-000000000001', $1, '00000000-0000-4000-d000-000000000001', s.id,
                     (select id from public.staff_members where employee_number = 'ENS-003')
-             from public.subjects s where s.school_id = $1 and s.code = 'MATH'`, [DEMO_SCHOOL]);
-    await q(`insert into public.assessments (id, school_id, class_subject_id, term_id, title)
+             from public.subjects s where s.school_id = $1 and s.code = 'MATH'`,
+      [DEMO_SCHOOL],
+    );
+    await q(
+      `insert into public.assessments (id, school_id, class_subject_id, term_id, title)
              select '00000000-0000-4000-f000-000000000001', $1, '00000000-0000-4000-e000-000000000001', t.id, 'Test'
-             from public.terms t where t.school_id = $1 and t.position = 1`, [DEMO_SCHOOL]);
-    await q(`insert into public.grades (school_id, assessment_id, student_id, score)
-             values ($1, '00000000-0000-4000-f000-000000000001', '00000000-0000-4000-c000-000000000001', 12)`, [DEMO_SCHOOL]);
+             from public.terms t where t.school_id = $1 and t.position = 1`,
+      [DEMO_SCHOOL],
+    );
+    await q(
+      `insert into public.grades (school_id, assessment_id, student_id, score)
+             values ($1, '00000000-0000-4000-f000-000000000001', '00000000-0000-4000-c000-000000000001', 12)`,
+      [DEMO_SCHOOL],
+    );
   }
 
   it("a teacher cannot see students of a class they do not teach", async () => {
@@ -309,7 +337,12 @@ describe.skipIf(!enabled)("teachers", () => {
       expect(await expectError(q, `select public.set_assessment_status($1, 'validated')`, [a.id])).toMatch(/FORBIDDEN/);
       expect(await q(`select * from public.invoices`)).toHaveLength(0);
       expect(await q(`select * from public.payments`)).toHaveLength(0);
-      expect(await q(`select * from public.staff_contracts where staff_id <> (select id from public.staff_members where user_id = $1)`, [USERS.mathTeacher])).toHaveLength(0);
+      expect(
+        await q(
+          `select * from public.staff_contracts where staff_id <> (select id from public.staff_members where user_id = $1)`,
+          [USERS.mathTeacher],
+        ),
+      ).toHaveLength(0);
     });
   });
 });
@@ -333,8 +366,12 @@ describe.skipIf(!enabled)("validated grades", () => {
 
   it("correction requires grades.validate and a reason, and is recorded", async () => {
     await asUser(client, USERS.mathTeacher, async (q) => {
-      const [g] = await q<{ id: string }>(`select g.id from public.grades g join public.assessments a on a.id = g.assessment_id where a.status = 'published' limit 1`);
-      expect(await expectError(q, `select public.correct_grade($1, 12, false, 'Erreur de saisie')`, [g.id])).toMatch(/FORBIDDEN/);
+      const [g] = await q<{ id: string }>(
+        `select g.id from public.grades g join public.assessments a on a.id = g.assessment_id where a.status = 'published' limit 1`,
+      );
+      expect(await expectError(q, `select public.correct_grade($1, 12, false, 'Erreur de saisie')`, [g.id])).toMatch(
+        /FORBIDDEN/,
+      );
     });
     await asUser(client, USERS.academicDirector, async (q) => {
       const g = await publishedGrade(q);
@@ -350,8 +387,12 @@ describe.skipIf(!enabled)("validated grades", () => {
 
 describe.skipIf(!enabled)("finance", () => {
   it("a parent sees only their children's invoices; another parent sees none of them", async () => {
-    const p1 = await asUser(client, USERS.parent, (q) => q<{ student_id: string }>(`select student_id from public.invoices`));
-    const p2 = await asUser(client, USERS.parent2, (q) => q<{ student_id: string }>(`select student_id from public.invoices`));
+    const p1 = await asUser(client, USERS.parent, (q) =>
+      q<{ student_id: string }>(`select student_id from public.invoices`),
+    );
+    const p2 = await asUser(client, USERS.parent2, (q) =>
+      q<{ student_id: string }>(`select student_id from public.invoices`),
+    );
     expect(p1.length).toBe(2);
     expect(p2.length).toBe(1);
     expect(p1.some((r) => p2.some((o) => o.student_id === r.student_id))).toBe(false);
@@ -403,10 +444,16 @@ describe.skipIf(!enabled)("finance", () => {
         `select p.id, p.amount, pa.invoice_id from public.payments p join public.payment_allocations pa on pa.payment_id = p.id
          where p.status = 'completed' and pa.is_active limit 1`,
       );
-      const [before] = await q<{ amount_paid: string }>(`select amount_paid from public.invoices where id = $1`, [p.invoice_id]);
-      expect(await expectError(q, `select public.refund_payment($1, $2, 'trop')`, [p.id, 1])).toMatch(/REASON_REQUIRED/);
+      const [before] = await q<{ amount_paid: string }>(`select amount_paid from public.invoices where id = $1`, [
+        p.invoice_id,
+      ]);
+      expect(await expectError(q, `select public.refund_payment($1, $2, 'trop')`, [p.id, 1])).toMatch(
+        /REASON_REQUIRED/,
+      );
       await q(`select public.refund_payment($1, 1000, 'Remboursement partiel test')`, [p.id]);
-      const [after] = await q<{ amount_paid: string }>(`select amount_paid from public.invoices where id = $1`, [p.invoice_id]);
+      const [after] = await q<{ amount_paid: string }>(`select amount_paid from public.invoices where id = $1`, [
+        p.invoice_id,
+      ]);
       expect(Number(before.amount_paid) - Number(after.amount_paid)).toBe(1000);
       const refunds = await q(`select 1 from public.refunds where payment_id = $1`, [p.id]);
       expect(refunds).toHaveLength(1);
@@ -438,34 +485,57 @@ describe.skipIf(!enabled)("finance", () => {
 
 describe.skipIf(!enabled)("private files", () => {
   async function privateDoc(q: Query) {
-    await q(`insert into public.documents (id, school_id, category, title, student_id, storage_path, mime_type, size_bytes, visible_to_family)
+    await q(
+      `insert into public.documents (id, school_id, category, title, student_id, storage_path, mime_type, size_bytes, visible_to_family)
              select '00000000-0000-4000-9000-000000000001', $1::uuid, 'student_file', 'Dossier confidentiel', s.id,
                     $1::text || '/00000000-0000-4000-9000-000000000001/file.pdf', 'application/pdf', 100, false
-             from public.students s where s.user_id = $2`, [DEMO_SCHOOL, USERS.student]);
-    await q(`insert into storage.objects (bucket_id, name) values ('documents', $1 || '/00000000-0000-4000-9000-000000000001/file.pdf')`, [DEMO_SCHOOL]);
+             from public.students s where s.user_id = $2`,
+      [DEMO_SCHOOL, USERS.student],
+    );
+    await q(
+      `insert into storage.objects (bucket_id, name) values ('documents', $1 || '/00000000-0000-4000-9000-000000000001/file.pdf')`,
+      [DEMO_SCHOOL],
+    );
   }
 
   it("a family cannot download a document not shared with them", async () => {
-    const rows = await asUser(client, USERS.parent, (q) => q(`select name from storage.objects where bucket_id = 'documents'`), privateDoc);
+    const rows = await asUser(
+      client,
+      USERS.parent,
+      (q) => q(`select name from storage.objects where bucket_id = 'documents'`),
+      privateDoc,
+    );
     expect(rows).toHaveLength(0);
   });
 
   it("staff with documents.read can download it", async () => {
-    const rows = await asUser(client, USERS.secretary, (q) => q(`select name from storage.objects where bucket_id = 'documents'`), privateDoc);
+    const rows = await asUser(
+      client,
+      USERS.secretary,
+      (q) => q(`select name from storage.objects where bucket_id = 'documents'`),
+      privateDoc,
+    );
     expect(rows).toHaveLength(1);
   });
 
   it("another school can never read it", async () => {
-    const rows = await asUser(client, OTHER_ADMIN, (q) => q(`select name from storage.objects`), async (q) => {
-      await privateDoc(q);
-      await createOtherSchool(q);
-    });
+    const rows = await asUser(
+      client,
+      OTHER_ADMIN,
+      (q) => q(`select name from storage.objects`),
+      async (q) => {
+        await privateDoc(q);
+        await createOtherSchool(q);
+      },
+    );
     expect(rows).toHaveLength(0);
   });
 
   it("uploads require a matching metadata row created by the uploader", async () => {
     const err = await asUser(client, USERS.parent, (q) =>
-      expectError(q, `insert into storage.objects (bucket_id, name) values ('documents', $1 || '/random/evil.pdf')`, [DEMO_SCHOOL]),
+      expectError(q, `insert into storage.objects (bucket_id, name) values ('documents', $1 || '/random/evil.pdf')`, [
+        DEMO_SCHOOL,
+      ]),
     );
     expect(err).toMatch(/row-level security/);
   });
@@ -493,9 +563,18 @@ describe.skipIf(!enabled)("accounts, roles and invitations", () => {
         ),
       ).toMatch(/FORBIDDEN/);
       expect(
-        await expectError(q, `insert into public.role_permissions (role_id, permission_key) select id, 'finance.read' from public.roles where key = 'secretary'`),
+        await expectError(
+          q,
+          `insert into public.role_permissions (role_id, permission_key) select id, 'finance.read' from public.roles where key = 'secretary'`,
+        ),
       ).toMatch(/row-level security/);
-      expect(await expectError(q, `insert into public.memberships (school_id, user_id, role_id) select $1, $2, id from public.roles where key = 'school_admin' and school_id = $1`, [DEMO_SCHOOL, USERS.secretary])).toMatch(/row-level security/);
+      expect(
+        await expectError(
+          q,
+          `insert into public.memberships (school_id, user_id, role_id) select $1, $2, id from public.roles where key = 'school_admin' and school_id = $1`,
+          [DEMO_SCHOOL, USERS.secretary],
+        ),
+      ).toMatch(/row-level security/);
     });
   });
 
@@ -506,7 +585,10 @@ describe.skipIf(!enabled)("accounts, roles and invitations", () => {
       client,
       USERS.admin,
       async (q) => {
-        const [{ id: roleId }] = await q<{ id: string }>(`select id from public.roles where school_id = $1 and key = 'teacher'`, [DEMO_SCHOOL]);
+        const [{ id: roleId }] = await q<{ id: string }>(
+          `select id from public.roles where school_id = $1 and key = 'teacher'`,
+          [DEMO_SCHOOL],
+        );
         const [{ h }] = await q<{ h: string }>(`select encode(sha256(convert_to($1, 'UTF8')), 'hex') as h`, [token]);
         await q(`select public.create_invitation($1, 'new.teacher@example.test', $2, $3)`, [DEMO_SCHOOL, roleId, h]);
         // switch identity to the invitee
@@ -529,7 +611,10 @@ describe.skipIf(!enabled)("accounts, roles and invitations", () => {
       client,
       USERS.admin,
       async (q) => {
-        const [{ id: roleId }] = await q<{ id: string }>(`select id from public.roles where school_id = $1 and key = 'parent'`, [DEMO_SCHOOL]);
+        const [{ id: roleId }] = await q<{ id: string }>(
+          `select id from public.roles where school_id = $1 and key = 'parent'`,
+          [DEMO_SCHOOL],
+        );
         const [{ h }] = await q<{ h: string }>(`select encode(sha256(convert_to('tok-xyz', 'UTF8')), 'hex') as h`);
         await q(`select public.create_invitation($1, 'real.parent@example.test', $2, $3)`, [DEMO_SCHOOL, roleId, h]);
         await q(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub: INTRUDER })]);
@@ -550,7 +635,10 @@ describe.skipIf(!enabled)("accounts, roles and invitations", () => {
         expect(await q(`select * from public.ai_conversations`)).toHaveLength(0);
       },
       async (q) => {
-        await q(`insert into public.ai_conversations (school_id, user_id, title) values ($1, $2, 'Privé')`, [DEMO_SCHOOL, USERS.parent]);
+        await q(`insert into public.ai_conversations (school_id, user_id, title) values ($1, $2, 'Privé')`, [
+          DEMO_SCHOOL,
+          USERS.parent,
+        ]);
       },
     );
   });
@@ -558,7 +646,10 @@ describe.skipIf(!enabled)("accounts, roles and invitations", () => {
   it("families can only message staff members", async () => {
     await asUser(client, USERS.parent, async (q) => {
       expect(
-        await expectError(q, `select public.start_thread($1, 'Bonjour', array[$2::uuid], 'Message')`, [DEMO_SCHOOL, USERS.parent2]),
+        await expectError(q, `select public.start_thread($1, 'Bonjour', array[$2::uuid], 'Message')`, [
+          DEMO_SCHOOL,
+          USERS.parent2,
+        ]),
       ).toMatch(/FORBIDDEN/);
       const ok = await expectError(q, `select public.start_thread($1, 'Question', array[$2::uuid], 'Bonjour')`, [
         DEMO_SCHOOL,
@@ -577,11 +668,10 @@ describe.skipIf(!enabled)("attendance", () => {
          join public.students s on s.id = e.student_id where s.user_id = $1`,
         [USERS.student],
       );
-      await q(`select public.save_attendance($1, $2, current_date - 30, jsonb_build_array(jsonb_build_object('student_id', $3::uuid, 'status', 'absent')))`, [
-        DEMO_SCHOOL,
-        c.class_id,
-        c.student_id,
-      ]);
+      await q(
+        `select public.save_attendance($1, $2, current_date - 30, jsonb_build_array(jsonb_build_object('student_id', $3::uuid, 'status', 'absent')))`,
+        [DEMO_SCHOOL, c.class_id, c.student_id],
+      );
     });
     const notifs = await asUser(client, USERS.parent, (q) =>
       q(`select 1 from public.notifications where type = 'attendance.absence'`),
@@ -596,11 +686,11 @@ describe.skipIf(!enabled)("attendance", () => {
         `select e.class_id, e.student_id from public.enrollments e join public.students s on s.id = e.student_id where s.user_id = $1`,
         [USERS.student],
       );
-      return expectError(q, `select public.save_attendance($1, $2, current_date, jsonb_build_array(jsonb_build_object('student_id', $3::uuid, 'status', 'present')))`, [
-        DEMO_SCHOOL,
-        c.class_id,
-        c.student_id,
-      ]);
+      return expectError(
+        q,
+        `select public.save_attendance($1, $2, current_date, jsonb_build_array(jsonb_build_object('student_id', $3::uuid, 'status', 'present')))`,
+        [DEMO_SCHOOL, c.class_id, c.student_id],
+      );
     });
     expect(err).toMatch(/row-level security/);
   });
@@ -621,7 +711,10 @@ describe.skipIf(!databaseUrl())("AI assistant storage", () => {
       USERS.admin,
       (q) => q(`select id from public.ai_conversations`),
       async (q) => {
-        await q(`insert into public.ai_conversations (school_id, user_id, title) values ($1, $2, 'privée')`, [DEMO_SCHOOL, USERS.mathTeacher]);
+        await q(`insert into public.ai_conversations (school_id, user_id, title) values ($1, $2, 'privée')`, [
+          DEMO_SCHOOL,
+          USERS.mathTeacher,
+        ]);
       },
     );
     expect(seen).toHaveLength(0);
@@ -631,10 +724,14 @@ describe.skipIf(!databaseUrl())("AI assistant storage", () => {
     const err = await asUser(
       client,
       USERS.parent,
-      (q) => expectError(q, `insert into public.ai_conversations (school_id, title) values ($1, 'test')`, [DEMO_SCHOOL]),
+      (q) =>
+        expectError(q, `insert into public.ai_conversations (school_id, title) values ($1, 'test')`, [DEMO_SCHOOL]),
       async (q) => {
         // Parents have ai.use by default (family-scoped tools); revoke it for this scenario.
-        await q(`delete from public.role_permissions where permission_key = 'ai.use' and role_id in (select id from public.roles where school_id = $1 and key = 'parent')`, [DEMO_SCHOOL]);
+        await q(
+          `delete from public.role_permissions where permission_key = 'ai.use' and role_id in (select id from public.roles where school_id = $1 and key = 'parent')`,
+          [DEMO_SCHOOL],
+        );
       },
     );
     expect(err).toMatch(/row-level security/);
@@ -646,10 +743,17 @@ describe.skipIf(!databaseUrl())("AI assistant storage", () => {
       USERS.frenchTeacher,
       async (q) => {
         const [c] = await q<{ id: string }>(`select id from public.ai_conversations where title = 'cible'`);
-        return expectError(q, `insert into public.ai_messages (conversation_id, school_id, role, content) values ($1, $2, 'user', 'x')`, [c?.id ?? null, DEMO_SCHOOL]);
+        return expectError(
+          q,
+          `insert into public.ai_messages (conversation_id, school_id, role, content) values ($1, $2, 'user', 'x')`,
+          [c?.id ?? null, DEMO_SCHOOL],
+        );
       },
       async (q) => {
-        await q(`insert into public.ai_conversations (school_id, user_id, title) values ($1, $2, 'cible')`, [DEMO_SCHOOL, USERS.mathTeacher]);
+        await q(`insert into public.ai_conversations (school_id, user_id, title) values ($1, $2, 'cible')`, [
+          DEMO_SCHOOL,
+          USERS.mathTeacher,
+        ]);
       },
     );
     expect(err).toMatch(/row-level security|null value/);
@@ -657,9 +761,14 @@ describe.skipIf(!databaseUrl())("AI assistant storage", () => {
 
   it("tool audit rows can be written by members but only read with audit.read", async () => {
     const [teacherRead, adminRead] = await asUser(client, USERS.mathTeacher, async (q) => {
-      await q(`insert into public.ai_tool_invocations (school_id, tool_name, outcome) values ($1, 'get_grades_summary', 'ok')`, [DEMO_SCHOOL]);
+      await q(
+        `insert into public.ai_tool_invocations (school_id, tool_name, outcome) values ($1, 'get_grades_summary', 'ok')`,
+        [DEMO_SCHOOL],
+      );
       const mine = await q(`select 1 from public.ai_tool_invocations`);
-      await q(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub: USERS.admin, role: "authenticated" })]);
+      await q(`select set_config('request.jwt.claims', $1, true)`, [
+        JSON.stringify({ sub: USERS.admin, role: "authenticated" }),
+      ]);
       const admin = await q(`select tool_name from public.ai_tool_invocations`);
       return [mine, admin];
     });

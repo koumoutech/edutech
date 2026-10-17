@@ -6,7 +6,10 @@ import { createAdminClient } from "@/server/supabase/admin";
 
 /** Salted, non-reversible fingerprint for logs and rate-limit keys (no raw PII stored). */
 export function fingerprint(value: string): string {
-  const salt = serverEnv().SECURITY_HASH_SALT ?? "dev-only-salt-change-me";
+  const env = serverEnv();
+  if (!env.SECURITY_HASH_SALT && env.APP_ENV === "production")
+    throw new Error("SECURITY_HASH_SALT is required in production");
+  const salt = env.SECURITY_HASH_SALT ?? "dev-only-salt-change-me";
   return createHmac("sha256", salt).update(value.trim().toLowerCase()).digest("hex").slice(0, 32);
 }
 
@@ -45,7 +48,12 @@ function hasServiceRole(): boolean {
  * Fixed-window rate limiter backed by PostgreSQL (shared across instances).
  * Returns true when the request may proceed.
  */
-export async function consumeRateLimit(key: string, max: number, windowSeconds: number, blockSeconds = 0): Promise<boolean> {
+export async function consumeRateLimit(
+  key: string,
+  max: number,
+  windowSeconds: number,
+  blockSeconds = 0,
+): Promise<boolean> {
   if (!hasServiceRole()) {
     const now = Date.now();
     const bucket = memoryBuckets.get(key);
@@ -89,7 +97,10 @@ export type LoginEvent =
   | "session_revoked";
 
 /** Records an important authentication event (hashed e-mail/IP, never the password). */
-export async function recordLoginEvent(event: LoginEvent, opts: { userId?: string | null; email?: string }): Promise<void> {
+export async function recordLoginEvent(
+  event: LoginEvent,
+  opts: { userId?: string | null; email?: string },
+): Promise<void> {
   if (!hasServiceRole()) return;
   try {
     const ip = await clientIp();

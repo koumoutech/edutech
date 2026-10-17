@@ -28,7 +28,7 @@ export default async function AssistantPage({ searchParams }: { searchParams: Pr
           title="L'assistant IA n'est pas activé"
           description={
             canSchoolWide(ctx, "school.manage")
-              ? "L'administrateur de la plateforme doit configurer AI_PROVIDER=anthropic et une clé ANTHROPIC_API_KEY côté serveur (voir documentation/ai.md). Aucune donnée n'est envoyée tant que l'assistant est désactivé."
+              ? "L'administrateur de la plateforme doit configurer AI_PROVIDER=anthropic et une clé ANTHROPIC_API_KEY côté serveur (voir documentation/assistant-ia.md). Aucune donnée n'est envoyée tant que l'assistant est désactivé."
               : "Cette fonctionnalité n'est pas encore disponible dans votre établissement."
           }
         />
@@ -37,7 +37,10 @@ export default async function AssistantPage({ searchParams }: { searchParams: Pr
   }
 
   const isUuid = c && /^[0-9a-f-]{36}$/i.test(c);
-  const [conversations, current] = await Promise.all([listConversations(ctx), isUuid ? loadConversation(ctx, c) : Promise.resolve(null)]);
+  const [conversations, current] = await Promise.all([
+    listConversations(ctx),
+    isUuid ? loadConversation(ctx, c) : Promise.resolve(null),
+  ]);
 
   return (
     <div className="space-y-5">
@@ -67,14 +70,20 @@ export default async function AssistantPage({ searchParams }: { searchParams: Pr
             </CardHeader>
             <CardContent>
               {conversations.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Aucune conversation.</p>
+                <p className="text-muted-foreground text-sm">Aucune conversation.</p>
               ) : (
                 <ul className="space-y-1">
                   {conversations.map((cv) => (
-                    <li key={cv.id} className={cn("group flex items-center gap-1 rounded-lg px-2 py-1.5 hover:bg-accent", cv.id === current?.id && "bg-accent")}>
+                    <li
+                      key={cv.id}
+                      className={cn(
+                        "group hover:bg-accent flex items-center gap-1 rounded-lg px-2 py-1.5",
+                        cv.id === current?.id && "bg-accent",
+                      )}
+                    >
                       <Link href={`/app/assistant?c=${cv.id}`} className="min-w-0 flex-1">
                         <span className="block truncate text-sm">{cv.title}</span>
-                        <span className="block text-xs text-muted-foreground">{formatDateTime(cv.updated_at)}</span>
+                        <span className="text-muted-foreground block text-xs">{formatDateTime(cv.updated_at)}</span>
                       </Link>
                       <ConfirmDialog
                         trigger={
@@ -98,8 +107,11 @@ export default async function AssistantPage({ searchParams }: { searchParams: Pr
             <span className="flex gap-2">
               <ShieldCheckIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
               <span>
-                L&apos;assistant utilise des outils contrôlés qui appliquent vos permissions. Il ne modifie aucune donnée : les brouillons doivent être confirmés.
-                {status.allowPersonalData ? " Les noms d'élèves peuvent être transmis au fournisseur d'IA (accord de traitement en place)." : " Les élèves sont pseudonymisés avant envoi au fournisseur d'IA."}
+                L&apos;assistant utilise des outils contrôlés qui appliquent vos permissions. Il ne modifie aucune
+                donnée : les brouillons doivent être confirmés.
+                {status.allowPersonalData
+                  ? " Les noms d'élèves peuvent être transmis au fournisseur d'IA (accord de traitement en place)."
+                  : " Les élèves sont pseudonymisés avant envoi au fournisseur d'IA."}
               </span>
             </span>
           </Alert>
