@@ -87,10 +87,11 @@ export function fromDbError(error: PgLikeError | null | undefined): AppError {
   return new AppError("UNKNOWN");
 }
 
-/** Throws a mapped AppError when a Supabase response carries an error. */
-export function unwrap<T>(result: { data: T; error: PgLikeError | null }): T {
+/** Throws a mapped AppError on error, NOT_FOUND when no row came back. */
+export function unwrap<R extends { data: unknown; error: PgLikeError | null }>(result: R): NonNullable<R["data"]> {
   if (result.error) throw fromDbError(result.error);
-  return result.data;
+  if (result.data === null || result.data === undefined) throw new AppError("NOT_FOUND");
+  return result.data as NonNullable<R["data"]>;
 }
 
 export type ActionResult<T = unknown> =
@@ -107,7 +108,7 @@ export function toActionError(e: unknown): Extract<ActionResult, { ok: false }> 
 }
 
 /** Like `unwrap` for list queries: never returns null. */
-export function unwrapList<T>(result: { data: T[] | null; error: PgLikeError | null }): T[] {
+export function unwrapList<R extends { data: unknown[] | null; error: PgLikeError | null }>(result: R): NonNullable<R["data"]> {
   if (result.error) throw fromDbError(result.error);
-  return result.data ?? [];
+  return (result.data ?? []) as NonNullable<R["data"]>;
 }

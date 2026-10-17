@@ -3921,6 +3921,7 @@ export type Database = {
       generate_class_invoices: { Args: { p_school: string; p_class: string; p_fee_schedules: string[]; p_due_date: string; p_issue?: boolean }; Returns: number };
       incomplete_student_files: { Args: { p_school: string; p_limit?: number }; Returns: { student_id: string; first_name: string; last_name: string; matricule: string; missing: string[] }[] };
       issue_invoice: { Args: { p_invoice: string }; Returns: undefined };
+      log_export: { Args: { p_school: string; p_kind: string; p_rows: number }; Returns: undefined };
       my_context: { Args: Record<PropertyKey, never>; Returns: Json };
       publish_announcement: { Args: { p_id: string }; Returns: number };
       record_payment: { Args: { p_school: string; p_student: string; p_amount: number; p_method: string; p_reference?: string; p_payer_name?: string; p_paid_at?: string; p_allocations?: Json; p_notes?: string }; Returns: string };
