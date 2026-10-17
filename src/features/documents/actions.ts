@@ -5,6 +5,7 @@ import { z } from "zod";
 import { parseInput, runAction } from "@/server/actions";
 import { assertCan, requireContext } from "@/server/auth/session";
 import { AppError } from "@/server/errors";
+import { generateCertificate, generateSchema, saveTemplate, templateSchema } from "@/server/services/certificates";
 import { softDeleteDocument, storeDocument } from "@/server/services/documents";
 
 const uploadSchema = z.object({
@@ -49,4 +50,21 @@ export async function deleteDocumentAction(id: string) {
     await softDeleteDocument(ctx, parseInput(z.object({ id: z.uuid() }), { id }).id);
     refresh();
   }, "Document supprimé.");
+}
+
+export async function generateCertificateAction(_prev: unknown, fd: FormData) {
+  return runAction(async () => {
+    const ctx = await requireContext();
+    const res = await generateCertificate(ctx, parseInput(generateSchema, fd));
+    refresh();
+    return res;
+  }, "Document généré et classé dans le dossier de l'élève.");
+}
+
+export async function saveTemplateAction(_prev: unknown, fd: FormData) {
+  return runAction(async () => {
+    const ctx = await requireContext();
+    await saveTemplate(ctx, parseInput(templateSchema, fd));
+    refresh();
+  }, "Modèle enregistré.");
 }
