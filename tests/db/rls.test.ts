@@ -605,3 +605,65 @@ describe.skipIf(!enabled)("attendance", () => {
     expect(err).toMatch(/row-level security/);
   });
 });
+
+describe.skipIf(!databaseUrl())("AI assistant storage", () => {
+  let client: Client;
+  beforeAll(async () => {
+    client = await connect();
+  });
+  afterAll(async () => {
+    await client.end();
+  });
+
+  it("conversations are private to their author, even for administrators", async () => {
+    const seen = await asUser(
+      client,
+      USERS.admin,
+      (q) => q(`select id from public.ai_conversations`),
+      async (q) => {
+        await q(`insert into public.ai_conversations (school_id, user_id, title) values ($1, $2, 'privée')`, [DEMO_SCHOOL, USERS.mathTeacher]);
+      },
+    );
+    expect(seen).toHaveLength(0);
+  });
+
+  it("a user without ai.use cannot start a conversation", async () => {
+    const err = await asUser(
+      client,
+      USERS.parent,
+      (q) => expectError(q, `insert into public.ai_conversations (school_id, title) values ($1, 'test')`, [DEMO_SCHOOL]),
+      async (q) => {
+        // Parents have ai.use by default (family-scoped tools); revoke it for this scenario.
+        await q(`delete from public.role_permissions where permission_key = 'ai.use' and role_id in (select id from public.roles where school_id = $1 and key = 'parent')`, [DEMO_SCHOOL]);
+      },
+    );
+    expect(err).toMatch(/row-level security/);
+  });
+
+  it("a user cannot add messages to someone else's conversation", async () => {
+    const err = await asUser(
+      client,
+      USERS.frenchTeacher,
+      async (q) => {
+        const [c] = await q<{ id: string }>(`select id from public.ai_conversations where title = 'cible'`);
+        return expectError(q, `insert into public.ai_messages (conversation_id, school_id, role, content) values ($1, $2, 'user', 'x')`, [c?.id ?? null, DEMO_SCHOOL]);
+      },
+      async (q) => {
+        await q(`insert into public.ai_conversations (school_id, user_id, title) values ($1, $2, 'cible')`, [DEMO_SCHOOL, USERS.mathTeacher]);
+      },
+    );
+    expect(err).toMatch(/row-level security|null value/);
+  });
+
+  it("tool audit rows can be written by members but only read with audit.read", async () => {
+    const [teacherRead, adminRead] = await asUser(client, USERS.mathTeacher, async (q) => {
+      await q(`insert into public.ai_tool_invocations (school_id, tool_name, outcome) values ($1, 'get_grades_summary', 'ok')`, [DEMO_SCHOOL]);
+      const mine = await q(`select 1 from public.ai_tool_invocations`);
+      await q(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub: USERS.admin, role: "authenticated" })]);
+      const admin = await q(`select tool_name from public.ai_tool_invocations`);
+      return [mine, admin];
+    });
+    expect(teacherRead).toHaveLength(0);
+    expect(adminRead.length).toBeGreaterThan(0);
+  });
+});

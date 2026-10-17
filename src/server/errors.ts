@@ -37,6 +37,7 @@ export const ERROR_MESSAGES: Record<string, string> = {
   TIMETABLE_CONFLICT: "Conflit d'emploi du temps : la classe, l'enseignant ou la salle est déjà occupé(e) sur ce créneau.",
   ALREADY_INITIALIZED: "La plateforme est déjà initialisée.",
   AI_DISABLED: "L'assistant IA n'est pas configuré sur cette plateforme.",
+  AI_UNAVAILABLE: "L'assistant IA est momentanément indisponible. Réessayez dans quelques instants.",
   UNKNOWN: "Une erreur inattendue est survenue. Réessayez ou contactez le support.",
 };
 

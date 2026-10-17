@@ -19,7 +19,7 @@ const serverSchema = z.object({
 
   AI_PROVIDER: z.enum(["anthropic", "disabled"]).default("disabled"),
   ANTHROPIC_API_KEY: z.string().min(10).optional(),
-  AI_MODEL: z.string().default("claude-sonnet-5-5"),
+  AI_MODEL: z.string().min(3).default("claude-opus-5-5"),
   /** Must be explicitly enabled once a DPA with the AI provider is in place. */
   AI_ALLOW_PERSONAL_DATA: bool,
   AI_MAX_TOOL_ROUNDS: z.coerce.number().int().min(1).max(8).default(5),
