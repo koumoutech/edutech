@@ -32,6 +32,7 @@ Créez ensuite le premier administrateur sur `/setup`, avec `SETUP_TOKEN` (voir 
 ## Documentation
 
 - [Architecture et modèle de données](documentation/architecture.md)
+- [Mise en ligne rapide (Supabase + Vercel)](documentation/mise-en-ligne.md)
 - [Installation](documentation/installation.md)
 - [Déploiement, migrations et rollback](documentation/deploiement.md)
 - [Sécurité](documentation/securite.md)

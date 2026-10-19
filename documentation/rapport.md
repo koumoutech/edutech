@@ -77,6 +77,18 @@ Toutes ces commandes ont été lancées dans l'environnement de développement l
   - refus des exports anonymes ;
   - refus du worker sans secret.
 
+## 2 bis. Projet Supabase « edudigi » (19/10/2026)
+
+- Projet créé dans l'organisation KOUMOU Tech, région `eu-west-3` (Paris).
+- Toutes les migrations ont été appliquées, à trois instructions près : elles sont jugées « destructives » par l'outil d'automatisation et doivent être exécutées à la main via `supabase/manual/apply-in-sql-editor.sql`.
+  - Ce script a été validé sur PostgreSQL : deux exécutions successives, puis 55 tests RLS réussis.
+- La suppression de la politique `roles_manage` a été remplacée, sur ce projet, par un `alter policy` équivalent (rôles système non modifiables).
+- Conseiller sécurité Supabase :
+  - `set_updated_at` corrigé (`search_path` fixé) ;
+  - les avertissements « SECURITY DEFINER exécutable » sont attendus : ce sont les RPC métier, toutes contrôlées.
+- Conseiller performance : optimisations possibles (`auth.uid()` encapsulé dans les politiques, index de clés étrangères), non bloquantes.
+- L'application n'a pas pu être testée contre ce projet depuis l'environnement de développement : le réseau sortant vers `supabase.co` y est bloqué.
+
 ## 3. Non vérifié, à faire par l'exploitant
 
 - **Pile Supabase complète** (Auth, PostgREST, Storage, Realtime) : elle n'a pas pu être lancée dans l'environnement de développement (téléchargements bloqués). Les tests de base tournent sur PostgreSQL 16 avec une **émulation** des schémas `auth` et `storage` (`tests/db/supabase-shim.sql`). Les requêtes applicatives sont typées à partir du schéma réel, mais n'ont pas été exécutées contre PostgREST.
