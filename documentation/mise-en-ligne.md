@@ -30,6 +30,9 @@ Ce guide met l'application en ligne en une quinzaine de minutes, à partir d'un 
 | `EMAIL_PROVIDER`                                   | `log` (ou `resend` avec `RESEND_API_KEY`)                        |
 
 3. Cliquez sur **Deploy**.
+   - `vercel.json` programme l'envoi des e-mails et SMS en file d'attente **une fois par jour**, seule fréquence autorisée par l'offre gratuite (Hobby).
+   - Sur l'offre Pro, passez la planification à `*/5 * * * *` pour des envois toutes les 5 minutes, ou utilisez un service de cron externe qui appelle `GET /api/jobs/outbound` avec l'en-tête `Authorization: Bearer <CRON_SECRET>`.
+   - Les notifications dans l'application sont, elles, immédiates.
 4. Revenez dans Supabase → **Authentication → URL Configuration** :
    - **Site URL** : l'URL Vercel ;
    - **Redirect URLs** : `https://<votre-url>/auth/callback`.

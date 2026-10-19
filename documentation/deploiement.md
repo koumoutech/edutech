@@ -14,7 +14,7 @@ Chaque environnement a ses **propres** clés : URL et clés Supabase, `SETUP_TOK
 
 1. Importez le dépôt. Le framework est détecté automatiquement (Next.js) et la commande de build est `pnpm build`.
 2. Définissez les variables de `.env.example` pour chaque environnement (Production / Preview), en ne marquant comme « Sensitive » que les secrets serveur.
-3. Le fichier `vercel.json` déclare un cron toutes les 5 minutes sur `/api/jobs/outbound`. Vercel envoie `Authorization: Bearer $CRON_SECRET` : définissez `CRON_SECRET`.
+3. Le fichier `vercel.json` déclare un cron quotidien sur `/api/jobs/outbound`, compatible avec l'offre Hobby. Sur l'offre Pro, passez-le à `*/5 * * * *`. Vercel envoie `Authorization: Bearer $CRON_SECRET` : définissez `CRON_SECRET`.
 4. Domaine : configurez le domaine, puis reportez l'URL dans `NEXT_PUBLIC_APP_URL` ainsi que dans **Supabase → Auth → URL Configuration** (Site URL et Redirect URLs `…/auth/callback`).
 
 Tout autre hébergeur Node.js ≥ 20 convient (`pnpm build && pnpm start`). Il faut alors un planificateur externe qui appelle `GET /api/jobs/outbound` avec l'en-tête `Authorization`.
